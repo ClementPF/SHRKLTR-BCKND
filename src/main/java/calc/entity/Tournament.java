@@ -18,8 +18,11 @@ public class Tournament {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long tournamentId;
+    @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
     private String displayName;
+    @Column(nullable = false)
     private Boolean isOver;
 
     @ManyToOne
@@ -31,7 +34,7 @@ public class Tournament {
     private User owner;
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
-    private List<Match> matchs;
+    private List<Game> matchs;
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
     private List<Stats> stats;
@@ -86,11 +89,11 @@ public class Tournament {
 
     public void setOwner(User owner) { this.owner = owner; }
 
-    public List<Match> getMatchs() {
+    public List<Game> getMatchs() {
         return matchs;
     }
 
-    public void setMatchs(List<Match> matchs) {
+    public void setMatchs(List<Game> matchs) {
         this.matchs = matchs;
     }
 

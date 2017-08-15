@@ -1,6 +1,6 @@
 package calc.DTO;
 
-import calc.entity.Match;
+import calc.entity.Game;
 import calc.entity.Outcome;
 import calc.entity.User;
 
@@ -16,7 +16,7 @@ public class OutcomeDTO {
     private double scoreValue;
     private Outcome.Result result;
     private String userName;
-    private Long matchId;
+    private Long gameId;
 
     public String getUserName() {
         return userName;
@@ -50,11 +50,11 @@ public class OutcomeDTO {
         this.result = result;
     }
 
-    public Long getMatchId() {
-        return matchId;
+    public Long getGameId() {
+        return gameId;
     }
 
-    public void setMatchId(Long matchId) {
-        this.matchId = matchId;
+    public void setGameId(Long gameId) {
+        this.gameId = gameId;
     }
 }

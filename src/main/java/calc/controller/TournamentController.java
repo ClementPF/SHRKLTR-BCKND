@@ -1,6 +1,6 @@
 package calc.controller;
 
-import calc.DTO.MatchDTO;
+import calc.DTO.GameDTO;
 import calc.DTO.UserDTO;
 import calc.DTO.StatsDTO;
 import calc.DTO.TournamentDTO;
@@ -29,7 +29,7 @@ public class TournamentController {
     @Autowired
     private StatsService statsService;
     @Autowired
-    private MatchService matchService;
+    private GameService matchService;
     @Autowired
     private SportService sportService;
     @Autowired
@@ -46,6 +46,7 @@ public class TournamentController {
 
     /**
      * Let the owner of a Tournament to delete it.
+     * @param name 
      */
     @RequestMapping(value = "/tournament/{tournamentName}", method = RequestMethod.DELETE)
     @Description("Let the owner of a Tournament to delete it.")
@@ -93,22 +94,22 @@ public class TournamentController {
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/matchs", method = RequestMethod.GET)
-    public List<MatchDTO> matchesForTournament(@PathVariable(value="tournamentName") String name) {
+    public List<GameDTO> matchesForTournament(@PathVariable(value="tournamentName") String name) {
         Tournament tournament =  tournamentRepository.findByName(name);
-        List<Match> matchs = tournament.getMatchs();
+        List<Game> matchs = tournament.getMatchs();
         return matchs.stream()
                 .map(m -> matchService.convertToDto(m)).collect(Collectors.toList());
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/matchs", method = RequestMethod.POST)
-    public MatchDTO addMatchForTournament(@PathVariable(value="tournamentName") String name, @RequestBody MatchDTO match) {
+    public GameDTO addMatchForTournament(@PathVariable(value="tournamentName") String name, @RequestBody GameDTO match) {
 
         //TODO validate data
         //TODO looser send game
         //TODO calculate point value
         //TODO might make more sense to be in POST /match ??
 
-        Match m = null;
+        Game m = null;
         try {
             m = matchService.convertToEntity(match);
         } catch (ParseException e) {

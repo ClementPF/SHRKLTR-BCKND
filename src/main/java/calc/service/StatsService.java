@@ -70,10 +70,10 @@ public class StatsService {
     }
 
     public void recalculateAfterOutcome(Outcome outcome){
-        Stats stats = statsRepository.findByUserAndTournament(outcome.getUser().getUserId(), outcome.getMatch().getTournament().getName());
+        Stats stats = statsRepository.findByUserAndTournament(outcome.getUser().getUserId(), outcome.getGame().getTournament().getName());
 
         if(stats == null){
-            stats = new Stats(outcome.getUser(),outcome.getMatch().getTournament());
+            stats = new Stats(outcome.getUser(),outcome.getGame().getTournament());
         }
 
         stats.setScore(stats.getScore() + outcome.getScoreValue());

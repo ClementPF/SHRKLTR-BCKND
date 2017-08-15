@@ -1,6 +1,6 @@
 package calc.controller;
 
-import calc.entity.Match;
+import calc.entity.Game;
 import calc.entity.Stats;
 import calc.repository.StatsRepository;
 import org.springframework.beans.factory.annotation.Autowired;

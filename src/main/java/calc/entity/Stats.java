@@ -32,7 +32,7 @@ public class Stats {
     @JoinColumn(name="tournamentId")
     private Tournament tournament;
     @ManyToOne
-    @JoinColumn(name="userId")
+    @JoinColumn(name="userId", nullable = false)
     private User user;
 
     protected Stats() {}

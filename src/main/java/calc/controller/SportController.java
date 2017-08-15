@@ -5,6 +5,7 @@ import calc.entity.User;
 import calc.entity.Sport;
 import calc.repository.UserRepository;
 import calc.repository.SportRepository;
+import calc.security.Secured;
 import calc.service.SportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -27,6 +28,7 @@ public class SportController {
     private SportService sportService;
 
     @RequestMapping(value = "/sports", method = RequestMethod.GET)
+    @Secured
     public List<SportDTO> sports() {
         return sportService.findAll().stream().map(s -> sportService.convertToDto(s)).collect(Collectors.toList());
     }

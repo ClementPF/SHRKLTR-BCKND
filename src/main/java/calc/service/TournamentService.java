@@ -1,8 +1,8 @@
 package calc.service;
 
-import calc.DTO.MatchDTO;
+import calc.DTO.GameDTO;
 import calc.DTO.TournamentDTO;
-import calc.entity.Match;
+import calc.entity.Game;
 import calc.entity.User;
 import calc.entity.Sport;
 import calc.entity.Tournament;
@@ -32,7 +32,7 @@ public class TournamentService {
     @Autowired
     private UserService userService;
     @Autowired
-    private MatchService matchService;
+    private GameService matchService;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -44,7 +44,7 @@ public class TournamentService {
         return tournamentRepository.findByName(name);
     }
 
-    public Match addMatchForTournament(String tournamentName, Match match) {
+    public Game addMatchForTournament(String tournamentName, Game match) {
 
         //TODO validate data
         //TODO looser send game
@@ -53,7 +53,7 @@ public class TournamentService {
 
         Tournament tournament =  tournamentRepository.findByName(tournamentName);
 
-        return matchService.addMatch(tournament, match.getOutcomes());
+        return matchService.addGame(tournament, match.getOutcomes());
     }
 
     public Tournament convertToEntity(TournamentDTO tournamentDto) throws ParseException {

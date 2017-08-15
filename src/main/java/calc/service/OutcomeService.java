@@ -1,10 +1,9 @@
 package calc.service;
 
-import calc.DTO.MatchDTO;
+import calc.DTO.GameDTO;
 import calc.DTO.OutcomeDTO;
 import calc.ELO.EloRating;
 import calc.entity.*;
-import calc.repository.MatchRepository;
 import calc.repository.OutcomeRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import calc.repository.GameRepository;
 
 /**
  * Created by clementperez on 9/20/16.
@@ -25,7 +25,7 @@ public class OutcomeService {
     @Autowired
     private OutcomeRepository outcomeRepository;
     @Autowired
-    private MatchService matchService;
+    private GameService matchService;
     @Autowired
     private UserService userService;
     @Autowired
@@ -35,8 +35,8 @@ public class OutcomeService {
         return outcomeRepository.findByUserId(userId);
     }
 
-    public List<Outcome> findByMatchId(Long matchId) {
-        return outcomeRepository.findByMatchId(matchId);
+    public List<Outcome> findByGameId(Long gameId) {
+        return outcomeRepository.findByGameId(gameId);
     }
 
     public Outcome convertToEntity(OutcomeDTO outcomeDto) throws ParseException {
@@ -45,8 +45,8 @@ public class OutcomeService {
         outcome.setOutcomeId(outcomeDto.getOutcomeId());
         outcome.setScoreValue(outcomeDto.getScoreValue());
         outcome.setResults(outcomeDto.getResult());
-        if(outcomeDto.getMatchId() != null) {
-            outcome.setMatch(matchService.findOne(outcomeDto.getMatchId()));
+        if(outcomeDto.getGameId() != null) {
+            outcome.setGame(matchService.findOne(outcomeDto.getGameId()));
         }
         outcome.setUser(userService.findByUserName(outcomeDto.getUserName()));
 
@@ -59,7 +59,7 @@ public class OutcomeService {
         outcomeDTO.setOutcomeId(outcome.getOutcomeId());
         outcomeDTO.setScoreValue(outcome.getScoreValue());
         outcomeDTO.setResult(outcome.getResults());
-        outcomeDTO.setMatchId(outcome.getMatch().getMatchId());
+        outcomeDTO.setGameId(outcome.getGame().getGameId());
         outcomeDTO.setUserName(outcome.getUser().getUserName());
 
         return outcomeDTO;

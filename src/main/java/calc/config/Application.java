@@ -1,7 +1,17 @@
+package calc.config;
+
 import calc.entity.*;
+import calc.property.JwtProperties;
 import calc.repository.UserRepository;
-import calc.service.MatchService;
+import calc.security.JwtTokenInterceptor;
+import calc.service.GameService;
 import calc.service.UserService;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import java.io.UnsupportedEncodingException;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.orm.jpa.EntityScan;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -22,13 +32,25 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @SpringBootApplication
-@ComponentScan(basePackages={"calc.controller","calc.repository","calc.entity","calc.rest","calc.service"})
-@EnableJpaRepositories(basePackages = { "calc.repository" })
+@ComponentScan(basePackages = {
+    "calc.controller", 
+    "calc.repository", 
+    "calc.entity", 
+    "calc.rest", 
+    "calc.service", 
+    "calc.property",
+    "calc.security",
+    "calc.exception"
+})
+@EnableJpaRepositories(basePackages = {"calc.repository"})
 @EnableSwagger2
-@EntityScan(basePackages = { "calc.entity" })
-public class Application {
+@EntityScan(basePackages = {"calc.entity"})
+public class Application extends WebMvcConfigurerAdapter {
 
     public static void main(String[] args) { SpringApplication.run(Application.class, args);}
 
@@ -37,19 +59,30 @@ public class Application {
     @Autowired
     private CrudRepository<Sport,Long> repoSport;
     @Autowired
+    private UserRepository userRepository;
+    @Autowired
     private CrudRepository<Tournament,Long> repoTournament;
     @Autowired
-    private CrudRepository<Match,Long> repoMatch;
+    private CrudRepository<Game,Long> repoMatch;
     @Autowired
     private CrudRepository<Outcome,Long> repoOutcome;
     @Autowired
     private UserService userService;
     @Autowired
-    private MatchService matchService;
+    private GameService matchService;
+    @Autowired
+    private JwtProperties jwtProperties;
+    @Autowired
+    private JwtTokenInterceptor jwtTokenInterceptor;
 
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();
+    }
+    
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
     }
 
     @Bean
@@ -60,19 +93,38 @@ public class Application {
                 .paths(PathSelectors.any())
                 .build();
     }
+    
+    @Bean
+    public Algorithm algorithm() throws UnsupportedEncodingException {
+        return Algorithm.HMAC256(jwtProperties.getSecret());
+    }
+    
+    @Bean
+    public JWTVerifier jwtVerifier() throws UnsupportedEncodingException {
+        return JWT.require(algorithm())
+            .withIssuer(jwtProperties.getIss())
+            .build();
+    }
 
-    @PostConstruct
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(jwtTokenInterceptor);
+    }
+
+//    @PostConstruct
     public void initDB(){
-
-       List<Sport> sports = Arrays.asList(
-                new Sport("Pool"),
-                new Sport("Ping Pong"),
-                new Sport("Fussball"),
-                new Sport("Darts"));
+        long count = repoSport.count();
+        
+        List<Sport> sports = Arrays.asList(
+                 new Sport("Pool"),
+                 new Sport("Ping Pong"),
+                 new Sport("Fussball"),
+                 new Sport("Darts"));
 
         for(Sport sport : sports){
             repoSport.save(sport);
         }
+        
         List<User> users = Arrays.asList(
                 new User("AAAAA"),
                 new User("BBBBB"),
@@ -108,10 +160,9 @@ public class Application {
                     User opponent = opponents.get(rdm.nextInt(opponents.size() - 1));
 
                     int result = rdm.nextInt(1);
-                    matchService.addMatch(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
+                    matchService.addGame(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
                 }
             }
         }
-
     }
 }

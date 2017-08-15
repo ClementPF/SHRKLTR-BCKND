@@ -5,3 +5,6 @@ build/*
 .mvn/*
 
 *.lst
+classes/
+/build
+target/

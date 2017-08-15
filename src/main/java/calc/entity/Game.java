@@ -8,57 +8,55 @@ import java.util.*;
  */
 
 @Entity
-
-
 @NamedQueries({
-        @NamedQuery(name = "Match.findByTournamentName", query = "SELECT m FROM Match m WHERE m.tournament.name = ?1"),
-        @NamedQuery(name = "Match.findByUserId",
-                query = "SELECT m FROM Match m " +
+        @NamedQuery(name = "Game.findByTournamentName", query = "SELECT m FROM Game m WHERE m.tournament.name = ?1"),
+        @NamedQuery(name = "Game.findByUserId",
+                query = "SELECT m FROM Game m " +
                         "INNER JOIN m.outcomes o " +
                         "WHERE o.user.userId = ?1"),
-        @NamedQuery(name = "Match.findByUserIdByTournamentName",
-                query = "SELECT m FROM Match m " +
+        @NamedQuery(name = "Game.findByUserIdByTournamentName",
+                query = "SELECT m FROM Game m " +
                         "INNER JOIN m.outcomes o " +
                         "WHERE o.user.userId = ?1 AND m.tournament.name=?2" )
 })
-public class Match {
+public class Game {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
-    private Long matchId;
+    private Long gameId;
     private Date date;
 
     @ManyToOne
     @JoinColumn(name = "tournamentId")
     private Tournament tournament;
 
-    @OneToMany(mappedBy = "match", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
     private List<Outcome> outcomes;
 
-    protected Match() {}
+    protected Game() {}
 
-    public Match(Date date, Tournament tournament) {
+    public Game(Date date, Tournament tournament) {
         this.date = date;
         this.tournament = tournament;
     }
 
-    public Match(Tournament tournament) {
+    public Game(Tournament tournament) {
         this.date = new Date();
         this.tournament = tournament;
     }
 
-    public Match(Tournament tournament, List<Outcome> outcomes) {
+    public Game(Tournament tournament, List<Outcome> outcomes) {
         this.date = new Date();
         this.tournament = tournament;
         this.outcomes = outcomes;
     }
 
-    public Long getMatchId() {
-        return matchId;
+    public Long getGameId() {
+        return gameId;
     }
 
-    public void setMatchId(Long matchId) {
-        this.matchId = matchId;
+    public void setGameId(Long gameId) {
+        this.gameId = gameId;
     }
 
     public Date getDate() {
@@ -84,7 +82,7 @@ public class Match {
     public void setOutcomes(List<Outcome> outcomes) {
         this.outcomes = outcomes;
         for(Outcome o : outcomes){
-            o.setMatch(this);
+            o.setGame(this);
         }
     }
 }

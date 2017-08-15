@@ -33,6 +33,7 @@ public class UserService{
     private OutcomeService outcomeService;
     @Autowired
     private ModelMapper modelMapper;
+    
 /*
     private List<User> userFromTournament(Tournament tournament){
 
@@ -64,8 +65,8 @@ public class UserService{
         return userRepository.findByLastName(lastName);
     }
 
-    public User findByUserName(String lastName){
-        return userRepository.findByUserName(lastName);
+    public User findByUserName(String userName){
+        return userRepository.findByUserName(userName);
     }
 
     public List<User> findUsersInTournament(Tournament tournament){

@@ -33,10 +33,10 @@ public class EloRating {
      * Q(i) = 10 ^ (RatingP(i)/400)
      *
      * @param usersRating
-     *            A HashMap<UserId, Rating> keeping users id and current rating
+     *            A {@literal HashMap<UserId, Rating>} keeping users id and current rating
      * @param userIdWinner
      *            The userId of the winner
-     * @return A HashMap<UserId, Rating> with new rating
+     * @return A {@literal HashMap<UserId, Rating>} with new rating
      */
     static public HashMap<Integer, Double> calculateMultiuser(HashMap<Integer, Double> usersRating, int userIdWinner) {
 

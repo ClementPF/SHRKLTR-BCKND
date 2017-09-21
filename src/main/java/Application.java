@@ -1,5 +1,5 @@
 import calc.entity.*;
-import calc.service.MatchService;
+import calc.service.GameService;
 import calc.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ public class Application {
     @Autowired
     private CrudRepository<Tournament,Long> repoTournament;
     @Autowired
-    private CrudRepository<Match,Long> repoMatch;
+    private CrudRepository<Game,Long> repoGame;
     @Autowired
     private CrudRepository<Outcome,Long> repoOutcome;
     @Autowired
@@ -48,7 +48,7 @@ public class Application {
     @Autowired
     private UserService userService;
     @Autowired
-    private MatchService matchService;
+    private GameService gameService;
 
     @Bean
     public ModelMapper modelMapper() {
@@ -113,7 +113,7 @@ public class Application {
                     int result = rdm.nextInt(1);
 
 
-                  //  matchService.addMatch(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
+                  //  gameService.addGame(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
                 }
             }
         }

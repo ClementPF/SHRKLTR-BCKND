@@ -2,7 +2,7 @@ package calc.service;
 
 import calc.DTO.OutcomeDTO;
 import calc.entity.Outcome;
-import calc.repository.MatchRepository;
+import calc.repository.GameRepository;
 import calc.repository.OutcomeRepository;
 import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
@@ -22,9 +22,9 @@ public class OutcomeService {
     @Autowired
     private OutcomeRepository outcomeRepository;
     @Autowired
-    private MatchService matchService;
+    private GameService gameService;
     @Autowired
-    private MatchRepository matchRepository;
+    private GameRepository gameRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -35,8 +35,8 @@ public class OutcomeService {
                 .map(o -> convertToDto(o)).collect(Collectors.toList());
     }
 
-    public List<OutcomeDTO> findByMatchId(Long matchId) {
-        return outcomeRepository.findByMatchId(matchId).stream()
+    public List<OutcomeDTO> findByGameId(Long gameId) {
+        return outcomeRepository.findByGameId(gameId).stream()
                 .map(o -> convertToDto(o)).collect(Collectors.toList());
     }
 
@@ -46,8 +46,8 @@ public class OutcomeService {
         outcome.setOutcomeId(outcomeDto.getOutcomeId());
         outcome.setScoreValue(outcomeDto.getScoreValue());
         outcome.setResults(outcomeDto.getResult());
-        if(outcomeDto.getMatchId() != null) {
-            outcome.setMatch(matchRepository.findOne(outcomeDto.getMatchId()));
+        if(outcomeDto.getGameId() != null) {
+            outcome.setGame(gameRepository.findOne(outcomeDto.getGameId()));
         }
         outcome.setUser(userRepository.findByUserName(outcomeDto.getUserName()));
 
@@ -60,7 +60,7 @@ public class OutcomeService {
         outcomeDTO.setOutcomeId(outcome.getOutcomeId());
         outcomeDTO.setScoreValue(outcome.getScoreValue());
         outcomeDTO.setResult(outcome.getResults());
-        outcomeDTO.setMatchId(outcome.getMatch().getMatchId());
+        outcomeDTO.setGameId(outcome.getGame().getGameId());
         outcomeDTO.setUserName(outcome.getUser().getUserName());
 
         return outcomeDTO;

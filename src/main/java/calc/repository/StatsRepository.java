@@ -1,6 +1,6 @@
 package calc.repository;
 
-import calc.entity.Match;
+import calc.entity.Game;
 import calc.entity.User;
 import calc.entity.Stats;
 import calc.entity.Tournament;

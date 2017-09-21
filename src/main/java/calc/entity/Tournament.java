@@ -31,7 +31,7 @@ public class Tournament {
     private User owner;
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
-    private List<Match> matchs;
+    private List<Game> games;
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
     private List<Stats> stats;
@@ -86,12 +86,12 @@ public class Tournament {
 
     public void setOwner(User owner) { this.owner = owner; }
 
-    public List<Match> getMatchs() {
-        return matchs;
+    public List<Game> getGames() {
+        return games;
     }
 
-    public void setMatchs(List<Match> matchs) {
-        this.matchs = matchs;
+    public void setGames(List<Game> games) {
+        this.games = games;
     }
 
     public List<Stats> getStats() {

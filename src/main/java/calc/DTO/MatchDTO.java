@@ -11,9 +11,9 @@ import java.util.Set;
 /**
  * Created by clementperez on 10/2/16.
  */
-public class MatchDTO {
+public class GameDTO {
 
-    private Long matchId;
+    private Long gameId;
     private Date date;
     private String tournamentName;
     private List<OutcomeDTO> outcomes;
@@ -42,11 +42,11 @@ public class MatchDTO {
         this.tournamentName = tournamentName;
     }
 
-    public Long getMatchId() {
-        return matchId;
+    public Long getGameId() {
+        return gameId;
     }
 
-    public void setMatchId(Long matchId) {
-        this.matchId = matchId;
+    public void setGameId(Long gameId) {
+        this.gameId = gameId;
     }
 }

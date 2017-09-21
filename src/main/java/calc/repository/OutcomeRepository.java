@@ -15,5 +15,5 @@ import java.util.Set;
 public interface OutcomeRepository extends CrudRepository<Outcome, Long> {
     List<Outcome> findByUser(User user);
     List<Outcome> findByUserId(Long userId);
-    List<Outcome> findByMatchId(Long matchId);
+    List<Outcome> findByGameId(Long gameId);
 }

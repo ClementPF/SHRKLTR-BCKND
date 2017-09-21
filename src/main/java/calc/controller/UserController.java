@@ -1,9 +1,9 @@
 package calc.controller;
 
-import calc.DTO.MatchDTO;
+import calc.DTO.GameDTO;
 import calc.DTO.StatsDTO;
 import calc.DTO.UserDTO;
-import calc.service.MatchService;
+import calc.service.GameService;
 import calc.service.StatsService;
 import calc.service.TournamentService;
 import calc.service.UserService;
@@ -23,7 +23,7 @@ public class UserController {
     @Autowired
     private StatsService statsService;
     @Autowired
-    private MatchService matchService;
+    private GameService gameService;
 
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public List<UserDTO> users() {
@@ -62,18 +62,18 @@ public class UserController {
         return statsService.findByUserAndTournament(userId, tournamentName);
     }
 /*
-    @RequestMapping(value = "/user/{userId}/matchs", method = RequestMethod.GET)
-    public List<Match> userMacths(@PathVariable(value="userId") Long userId) {
-        return repoMatchs.findByUser(userService.findOne(userId));
+    @RequestMapping(value = "/user/{userId}/games", method = RequestMethod.GET)
+    public List<Game> userMacths(@PathVariable(value="userId") Long userId) {
+        return repoGames.findByUser(userService.findOne(userId));
     }*/
 
-    @RequestMapping(value = "/user/{userId}/matchs", method = RequestMethod.GET)
-    public List<MatchDTO> userMatchsForTournament(@PathVariable(value="userId") Long userId, @RequestParam(value="tournamentName", required = false) String tournamentName) {
-        List<MatchDTO> m = new ArrayList<>();
+    @RequestMapping(value = "/user/{userId}/games", method = RequestMethod.GET)
+    public List<GameDTO> userGamesForTournament(@PathVariable(value="userId") Long userId, @RequestParam(value="tournamentName", required = false) String tournamentName) {
+        List<GameDTO> m = new ArrayList<>();
         if(tournamentName != null){
-            m = matchService.findByUserByTournament(userId,tournamentName);
+            m = gameService.findByUserByTournament(userId,tournamentName);
         }else
-            m = matchService.findByUser(userId);
+            m = gameService.findByUser(userId);
 
         return m;
     }

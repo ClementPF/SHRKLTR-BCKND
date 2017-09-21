@@ -1,6 +1,6 @@
 package calc.repository;
 
-import calc.entity.Match;
+import calc.entity.Game;
 import calc.entity.Sport;
 import calc.entity.Tournament;
 import org.springframework.data.repository.CrudRepository;

@@ -2,9 +2,9 @@ package calc.service;
 
 import calc.DTO.*;
 import calc.ELO.EloRating;
-import calc.entity.Match;
+import calc.entity.Game;
 import calc.entity.Outcome;
-import calc.repository.MatchRepository;
+import calc.repository.GameRepository;
 import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
  * Created by clementperez on 9/20/16.
  */
 @Service
-public class MatchService {
+public class GameService {
 
     @Autowired
-    private MatchRepository matchRepository;
+    private GameRepository gameRepository;
     @Autowired
     private TournamentService tournamentService;
     @Autowired
@@ -43,11 +43,11 @@ public class MatchService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public MatchDTO findOne(Long matchId){
-        return convertToDto(matchRepository.findOne(matchId));
+    public GameDTO findOne(Long gameId){
+        return convertToDto(gameRepository.findOne(gameId));
     }
 
-    public MatchDTO addMatch(TournamentDTO tournament, List<OutcomeDTO> outcomes) {
+    public GameDTO addGame(TournamentDTO tournament, List<OutcomeDTO> outcomes) {
 
         if(outcomes.size() != 2 ||
                 (outcomes.get(0).getResult().equals(Outcome.Result.WIN) && outcomes.get(1).getResult().equals(Outcome.Result.WIN)) ||
@@ -63,10 +63,10 @@ public class MatchService {
         UserDTO w = userService.findByUserName(winner);
         UserDTO l = userService.findByUserName(looser);
 
-        return addMatch(tournament,w,l, isTie);
+        return addGame(tournament,w,l, isTie);
     }
 
-    public MatchDTO addMatch(TournamentDTO tournament, UserDTO winner, UserDTO looser, boolean isTie) {
+    public GameDTO addGame(TournamentDTO tournament, UserDTO winner, UserDTO looser, boolean isTie) {
 
         StatsDTO winnerStats = statsService.findByUserAndTournamentCreateIfNone(winner,tournament);
         StatsDTO loserStats = statsService.findByUserAndTournamentCreateIfNone(looser,tournament);
@@ -74,7 +74,7 @@ public class MatchService {
         double pointValue = EloRating.calculatePointValue(winnerStats.getScore(),loserStats.getScore(),isTie ? "=" : "+");
 
         try {
-            return addMatch(tournament,winner,looser, pointValue, isTie);
+            return addGame(tournament,winner,looser, pointValue, isTie);
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -82,15 +82,15 @@ public class MatchService {
         return null;
     }
 
-    protected MatchDTO addMatch(TournamentDTO tournament, UserDTO winner, UserDTO looser, double pointValue, boolean isTie) throws ParseException {
+    protected GameDTO addGame(TournamentDTO tournament, UserDTO winner, UserDTO looser, double pointValue, boolean isTie) throws ParseException {
 
-        Match match = new Match(tournamentService.convertToEntity(tournament));
+        Game game = new Game(tournamentService.convertToEntity(tournament));
         List<Outcome> outcomes = new ArrayList<>(Arrays.asList(
-                new Outcome(pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.WIN, match, userService.convertToEntity(winner)),
-                new Outcome(-pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.LOSS, match, userService.convertToEntity(looser)))
+                new Outcome(pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.WIN, game, userService.convertToEntity(winner)),
+                new Outcome(-pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.LOSS, game, userService.convertToEntity(looser)))
         );
-        match.setOutcomes(outcomes);
-        Match m = matchRepository.save(match);
+        game.setOutcomes(outcomes);
+        Game m = gameRepository.save(game);
 
         for (Outcome outcome : outcomes) {
             statsService.recalculateAfterOutcome(outcome);
@@ -99,44 +99,44 @@ public class MatchService {
         return convertToDto(m);
     }
 
-    public List<MatchDTO> findByTournament(TournamentDTO tournament){
+    public List<GameDTO> findByTournament(TournamentDTO tournament){
         return findByTournamentName(tournament.getName());
     }
 
-    public List<MatchDTO> findByTournamentName(String tournamentName){
-        return matchRepository.findByTournamentName(tournamentName).stream()
+    public List<GameDTO> findByTournamentName(String tournamentName){
+        return gameRepository.findByTournamentName(tournamentName).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
 
-    public List<MatchDTO> findByUserByTournament(Long userId, String tournamentName){
-        return matchRepository.findByUserIdByTournamentName(userId, tournamentName).stream()
+    public List<GameDTO> findByUserByTournament(Long userId, String tournamentName){
+        return gameRepository.findByUserIdByTournamentName(userId, tournamentName).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
 
-    public List<MatchDTO> findByUser(Long userId) {
-        return matchRepository.findByUserId(userId).stream()
+    public List<GameDTO> findByUser(Long userId) {
+        return gameRepository.findByUserId(userId).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
-    public MatchDTO save(MatchDTO match){
+    public GameDTO save(GameDTO game){
         try {
-            return convertToDto(matchRepository.save(convertToEntity(match)));
+            return convertToDto(gameRepository.save(convertToEntity(game)));
         } catch (ParseException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    protected Match convertToEntity(MatchDTO matchDto) throws ParseException {
-        Match match = modelMapper.map(matchDto, Match.class);
+    protected Game convertToEntity(GameDTO gameDto) throws ParseException {
+        Game game = modelMapper.map(gameDto, Game.class);
 
-        match.setMatchId(matchDto.getMatchId());
-        match.setDate(matchDto.getDate());
-        match.setTournament(tournamentRepository.findByName(matchDto.getTournamentName()));
+        game.setGameId(gameDto.getGameId());
+        game.setDate(gameDto.getDate());
+        game.setTournament(tournamentRepository.findByName(gameDto.getTournamentName()));
 
-        List<Outcome> outcomeSet = matchDto.getOutcomes().stream()
+        List<Outcome> outcomeSet = gameDto.getOutcomes().stream()
                 .map(o -> {
                     try {
                         return outcomeService.convertToEntity(o);
@@ -145,22 +145,22 @@ public class MatchService {
                     }
                     return null;
                 }).collect(Collectors.toList());
-        match.setOutcomes(outcomeSet);
+        game.setOutcomes(outcomeSet);
 
-        return match;
+        return game;
     }
 
-    protected MatchDTO convertToDto(Match match) {
-        MatchDTO matchDTO = modelMapper.map(match, MatchDTO.class);
+    protected GameDTO convertToDto(Game game) {
+        GameDTO gameDTO = modelMapper.map(game, GameDTO.class);
 
-        matchDTO.setMatchId(match.getMatchId());
-        matchDTO.setDate(match.getDate());
-        matchDTO.setTournamentName(match.getTournament().getName());
+        gameDTO.setGameId(game.getGameId());
+        gameDTO.setDate(game.getDate());
+        gameDTO.setTournamentName(game.getTournament().getName());
 
-        if (match.getMatchId() != null)
-            matchDTO.setOutcomes(match.getOutcomes().stream().map(o -> outcomeService.convertToDto(o) ).collect(Collectors.toList()));
+        if (game.getGameId() != null)
+            gameDTO.setOutcomes(game.getOutcomes().stream().map(o -> outcomeService.convertToDto(o) ).collect(Collectors.toList()));
 
-        return matchDTO;
+        return gameDTO;
     }
 
 }

@@ -1,10 +1,10 @@
 package calc.service;
 
-import calc.DTO.MatchDTO;
+import calc.DTO.GameDTO;
 import calc.DTO.SportDTO;
 import calc.DTO.TournamentDTO;
 import calc.entity.Tournament;
-import calc.repository.MatchRepository;
+import calc.repository.GameRepository;
 import calc.repository.TournamentRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,13 +25,13 @@ public class TournamentService {
     @Autowired
     private TournamentService tournamentService;
     @Autowired
-    private MatchRepository matchRepository;
+    private GameRepository gameRepository;
     @Autowired
     private SportService sportService;
     @Autowired
     private UserService userService;
     @Autowired
-    private MatchService matchService;
+    private GameService gameService;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -70,16 +70,16 @@ public class TournamentService {
         return convertToDto(tournamentRepository.findByName(name));
     }
 
-    public MatchDTO addMatchForTournament(String tournamentName, MatchDTO match) {
+    public GameDTO addGameForTournament(String tournamentName, GameDTO game) {
 
         //TODO validate data
         //TODO looser send game
         //TODO calculate point value
-        //TODO might make more sense to be in POST /match ??
+        //TODO might make more sense to be in POST /game ??
 
         TournamentDTO tournament =  tournamentService.findByName(tournamentName);
 
-        return matchService.addMatch(tournament, match.getOutcomes());
+        return gameService.addGame(tournament, game.getOutcomes());
     }
 
     protected Tournament convertToEntity(TournamentDTO tournamentDto) throws ParseException {
@@ -91,7 +91,7 @@ public class TournamentService {
         tournament.setDisplayName(tournamentDto.getDisplayName());
         tournament.setIsOver(tournamentDto.getIsOver());
         tournament.setSport(sportService.convertToEntity(tournamentDto.getSport()));
-        tournament.setMatchs(matchRepository.findByTournamentName(tournamentDto.getName()));
+        tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName()));
         tournament.setOwner(userService.convertToEntity(tournamentDto.getOwner()));
 
         return tournament;

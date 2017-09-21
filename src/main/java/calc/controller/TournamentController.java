@@ -1,6 +1,6 @@
 package calc.controller;
 
-import calc.DTO.MatchDTO;
+import calc.DTO.GameDTO;
 import calc.DTO.StatsDTO;
 import calc.DTO.TournamentDTO;
 import calc.DTO.UserDTO;
@@ -25,7 +25,7 @@ public class TournamentController {
     @Autowired
     private StatsService statsService;
     @Autowired
-    private MatchService matchService;
+    private GameService gameService;
     @Autowired
     private SportService sportService;
     @Autowired
@@ -80,22 +80,22 @@ public class TournamentController {
         return map;
     }
 
-    @RequestMapping(value = "/tournament/{tournamentName}/matchs", method = RequestMethod.GET)
-    public List<MatchDTO> matchesForTournament(@PathVariable(value="tournamentName") String name) {
-        List<MatchDTO> matchs = matchesForTournament(name);
-        return matchs;
+    @RequestMapping(value = "/tournament/{tournamentName}/games", method = RequestMethod.GET)
+    public List<GameDTO> gameesForTournament(@PathVariable(value="tournamentName") String name) {
+        List<GameDTO> games = gameesForTournament(name);
+        return games;
     }
 
-    @RequestMapping(value = "/tournament/{tournamentName}/matchs", method = RequestMethod.POST)
-    public MatchDTO addMatchForTournament(@PathVariable(value="tournamentName") String name, @RequestBody MatchDTO match) {
+    @RequestMapping(value = "/tournament/{tournamentName}/games", method = RequestMethod.POST)
+    public GameDTO addGameForTournament(@PathVariable(value="tournamentName") String name, @RequestBody GameDTO game) {
 
         //TODO validate data
         //TODO looser send game
         //TODO calculate point value
-        //TODO might make more sense to be in POST /match ??
+        //TODO might make more sense to be in POST /game ??
 
 
-        return tournamentService.addMatchForTournament(name,match);
+        return tournamentService.addGameForTournament(name,game);
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/stats", method = RequestMethod.GET)

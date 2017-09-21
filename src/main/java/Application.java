@@ -1,11 +1,9 @@
 import calc.entity.*;
-import calc.repository.UserRepository;
 import calc.service.MatchService;
 import calc.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,7 +19,10 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 @SpringBootApplication
 @ComponentScan(basePackages={"calc.controller","calc.repository","calc.entity","calc.rest","calc.service"})
@@ -42,6 +43,8 @@ public class Application {
     private CrudRepository<Match,Long> repoMatch;
     @Autowired
     private CrudRepository<Outcome,Long> repoOutcome;
+    @Autowired
+    private CrudRepository<User,Long> repoUser;
     @Autowired
     private UserService userService;
     @Autowired
@@ -84,7 +87,7 @@ public class Application {
                 new User("HHHHH"));
 
         for(User user : users){
-            userService.save(user);
+            repoUser.save(user);
         }
 
         List<Tournament> tournaments = Arrays.asList(
@@ -108,7 +111,9 @@ public class Application {
                     User opponent = opponents.get(rdm.nextInt(opponents.size() - 1));
 
                     int result = rdm.nextInt(1);
-                    matchService.addMatch(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
+
+
+                  //  matchService.addMatch(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
                 }
             }
         }

@@ -1,15 +1,21 @@
 package calc.service;
 
-import calc.DTO.MatchDTO;
+import calc.DTO.*;
 import calc.ELO.EloRating;
-import calc.entity.*;
+import calc.entity.Match;
+import calc.entity.Outcome;
 import calc.repository.MatchRepository;
+import calc.repository.StatsRepository;
+import calc.repository.TournamentRepository;
+import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -23,92 +29,112 @@ public class MatchService {
     @Autowired
     private TournamentService tournamentService;
     @Autowired
-    private OutcomeService outcomeService;
+    private TournamentRepository tournamentRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private OutcomeService outcomeService;;
+    @Autowired
+    private UserService userService;
     @Autowired
     private StatsService statsService;
     @Autowired
+    private StatsRepository statsRepository;
+    @Autowired
     private ModelMapper modelMapper;
 
-    public Match findOne(Long matchId){
-        return matchRepository.findOne(matchId);
+    public MatchDTO findOne(Long matchId){
+        return convertToDto(matchRepository.findOne(matchId));
     }
 
-
-    public Match addMatch(Tournament tournament, List<Outcome> outcomes) {
+    public MatchDTO addMatch(TournamentDTO tournament, List<OutcomeDTO> outcomes) {
 
         if(outcomes.size() != 2 ||
-                (outcomes.get(0).getResults().equals(Outcome.Result.WIN) && outcomes.get(1).getResults().equals(Outcome.Result.WIN)) ||
-                (outcomes.get(0).getResults().equals(Outcome.Result.LOSS) && outcomes.get(1).getResults().equals(Outcome.Result.LOSS))){
+                (outcomes.get(0).getResult().equals(Outcome.Result.WIN) && outcomes.get(1).getResult().equals(Outcome.Result.WIN)) ||
+                (outcomes.get(0).getResult().equals(Outcome.Result.LOSS) && outcomes.get(1).getResult().equals(Outcome.Result.LOSS))){
             throw new AssertionError();
         }
 
         // this method init both users even when there is a tie
-        User winner = outcomes.get(0).getResults().equals(Outcome.Result.WIN) ? outcomes.get(0).getUser() : outcomes.get(1).getUser();
-        User looser = outcomes.get(0).getResults().equals(Outcome.Result.WIN) ? outcomes.get(1).getUser() : outcomes.get(0).getUser();
-        Boolean isTie = outcomes.get(0).getResults().equals(Outcome.Result.TIE);
+        String winner = outcomes.get(0).getResult().equals(Outcome.Result.WIN) ? outcomes.get(0).getUserName() : outcomes.get(1).getUserName();
+        String looser = outcomes.get(0).getResult().equals(Outcome.Result.WIN) ? outcomes.get(1).getUserName() : outcomes.get(0).getUserName();
+        Boolean isTie = outcomes.get(0).getResult().equals(Outcome.Result.TIE);
 
-        return addMatch(tournament,winner,looser, isTie);
+        UserDTO w = userService.findByUserName(winner);
+        UserDTO l = userService.findByUserName(looser);
+
+        return addMatch(tournament,w,l, isTie);
     }
 
-    public Match addMatch(Tournament tournament, User winner, User looser, boolean isTie) {
+    public MatchDTO addMatch(TournamentDTO tournament, UserDTO winner, UserDTO looser, boolean isTie) {
 
-        Stats winnerStats = statsService.findByUserAndTournamentCreateIfNone(winner,tournament);
-        Stats loserStats = statsService.findByUserAndTournamentCreateIfNone(looser,tournament);
+        StatsDTO winnerStats = statsService.findByUserAndTournamentCreateIfNone(winner,tournament);
+        StatsDTO loserStats = statsService.findByUserAndTournamentCreateIfNone(looser,tournament);
 
         double pointValue = EloRating.calculatePointValue(winnerStats.getScore(),loserStats.getScore(),isTie ? "=" : "+");
 
-        return addMatch(tournament,winner,looser, pointValue, isTie);
+        try {
+            return addMatch(tournament,winner,looser, pointValue, isTie);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
-    protected Match addMatch(Tournament tournament, User winner, User looser, double pointValue, boolean isTie) {
+    protected MatchDTO addMatch(TournamentDTO tournament, UserDTO winner, UserDTO looser, double pointValue, boolean isTie) throws ParseException {
 
-        Match match = new Match(tournament);
+        Match match = new Match(tournamentService.convertToEntity(tournament));
         List<Outcome> outcomes = new ArrayList<>(Arrays.asList(
-                new Outcome(pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.WIN, match, winner),
-                new Outcome(-pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.LOSS, match, looser))
+                new Outcome(pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.WIN, match, userService.convertToEntity(winner)),
+                new Outcome(-pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.LOSS, match, userService.convertToEntity(looser)))
         );
         match.setOutcomes(outcomes);
-        Match m = this.save(match);
+        Match m = matchRepository.save(match);
 
         for (Outcome outcome : outcomes) {
             statsService.recalculateAfterOutcome(outcome);
         }
 
-        return m;
+        return convertToDto(m);
     }
 
-    List<Match> findByTournament(Tournament tournament){
-        return matchRepository.findByTournament(tournament);
+    public List<MatchDTO> findByTournament(TournamentDTO tournament){
+        return findByTournamentName(tournament.getName());
     }
 
-    List<Match> findByTournamentName(String tournamentName){
-        return matchRepository.findByTournamentName(tournamentName);
-    }
-
-
-    public List<Match> findByUserByTournament(Long userId, String tournamentName){
-        return matchRepository.findByUserIdByTournamentName(userId, tournamentName);
+    public List<MatchDTO> findByTournamentName(String tournamentName){
+        return matchRepository.findByTournamentName(tournamentName).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
 
-    public List<Match> findByUser(Long userId) {
-        return matchRepository.findByUserId(userId);
+    public List<MatchDTO> findByUserByTournament(Long userId, String tournamentName){
+        return matchRepository.findByUserIdByTournamentName(userId, tournamentName).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
-    public Iterable<Match> findAll() {
-        return matchRepository.findAll();
+
+    public List<MatchDTO> findByUser(Long userId) {
+        return matchRepository.findByUserId(userId).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
-    public Match save(Match match){
-        return matchRepository.save(match);
+    public MatchDTO save(MatchDTO match){
+        try {
+            return convertToDto(matchRepository.save(convertToEntity(match)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public Match convertToEntity(MatchDTO matchDto) throws ParseException {
+    protected Match convertToEntity(MatchDTO matchDto) throws ParseException {
         Match match = modelMapper.map(matchDto, Match.class);
 
         match.setMatchId(matchDto.getMatchId());
         match.setDate(matchDto.getDate());
-        match.setTournament(tournamentService.findByName(matchDto.getTournamentName()));
+        match.setTournament(tournamentRepository.findByName(matchDto.getTournamentName()));
 
         List<Outcome> outcomeSet = matchDto.getOutcomes().stream()
                 .map(o -> {
@@ -124,7 +150,7 @@ public class MatchService {
         return match;
     }
 
-    public MatchDTO convertToDto(Match match) {
+    protected MatchDTO convertToDto(Match match) {
         MatchDTO matchDTO = modelMapper.map(match, MatchDTO.class);
 
         matchDTO.setMatchId(match.getMatchId());

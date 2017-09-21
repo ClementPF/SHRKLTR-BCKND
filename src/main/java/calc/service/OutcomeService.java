@@ -1,20 +1,17 @@
 package calc.service;
 
-import calc.DTO.MatchDTO;
 import calc.DTO.OutcomeDTO;
-import calc.ELO.EloRating;
-import calc.entity.*;
+import calc.entity.Outcome;
 import calc.repository.MatchRepository;
 import calc.repository.OutcomeRepository;
+import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by clementperez on 9/20/16.
@@ -27,33 +24,37 @@ public class OutcomeService {
     @Autowired
     private MatchService matchService;
     @Autowired
-    private UserService userService;
+    private MatchRepository matchRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<Outcome> findByUserId(Long userId) {
-        return outcomeRepository.findByUserId(userId);
+    public List<OutcomeDTO> findByUserId(Long userId) {
+        return outcomeRepository.findByUserId(userId).stream()
+                .map(o -> convertToDto(o)).collect(Collectors.toList());
     }
 
-    public List<Outcome> findByMatchId(Long matchId) {
-        return outcomeRepository.findByMatchId(matchId);
+    public List<OutcomeDTO> findByMatchId(Long matchId) {
+        return outcomeRepository.findByMatchId(matchId).stream()
+                .map(o -> convertToDto(o)).collect(Collectors.toList());
     }
 
-    public Outcome convertToEntity(OutcomeDTO outcomeDto) throws ParseException {
+    protected Outcome convertToEntity(OutcomeDTO outcomeDto) throws ParseException {
         Outcome outcome = modelMapper.map(outcomeDto, Outcome.class);
 
         outcome.setOutcomeId(outcomeDto.getOutcomeId());
         outcome.setScoreValue(outcomeDto.getScoreValue());
         outcome.setResults(outcomeDto.getResult());
         if(outcomeDto.getMatchId() != null) {
-            outcome.setMatch(matchService.findOne(outcomeDto.getMatchId()));
+            outcome.setMatch(matchRepository.findOne(outcomeDto.getMatchId()));
         }
-        outcome.setUser(userService.findByUserName(outcomeDto.getUserName()));
+        outcome.setUser(userRepository.findByUserName(outcomeDto.getUserName()));
 
         return outcome;
     }
 
-    public OutcomeDTO convertToDto(Outcome outcome) {
+    protected OutcomeDTO convertToDto(Outcome outcome) {
         OutcomeDTO outcomeDTO = modelMapper.map(outcome, OutcomeDTO.class);
 
         outcomeDTO.setOutcomeId(outcome.getOutcomeId());

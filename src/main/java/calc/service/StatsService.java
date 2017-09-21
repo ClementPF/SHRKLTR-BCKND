@@ -1,28 +1,20 @@
 package calc.service;
 
-import calc.DTO.UserDTO;
 import calc.DTO.StatsDTO;
+import calc.DTO.TournamentDTO;
+import calc.DTO.UserDTO;
 import calc.entity.Outcome;
-import calc.entity.User;
 import calc.entity.Stats;
-import calc.entity.Tournament;
-import calc.repository.UserRepository;
 import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
+import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -40,30 +32,37 @@ public class StatsService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<Stats> findByTournament(Tournament tournament){
-        return statsRepository.findByTournament(tournament);
+    public List<StatsDTO> findByTournament(TournamentDTO tournament){
+        return statsRepository.findByTournament(tournamentRepository.findOne(tournament.getTournamentId())).stream()
+                .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
 
-    public List<Stats> findByUser(User user){
-        return statsRepository.findByUser(user);
+    public List<StatsDTO> findByUser(UserDTO user){
+        return statsRepository.findByUser(userRepository.findOne(user.getUserId())).stream()
+                .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
 
-    public Stats findByUserAndTournament(Long userId, String tournamentName){
-        return statsRepository.findByUserAndTournament(userId, tournamentName);
-    }
-
-    public Stats findByUserAndTournamentCreateIfNone(User user, Tournament tournament){
-
-        for(Stats s : user.getStats()){
-            if(s.getTournament().equals(tournament))
-                return s;
+    public StatsDTO save(StatsDTO stats){
+        try {
+            return convertToDto(statsRepository.save(convertToEntity(stats)));
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
+        return null;
+    }
 
-        Stats stats = statsRepository.findByUserAndTournament(user.getUserId(), tournament.getName());
+    public StatsDTO findByUserAndTournament(Long userId, String tournamentName){
+        return convertToDto(statsRepository.findByUserAndTournament(userId, tournamentName));
+    }
+
+    public StatsDTO findByUserAndTournamentCreateIfNone(UserDTO user, TournamentDTO tournament){
+
+        StatsDTO stats = findByUserAndTournament(user.getUserId(),tournament.getName());
 
         if(stats == null) {
-            stats = new Stats(user, tournament);
-            statsRepository.save(stats);
+            Stats s = new Stats(userRepository.findOne(user.getUserId()), tournamentRepository.findOne(tournament.getTournamentId()));
+            statsRepository.save(s);
+            return convertToDto(s);
         }
 
         return stats;
@@ -94,7 +93,7 @@ public class StatsService {
         statsRepository.save(stats);
     }
 
-    public Stats convertToEntity(StatsDTO statsDto) throws ParseException {
+    protected Stats convertToEntity(StatsDTO statsDto) throws ParseException {
 
         Stats stats = modelMapper.map(statsDto, Stats.class);
 /*
@@ -120,7 +119,7 @@ public class StatsService {
         return stats;
     }
 
-    public StatsDTO convertToDto(Stats stats) {
+    protected StatsDTO convertToDto(Stats stats) {
 
         StatsDTO statsDTO = modelMapper.map(stats, StatsDTO.class);
 /*

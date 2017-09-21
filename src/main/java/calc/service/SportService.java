@@ -3,7 +3,6 @@ package calc.service;
 import calc.DTO.SportDTO;
 import calc.DTO.TournamentDTO;
 import calc.entity.Sport;
-import calc.entity.Tournament;
 import calc.repository.SportRepository;
 import calc.repository.TournamentRepository;
 import org.modelmapper.ModelMapper;
@@ -12,9 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by clementperez on 9/25/16.
@@ -27,17 +25,20 @@ public class SportService {
     @Autowired
     private SportRepository sportRepository;
     @Autowired
+    private TournamentService tournamentService;
+    @Autowired
     private ModelMapper modelMapper;
 
-    public List<Tournament> findBySport(Sport sport){
-        return tournamentRepository.findBySport(sport);
+    public List<TournamentDTO> findBySport(Sport sport){
+        return tournamentRepository.findBySport(sport).stream()
+                .map(s -> tournamentService.convertToDto(s)).collect(Collectors.toList());
     }
 
-    public Sport findByName(String name){
-        return sportRepository.findByName(name);
+    public SportDTO findByName(String name){
+        return convertToDto(sportRepository.findByName(name));
     }
 
-    public Sport convertToEntity(SportDTO sportDto) throws ParseException {
+    protected Sport convertToEntity(SportDTO sportDto) throws ParseException {
 
         Sport sport = modelMapper.map(sportDto, Sport.class);
 
@@ -50,7 +51,7 @@ public class SportService {
         return sport;
     }
 
-    public SportDTO convertToDto(Sport sport) {
+    protected SportDTO convertToDto(Sport sport) {
         SportDTO sportDTO = modelMapper.map(sport, SportDTO.class);
 
         sportDTO.setSportId(sport.getSportId());
@@ -58,12 +59,13 @@ public class SportService {
         return sportDTO;
     }
 
-    public List<Sport> findAll() {
+    public List<SportDTO> findAll() {
         List<Sport> copy = new ArrayList<>();
 
         for (Sport sport : sportRepository.findAll()) {
             copy.add(sport);
         }
-        return copy;
+        return copy.stream()
+                .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
 }

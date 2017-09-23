@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * Created by clementperez on 9/22/16.
  */
@@ -42,6 +43,7 @@ public class TournamentController {
 
     /**
      * Let the owner of a Tournament to delete it.
+     * @param name 
      */
     @RequestMapping(value = "/tournament/{tournamentName}", method = RequestMethod.DELETE)
     @Description("Let the owner of a Tournament to delete it.")

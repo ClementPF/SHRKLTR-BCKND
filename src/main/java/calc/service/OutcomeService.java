@@ -38,6 +38,7 @@ public class OutcomeService {
     public List<OutcomeDTO> findByGameId(Long gameId) {
         return outcomeRepository.findByGameId(gameId).stream()
                 .map(o -> convertToDto(o)).collect(Collectors.toList());
+
     }
 
     protected Outcome convertToEntity(OutcomeDTO outcomeDto) throws ParseException {
@@ -48,6 +49,7 @@ public class OutcomeService {
         outcome.setResults(outcomeDto.getResult());
         if(outcomeDto.getGameId() != null) {
             outcome.setGame(gameRepository.findOne(outcomeDto.getGameId()));
+
         }
         outcome.setUser(userRepository.findByUserName(outcomeDto.getUserName()));
 

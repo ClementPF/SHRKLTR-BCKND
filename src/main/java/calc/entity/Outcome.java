@@ -17,7 +17,9 @@ public class Outcome {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long outcomeId;
+    @Column(nullable = false)
     private double scoreValue;
+    @Column(nullable = false)
     private Result result;
     @ManyToOne
     @JoinColumn(name = "gameId")

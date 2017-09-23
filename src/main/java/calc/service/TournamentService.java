@@ -72,6 +72,7 @@ public class TournamentService {
 
     public GameDTO addGameForTournament(String tournamentName, GameDTO game) {
 
+
         //TODO validate data
         //TODO looser send game
         //TODO calculate point value
@@ -80,6 +81,7 @@ public class TournamentService {
         TournamentDTO tournament =  tournamentService.findByName(tournamentName);
 
         return gameService.addGame(tournament, game.getOutcomes());
+
     }
 
     protected Tournament convertToEntity(TournamentDTO tournamentDto) throws ParseException {

@@ -18,8 +18,11 @@ public class Tournament {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long tournamentId;
+    @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
     private String displayName;
+    @Column(nullable = false)
     private Boolean isOver;
 
     @ManyToOne

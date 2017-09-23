@@ -1,12 +1,26 @@
 package calc.controller;
 
+import calc.DTO.FacebookUserInfoDTO;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import calc.DTO.GameDTO;
-import calc.DTO.StatsDTO;
 import calc.DTO.UserDTO;
+import calc.DTO.StatsDTO;
+import calc.entity.Game;
+import calc.entity.User;
+import calc.entity.Stats;
+import calc.repository.UserRepository;
+import calc.security.Secured;
 import calc.service.GameService;
+import calc.service.UserService;
 import calc.service.StatsService;
 import calc.service.TournamentService;
-import calc.service.UserService;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
+@Secured
 public class UserController {
 
     @Autowired
@@ -24,6 +39,9 @@ public class UserController {
     private StatsService statsService;
     @Autowired
     private GameService gameService;
+    
+    @Resource
+    private HttpServletRequest request;
 
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public List<UserDTO> users() {
@@ -36,6 +54,12 @@ public class UserController {
         return userService.findOne(userId);
     }
 
+    @RequestMapping(value = "/user", method = RequestMethod.GET)
+    public UserDTO getCurrentUser() {
+        FacebookUserInfoDTO userInfo = (FacebookUserInfoDTO)request.getAttribute("user_info");
+        return userService.findByUserName(String.valueOf(userInfo.getId()));
+    }
+    
     //TODO probably need to send a bad request or something
     @RequestMapping(value = "/user", method = RequestMethod.POST)
     public UserDTO createUser(@RequestBody UserDTO user) {
@@ -70,6 +94,7 @@ public class UserController {
     @RequestMapping(value = "/user/{userId}/games", method = RequestMethod.GET)
     public List<GameDTO> userGamesForTournament(@PathVariable(value="userId") Long userId, @RequestParam(value="tournamentName", required = false) String tournamentName) {
         List<GameDTO> m = new ArrayList<>();
+
         if(tournamentName != null){
             m = gameService.findByUserByTournament(userId,tournamentName);
         }else

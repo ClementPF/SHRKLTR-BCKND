@@ -8,8 +8,6 @@ import java.util.*;
  */
 
 @Entity
-
-
 @NamedQueries({
         @NamedQuery(name = "Game.findByTournamentName", query = "SELECT m FROM Game m WHERE m.tournament.name = ?1"),
         @NamedQuery(name = "Game.findByUserId",

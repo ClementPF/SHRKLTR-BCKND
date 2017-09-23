@@ -38,6 +38,7 @@ public class UserService{
     private TournamentRepository tournamentRepository;
     @Autowired
     private ModelMapper modelMapper;
+    
 /*
     private List<User> userFromTournament(Tournament tournament){
 
@@ -75,9 +76,10 @@ public class UserService{
         return userRepository.findByLastName(lastName).stream()
                 .map(u -> convertToDto(u)).collect(Collectors.toList());
     }
-
+    
     public UserDTO findByUserName(String lastName){
         return convertToDto(userRepository.findByUserName(lastName));
+
     }
 
     public List<UserDTO> findUsersInTournament(TournamentDTO tournament){

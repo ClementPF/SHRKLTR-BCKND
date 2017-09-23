@@ -18,11 +18,11 @@ public class User {
     private Long userId;
     private String firstName;
     private String lastName;
+    @Column(unique = true, nullable = false)
     private String userName;
-
+//    @Column(nullable = false)
     private String password;
-
-
+//    @Column(unique = true, nullable = false)
     private String email;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -35,6 +35,12 @@ public class User {
 
     public User(String userName) {
         this.userName = userName;
+        this.stats = new ArrayList<Stats>();
+    }
+
+    public User(String userName, String email) {
+        this.userName = userName;
+        this.email = email;
         this.stats = new ArrayList<Stats>();
     }
 

@@ -13,6 +13,7 @@ public class Sport {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long sportId;
+    @Column(unique = true, nullable = false)
     private String name;
 /*
     @OneToOne(mappedBy = "sport", cascade = CascadeType.ALL)

@@ -5,6 +5,8 @@ import calc.DTO.TournamentDTO;
 import calc.DTO.UserDTO;
 import calc.entity.Outcome;
 import calc.entity.Stats;
+import calc.entity.Tournament;
+import calc.entity.User;
 import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
@@ -12,6 +14,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.jws.soap.SOAPBinding;
 import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,15 +55,19 @@ public class StatsService {
     }
 
     public StatsDTO findByUserAndTournament(Long userId, String tournamentName){
-        return convertToDto(statsRepository.findByUserAndTournament(userId, tournamentName));
+
+        Stats s = statsRepository.findByUserAndTournament(userId, tournamentName);
+        return s == null ? null : convertToDto(s);
     }
 
     public StatsDTO findByUserAndTournamentCreateIfNone(UserDTO user, TournamentDTO tournament){
 
         StatsDTO stats = findByUserAndTournament(user.getUserId(),tournament.getName());
 
+        User u = userRepository.findOne(user.getUserId());
+        Tournament t = tournamentRepository.findOne(tournament.getTournamentId());
         if(stats == null) {
-            Stats s = new Stats(userRepository.findOne(user.getUserId()), tournamentRepository.findOne(tournament.getTournamentId()));
+            Stats s = new Stats(u,t);
             statsRepository.save(s);
             return convertToDto(s);
         }
@@ -96,7 +103,7 @@ public class StatsService {
     protected Stats convertToEntity(StatsDTO statsDto) throws ParseException {
 
         Stats stats = modelMapper.map(statsDto, Stats.class);
-/*
+
         stats.setStatsId(statsDto.getStatsId());
         stats.setScore(statsDto.getScore());
         stats.setGameCount(statsDto.getGameCount());
@@ -110,7 +117,7 @@ public class StatsService {
         stats.setLonguestLoseStreak(statsDto.getLonguestLoseStreak());
         stats.setLonguestTieStreak(statsDto.getLonguestTieStreak());
         stats.setBestScore(statsDto.getBestScore());
-        stats.setWorstScore(statsDto.getWorstScore());*/
+        stats.setWorstScore(statsDto.getWorstScore());
         if(statsDto.getStatsId() != null) {
             stats.setTournament(statsRepository.findOne(statsDto.getStatsId()).getTournament());
             stats.setUser(statsRepository.findOne(statsDto.getStatsId()).getUser());
@@ -122,7 +129,7 @@ public class StatsService {
     protected StatsDTO convertToDto(Stats stats) {
 
         StatsDTO statsDTO = modelMapper.map(stats, StatsDTO.class);
-/*
+
         statsDTO.setStatsId(stats.getStatsId());
         statsDTO.setScore(stats.getScore());
         statsDTO.setGameCount(stats.getGameCount());
@@ -136,7 +143,7 @@ public class StatsService {
         statsDTO.setLonguestLoseStreak(stats.getLonguestLoseStreak());
         statsDTO.setLonguestTieStreak(stats.getLonguestTieStreak());
         statsDTO.setBestScore(stats.getBestScore());
-        statsDTO.setWorstScore(stats.getWorstScore());*/
+        statsDTO.setWorstScore(stats.getWorstScore());
 
         return statsDTO;
     }

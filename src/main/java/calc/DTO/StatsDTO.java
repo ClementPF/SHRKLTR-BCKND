@@ -25,6 +25,10 @@ public class StatsDTO {
     private int longuestLoseStreak;
     private int longuestTieStreak;
 
+    public StatsDTO() {
+        super();
+    }
+
     public int getLonguestTieStreak() {
         return longuestTieStreak;
     }

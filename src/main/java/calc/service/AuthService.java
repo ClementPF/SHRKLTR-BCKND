@@ -59,7 +59,9 @@ public class AuthService {
     public TokenDTO getToken(TokenRequestDTO tokenRequest) {
         String requestURL = facebookProperties.getGraphApiUri() + "/me?fields=" + 
             facebookProperties.getUserFields() + "&access_token=" + tokenRequest.getFbAccessToken();
-        
+
+        logger.debug("get TOKEN :" + tokenRequest.getFbAccessToken() );
+
         try {
             logger.debug("Making graph API request for user info");
             ResponseEntity<FacebookUserInfoDTO> response = restTemplate.getForEntity(requestURL, FacebookUserInfoDTO.class);

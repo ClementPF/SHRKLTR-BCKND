@@ -34,6 +34,16 @@ public class SportService {
                 .map(s -> tournamentService.convertToDto(s)).collect(Collectors.toList());
     }
 
+    public SportDTO save(SportDTO sport){
+        try {
+            return convertToDto(sportRepository.save(convertToEntity(sport)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public SportDTO findByName(String name){
         return convertToDto(sportRepository.findByName(name));
     }

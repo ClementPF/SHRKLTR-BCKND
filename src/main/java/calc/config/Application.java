@@ -1,10 +1,15 @@
 package calc.config;
 
+import calc.DTO.SportDTO;
+import calc.DTO.TournamentDTO;
+import calc.DTO.UserDTO;
 import calc.entity.*;
 import calc.property.JwtProperties;
 import calc.repository.UserRepository;
 import calc.security.JwtTokenInterceptor;
 import calc.service.GameService;
+import calc.service.SportService;
+import calc.service.TournamentService;
 import calc.service.UserService;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -33,6 +38,7 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,7 +100,7 @@ public class Application extends WebMvcConfigurerAdapter {
     public Docket api() {
 
         ParameterBuilder aParameterBuilder = new ParameterBuilder();
-        aParameterBuilder.name("Authorization Bearer token").modelRef(new ModelRef("string")).parameterType("header").required(true).build();
+        aParameterBuilder.name("Authorization").modelRef(new ModelRef("string")).parameterType("header").required(true).build();
         List<Parameter> aParameters = new ArrayList<Parameter>();
         aParameters.add(aParameterBuilder.build());
 
@@ -123,10 +129,10 @@ public class Application extends WebMvcConfigurerAdapter {
         registry.addInterceptor(jwtTokenInterceptor);
     }
 
-//    @PostConstruct
+    @PostConstruct
     public void initDB(){
         long count = repoSport.count();
-        
+
         List<Sport> sports = Arrays.asList(
                  new Sport("Pool"),
                  new Sport("Ping Pong"),
@@ -172,7 +178,7 @@ public class Application extends WebMvcConfigurerAdapter {
                     User opponent = opponents.get(rdm.nextInt(opponents.size() - 1));
 
                     int result = rdm.nextInt(1);
-                  //  gameService.addGame(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
+                    gameService.addGame(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
                 }
             }
         }

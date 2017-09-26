@@ -129,10 +129,10 @@ CREATE TABLE `user` (
   `first_name` varchar(255) DEFAULT NULL,
   `last_name` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  `username` varchar(255) NOT NULL,
+  `user_name` varchar(255) NOT NULL,
   `enabled` boolean NOT NULL DEFAULT 1,
   PRIMARY KEY (`user_id`),
-  UNIQUE KEY `UK_lqjrcobrh9jc8wpcar64q1bfh` (`username`)
+  UNIQUE KEY `UK_lqjrcobrh9jc8wpcar64q1bfh` (`user_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `role`;

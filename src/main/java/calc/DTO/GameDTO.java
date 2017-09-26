@@ -18,6 +18,10 @@ public class GameDTO {
     private String tournamentName;
     private List<OutcomeDTO> outcomes;
 
+    public GameDTO() {
+        super();
+    }
+
     public List<OutcomeDTO> getOutcomes() {
         return outcomes;
     }

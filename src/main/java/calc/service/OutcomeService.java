@@ -43,7 +43,7 @@ public class OutcomeService {
 
     protected Outcome convertToEntity(OutcomeDTO outcomeDto) throws ParseException {
         Outcome outcome = modelMapper.map(outcomeDto, Outcome.class);
-
+/*
         outcome.setOutcomeId(outcomeDto.getOutcomeId());
         outcome.setScoreValue(outcomeDto.getScoreValue());
         outcome.setResults(outcomeDto.getResult());
@@ -52,18 +52,18 @@ public class OutcomeService {
 
         }
         outcome.setUser(userRepository.findByUserName(outcomeDto.getUserName()));
-
+*/
         return outcome;
     }
 
     protected OutcomeDTO convertToDto(Outcome outcome) {
         OutcomeDTO outcomeDTO = modelMapper.map(outcome, OutcomeDTO.class);
-
+/*
         outcomeDTO.setOutcomeId(outcome.getOutcomeId());
         outcomeDTO.setScoreValue(outcome.getScoreValue());
         outcomeDTO.setResult(outcome.getResults());
         outcomeDTO.setGameId(outcome.getGame().getGameId());
-        outcomeDTO.setUserName(outcome.getUser().getUserName());
+        outcomeDTO.setUserName(outcome.getUser().getUserName());*/
 
         return outcomeDTO;
     }

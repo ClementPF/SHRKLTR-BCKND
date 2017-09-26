@@ -1,5 +1,6 @@
 package calc.service;
 
+import calc.DTO.StatsDTO;
 import calc.DTO.TournamentDTO;
 import calc.DTO.UserDTO;
 import calc.entity.Stats;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -121,7 +123,7 @@ public class UserService{
         userDTO.setUserName(user.getUserName());
 
         if (user.getUserId() != null)
-            userDTO.setStats(statsService.convertToDto(user.getStats(tournament)));
+            userDTO.setStats(new ArrayList<StatsDTO>(Arrays.asList(statsService.convertToDto(user.getStats(tournament)))));
 
         return userDTO;
     }

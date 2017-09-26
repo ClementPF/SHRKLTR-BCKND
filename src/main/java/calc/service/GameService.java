@@ -4,6 +4,8 @@ import calc.DTO.*;
 import calc.ELO.EloRating;
 import calc.entity.Game;
 import calc.entity.Outcome;
+import calc.entity.Tournament;
+import calc.entity.User;
 import calc.repository.GameRepository;
 import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
@@ -64,6 +66,22 @@ public class GameService {
         UserDTO l = userService.findByUserName(looser);
 
         return addGame(tournament,w,l, isTie);
+    }
+
+    public GameDTO addGame(Tournament tournament, User winner, User looser, boolean isTie) {
+
+        StatsDTO winnerStats = statsService.findByUserAndTournamentCreateIfNone(userService.convertToDto(winner),tournamentService.convertToDto(tournament));
+        StatsDTO loserStats = statsService.findByUserAndTournamentCreateIfNone(userService.convertToDto(looser),tournamentService.convertToDto(tournament));
+
+        double pointValue = EloRating.calculatePointValue(winnerStats.getScore(),loserStats.getScore(),isTie ? "=" : "+");
+
+        try {
+            return addGame(tournamentService.convertToDto(tournament),userService.convertToDto(winner),userService.convertToDto(looser), pointValue, isTie);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public GameDTO addGame(TournamentDTO tournament, UserDTO winner, UserDTO looser, boolean isTie) {

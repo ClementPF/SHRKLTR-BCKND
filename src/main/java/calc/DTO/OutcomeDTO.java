@@ -18,6 +18,10 @@ public class OutcomeDTO {
     private String userName;
     private Long gameId;
 
+    public OutcomeDTO() {
+        super();
+    }
+
     public String getUserName() {
         return userName;
     }

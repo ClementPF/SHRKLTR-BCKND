@@ -7,6 +7,14 @@ public class SportDTO {
     private Long sportId;
     private String name;
 
+    public SportDTO() {
+        super();
+    }
+
+    public SportDTO(String name){
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }

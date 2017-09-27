@@ -35,7 +35,9 @@ public class Stats {
     @JoinColumn(name="userId", nullable = false)
     private User user;
 
-    protected Stats() {}
+    public Stats() {
+        super();
+    }
 
     public Stats(User user, Tournament tournament) {
         this.user = user;

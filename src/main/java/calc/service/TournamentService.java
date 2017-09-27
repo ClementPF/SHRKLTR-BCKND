@@ -67,7 +67,8 @@ public class TournamentService {
     }
 
     public TournamentDTO findByName(String name){
-        return convertToDto(tournamentRepository.findByName(name));
+        Tournament t = tournamentRepository.findByName(name);
+        return t == null ? null : convertToDto(t);
     }
 
     public GameDTO addGameForTournament(String tournamentName, GameDTO game) {
@@ -87,7 +88,7 @@ public class TournamentService {
     protected Tournament convertToEntity(TournamentDTO tournamentDto) throws ParseException {
 
         Tournament tournament = modelMapper.map(tournamentDto, Tournament.class);
-
+/*
         tournament.setTournamentId(tournamentDto.getTournamentId());
         tournament.setName(tournamentDto.getName());
         tournament.setDisplayName(tournamentDto.getDisplayName());
@@ -95,13 +96,13 @@ public class TournamentService {
         tournament.setSport(sportService.convertToEntity(tournamentDto.getSport()));
         tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName()));
         tournament.setOwner(userService.convertToEntity(tournamentDto.getOwner()));
-
+*/
         return tournament;
     }
 
     protected TournamentDTO convertToDto(Tournament tournament) {
         TournamentDTO tournamentDTO = modelMapper.map(tournament, TournamentDTO.class);
-
+/*
         tournamentDTO.setTournamentId(tournament.getTournamentId());
         tournamentDTO.setName(tournament.getName());
         tournamentDTO.setDisplayName(tournament.getDisplayName());
@@ -112,7 +113,7 @@ public class TournamentService {
             tournamentDTO.setOwner(
                     userService.convertToDto(tournament.getOwner())
             );
-        }
+        }*/
         return tournamentDTO;
     }
 }

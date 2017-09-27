@@ -129,7 +129,7 @@ public class Application extends WebMvcConfigurerAdapter {
         registry.addInterceptor(jwtTokenInterceptor);
     }
 
-    @PostConstruct
+   // @PostConstruct
     public void initDB(){
         long count = repoSport.count();
 

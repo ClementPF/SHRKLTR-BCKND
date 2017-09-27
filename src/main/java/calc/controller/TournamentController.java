@@ -74,17 +74,17 @@ public class TournamentController {
     @RequestMapping(value = "/tournament/{tournamentName}", method = RequestMethod.GET)
     public Map tournamentNamed(@PathVariable(value="tournamentName") String name) {
         TournamentDTO tournament =  tournamentService.findByName(name);
-        List<StatsDTO> stats = statsService.findByTournament(tournament);
+//        List<StatsDTO> stats = statsService.findByTournament(tournament);
 
         HashMap map = new HashMap<>();
         map.put("tournament",tournament);
-        map.put("stats",stats);
+ //       map.put("stats",stats);
         return map;
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/games", method = RequestMethod.GET)
-    public List<GameDTO> gameesForTournament(@PathVariable(value="tournamentName") String name) {
-        List<GameDTO> games = gameesForTournament(name);
+    public List<GameDTO> gamesForTournament(@PathVariable(value="tournamentName") String name) {
+        List<GameDTO> games = gameService.findByTournamentName(name);
         return games;
     }
 
@@ -109,8 +109,7 @@ public class TournamentController {
 
     @RequestMapping(value = "/tournament/{tournamentName}/users", method = RequestMethod.GET)
     public List<UserDTO> usersForTournament(@PathVariable(value="tournamentName") String name) {
-        TournamentDTO tournament =  tournamentService.findByName(name);
 
-        return userService.findUsersInTournament(tournament);
+        return userService.findUsersInTournamentNamed(name);
     }
 }

@@ -96,14 +96,26 @@ public class UserService{
                 .map(u -> convertToDto(u)).collect(Collectors.toList());
     }
 
+    public List<UserDTO> findUsersInTournamentNamed(String tournamentName){
+        List<User> p = new ArrayList<>();
+
+        List<Stats> stats = statsRepository.findByTournament(tournamentRepository.findByName(tournamentName));
+        for(Stats s : stats){
+            p.add(s.getUser());
+        }
+
+        return p.stream()
+                .map(u -> convertToDto(u)).collect(Collectors.toList());
+    }
+
 
     public User convertToEntity(UserDTO userDto) throws ParseException {
         User user = modelMapper.map(userDto, User.class);
 
         user.setUserId(userDto.getUserId());
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setFirstName(userDto.getFirstName());
+        user.setFirst(userDto.getFirstName());
+        user.setLast(userDto.getLastName());
+        user.setFirst(userDto.getFirstName());
         user.setUserName(userDto.getUserName());
 
         if (userDto.getUserId() != null) {
@@ -117,9 +129,9 @@ public class UserService{
         UserDTO userDTO = modelMapper.map(user, UserDTO.class);
 
         userDTO.setUserId(user.getUserId());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setLastName(user.getLastName());
-        userDTO.setFirstName(user.getFirstName());
+        userDTO.setFirstName(user.getFirst());
+        userDTO.setLastName(user.getLast());
+        userDTO.setFirstName(user.getFirst());
         userDTO.setUserName(user.getUserName());
 
         if (user.getUserId() != null)
@@ -132,9 +144,9 @@ public class UserService{
         UserDTO userDTO = modelMapper.map(user, UserDTO.class);
 
         userDTO.setUserId(user.getUserId());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setLastName(user.getLastName());
-        userDTO.setFirstName(user.getFirstName());
+        userDTO.setFirstName(user.getFirst());
+        userDTO.setLastName(user.getLast());
+        userDTO.setFirstName(user.getFirst());
         userDTO.setUserName(user.getUserName());
 
         return userDTO;

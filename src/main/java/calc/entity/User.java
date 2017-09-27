@@ -1,13 +1,9 @@
 // tag::sample[]
 package calc.entity;
 
-import calc.DTO.UserDTO;
-
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @NamedQuery(name = "User.findByUserName", query = "SELECT p FROM User p WHERE p.userName = ?1")
@@ -31,7 +27,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Outcome> outcomes;
 
-    protected User() {}
+    public User() {}
 
     public User(String userName) {
         this.userName = userName;
@@ -55,19 +51,19 @@ public class User {
         return userId;
     }
 
-    public String getFirstName() { return firstName; }
+    public String getFirst() { return firstName; }
 
-    public String getLastName() { return lastName; }
+    public String getLast() { return lastName; }
 
     public void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public void setFirstName(String firstName) {
+    public void setFirst(String firstName) {
         this.firstName = firstName;
     }
 
-    public void setLastName(String lastName) {
+    public void setLast(String lastName) {
         this.lastName = lastName;
     }
 

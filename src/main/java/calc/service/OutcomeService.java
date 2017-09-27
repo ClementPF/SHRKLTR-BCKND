@@ -6,6 +6,7 @@ import calc.repository.GameRepository;
 import calc.repository.OutcomeRepository;
 import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +44,8 @@ public class OutcomeService {
 
     protected Outcome convertToEntity(OutcomeDTO outcomeDto) throws ParseException {
         Outcome outcome = modelMapper.map(outcomeDto, Outcome.class);
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+
 /*
         outcome.setOutcomeId(outcomeDto.getOutcomeId());
         outcome.setScoreValue(outcomeDto.getScoreValue());
@@ -58,6 +61,7 @@ public class OutcomeService {
 
     protected OutcomeDTO convertToDto(Outcome outcome) {
         OutcomeDTO outcomeDTO = modelMapper.map(outcome, OutcomeDTO.class);
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
 /*
         outcomeDTO.setOutcomeId(outcome.getOutcomeId());
         outcomeDTO.setScoreValue(outcome.getScoreValue());

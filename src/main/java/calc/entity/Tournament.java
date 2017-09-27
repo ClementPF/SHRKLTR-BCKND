@@ -2,7 +2,6 @@ package calc.entity;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by clementperez on 9/13/16.
@@ -39,7 +38,7 @@ public class Tournament {
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
     private List<Stats> stats;
 
-    protected Tournament() {}
+    public Tournament() {}
 
     public Tournament(String displayName, Sport sport, User owner) {
         name = displayName.replaceAll("\\s+","").toLowerCase();

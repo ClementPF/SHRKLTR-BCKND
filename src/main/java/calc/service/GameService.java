@@ -58,12 +58,16 @@ public class GameService {
         }
 
         // this method init both users even when there is a tie
+        System.out.print("outcome username : " +outcomes.get(0).getUserName() + " " + outcomes.get(1).getUserName() + "\n");
         String winner = outcomes.get(0).getResult().equals(Outcome.Result.WIN) ? outcomes.get(0).getUserName() : outcomes.get(1).getUserName();
         String looser = outcomes.get(0).getResult().equals(Outcome.Result.WIN) ? outcomes.get(1).getUserName() : outcomes.get(0).getUserName();
         Boolean isTie = outcomes.get(0).getResult().equals(Outcome.Result.TIE);
 
         UserDTO w = userService.findByUserName(winner);
-        UserDTO l = userService.findByUserName(looser);
+        UserDTO l = userService.whoIsLoggedIn();
+
+
+        System.out.print("winner  : " + (w == null ? "winner null" : w.getUserName()) + "\n" + "username looser : " + (l == null ? "looser null" : l.getUserName()) + "\n");
 
         return addGame(tournament,w,l, isTie);
     }

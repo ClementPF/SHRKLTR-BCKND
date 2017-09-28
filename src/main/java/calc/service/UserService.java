@@ -1,5 +1,6 @@
 package calc.service;
 
+import calc.DTO.FacebookUserInfoDTO;
 import calc.DTO.StatsDTO;
 import calc.DTO.TournamentDTO;
 import calc.DTO.UserDTO;
@@ -14,6 +15,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +43,9 @@ public class UserService{
     private TournamentRepository tournamentRepository;
     @Autowired
     private ModelMapper modelMapper;
+
+    @Resource
+    private HttpServletRequest request;
     
 /*
     private List<User> userFromTournament(Tournament tournament){
@@ -70,8 +76,9 @@ public class UserService{
     }
 
     public UserDTO whoIsLoggedIn(){
-        UserDTO user = null; //find the logged in user
-        return user;
+
+        FacebookUserInfoDTO userInfo = (FacebookUserInfoDTO) request.getAttribute("user_info");
+        return findByUserName(String.valueOf(userInfo.getId()));
     }
 
     public List<UserDTO> findByLastName(String lastName){

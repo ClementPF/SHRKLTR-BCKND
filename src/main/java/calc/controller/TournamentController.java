@@ -4,6 +4,7 @@ import calc.DTO.GameDTO;
 import calc.DTO.StatsDTO;
 import calc.DTO.TournamentDTO;
 import calc.DTO.UserDTO;
+import calc.security.Secured;
 import calc.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Description;
@@ -19,6 +20,7 @@ import java.util.Map;
  */
 
 @RestController
+@Secured
 public class TournamentController {
 
     @Autowired

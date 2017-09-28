@@ -52,7 +52,7 @@ public class AuthService {
 
     @PostConstruct
     private void setUp() {
-        tokenExpirationMillis = jwtProperties.getTokenExpirationMinutes() * 60 * 1000;
+        tokenExpirationMillis = jwtProperties.getTokenExpirationMinutes() * 60 * 60 * 1000;
         restTemplate = new RestTemplate();
     }
     
@@ -94,6 +94,7 @@ public class AuthService {
             if (indexOfLastSpace > 0) {
                 user.setLast(userInfo.getName().substring(indexOfLastSpace + 1));
                 user.setFirst(userInfo.getName().substring(0, indexOfLastSpace));
+
             } else {
                 user.setFirst(userInfo.getName());
             }

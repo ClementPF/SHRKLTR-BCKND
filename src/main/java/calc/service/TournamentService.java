@@ -1,6 +1,7 @@
 package calc.service;
 
 import calc.DTO.GameDTO;
+import calc.DTO.OutcomeDTO;
 import calc.DTO.SportDTO;
 import calc.DTO.TournamentDTO;
 import calc.entity.Tournament;
@@ -80,8 +81,10 @@ public class TournamentService {
         //TODO might make more sense to be in POST /game ??
 
         TournamentDTO tournament =  tournamentService.findByName(tournamentName);
+        List<OutcomeDTO> outcomes = game.getOutcomes();
 
-        return gameService.addGame(tournament, game.getOutcomes());
+
+        return gameService.addGame(tournament, outcomes);
 
     }
 

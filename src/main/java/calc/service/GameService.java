@@ -74,7 +74,11 @@ public class GameService {
 
     public GameDTO addGame(Tournament tournament, User winner, User looser, boolean isTie) {
 
-        StatsDTO winnerStats = statsService.findByUserAndTournamentCreateIfNone(userService.convertToDto(winner),tournamentService.convertToDto(tournament));
+        UserDTO w = userService.convertToDto(winner);
+        System.out.print("addGame winner  : " + (winner == null ? "winner null" : winner.getUserName()) + "\n" + "username winnerDTO : " + (w == null ? "winnerDTO null" : w.getUserName()) + "\n");
+
+
+        StatsDTO winnerStats = statsService.findByUserAndTournamentCreateIfNone(w,tournamentService.convertToDto(tournament));
         StatsDTO loserStats = statsService.findByUserAndTournamentCreateIfNone(userService.convertToDto(looser),tournamentService.convertToDto(tournament));
 
         double pointValue = EloRating.calculatePointValue(winnerStats.getScore(),loserStats.getScore(),isTie ? "=" : "+");
@@ -89,6 +93,8 @@ public class GameService {
     }
 
     public GameDTO addGame(TournamentDTO tournament, UserDTO winner, UserDTO looser, boolean isTie) {
+
+        System.out.print("username winnerDTO : " + (winner == null ? "winnerDTO null" : winner.getUserName() +" " +  winner.getUserId()) + "\n");
 
         StatsDTO winnerStats = statsService.findByUserAndTournamentCreateIfNone(winner,tournament);
         StatsDTO loserStats = statsService.findByUserAndTournamentCreateIfNone(looser,tournament);

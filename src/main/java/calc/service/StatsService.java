@@ -144,6 +144,7 @@ public class StatsService {
         statsDTO.setLonguestTieStreak(stats.getLonguestTieStreak());
         statsDTO.setBestScore(stats.getBestScore());
         statsDTO.setWorstScore(stats.getWorstScore());
+        statsDTO.setUsername(stats.getUser().getUserName());
 
         return statsDTO;
     }

@@ -24,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.Date;
 
 /**
@@ -87,21 +88,47 @@ public class AuthService {
     
     private TokenDTO createToken(FacebookUserInfoDTO userInfo) {
         // check if user exists and create a new user if needed
-        User user = userRepository.findByUserName(String.valueOf(userInfo.getId()));
+        User user = userRepository.findByExternalId(userInfo.getId());
         if (user == null) {
-            user = new User(String.valueOf(userInfo.getId()), userInfo.getEmail());
+
+            String username = userInfo.getName().toLowerCase().replace(' ','-');
+            username = Normalizer.normalize(username, Normalizer.Form.NFD);
+            username = username.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+
+            User check = userRepository.findByUserName(username);
+            int suffix = 1;
+            int max = 999;
+            while(check != null && suffix < max + 1){
+                check = userRepository.findByUserName(username + "-" + suffix);
+                if(check == null){
+                    username = username + '-' + suffix;
+                }
+            }
+
+            if(suffix == max){
+                System.out.print("username reached 999 for " + username);
+            }
+
+            user = new User(username);
             int indexOfLastSpace = userInfo.getName().lastIndexOf(" ");
             if (indexOfLastSpace > 0) {
+                user.setEmail(userInfo.getEmail());
                 user.setLast(userInfo.getName().substring(indexOfLastSpace + 1));
                 user.setFirst(userInfo.getName().substring(0, indexOfLastSpace));
-
+                user.setExternalIdProvider("facebook");
+                user.setExternalId(userInfo.getId());
             } else {
                 user.setFirst(userInfo.getName());
+                user.setEmail(userInfo.getEmail());
             }
             userRepository.save(user);
         }
         
         Date now = new Date();
+
+        System.out.println(jwtProperties.getTokenExpirationMinutes());
+        System.out.println(tokenExpirationMillis);
+        System.out.println(new Date(now.getTime() + tokenExpirationMillis));
 
         String jwt = JWT.create()
             .withIssuer(jwtProperties.getIss())

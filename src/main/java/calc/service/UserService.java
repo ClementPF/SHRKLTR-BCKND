@@ -78,7 +78,7 @@ public class UserService{
     public UserDTO whoIsLoggedIn(){
 
         FacebookUserInfoDTO userInfo = (FacebookUserInfoDTO) request.getAttribute("user_info");
-        return findByUserName(String.valueOf(userInfo.getId()));
+        return findByExternalId(userInfo.getId());
     }
 
     public List<UserDTO> findByLastName(String lastName){
@@ -90,6 +90,12 @@ public class UserService{
         return convertToDto(userRepository.findByUserName(lastName));
 
     }
+
+
+    public UserDTO findByExternalId(long id){
+        return convertToDto(userRepository.findByExternalId(id));
+    }
+
 
     public List<UserDTO> findUsersInTournament(TournamentDTO tournament){
         List<User> p = new ArrayList<>();
@@ -126,6 +132,9 @@ public class UserService{
         user.setUserName(userDto.getUserName());
 
         if (userDto.getUserId() != null) {
+            User u = userRepository.findOne(userDto.getUserId());
+            user.setExternalId(u.getExternalId());
+            user.setExternalIdProvider(u.getExternalIdProvider());
             user.setStats(statsRepository.findByUserId(userDto.getUserId()));
             user.setOutcomes(outcomeRepository.findByUserId(userDto.getUserId()));
         }
@@ -133,7 +142,8 @@ public class UserService{
     }
 
     protected UserDTO convertToDto(User user, Tournament tournament) {
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        //UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        UserDTO userDTO = new UserDTO();
 
         userDTO.setUserId(user.getUserId());
         userDTO.setFirstName(user.getFirst());
@@ -148,7 +158,8 @@ public class UserService{
     }
 
     protected UserDTO convertToDto(User user) {
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+    //UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        UserDTO userDTO = new UserDTO();
 
         userDTO.setUserId(user.getUserId());
         userDTO.setFirstName(user.getFirst());

@@ -16,6 +16,9 @@ public class User {
     private String lastName;
     @Column(unique = true, nullable = false)
     private String userName;
+    @Column(unique = true, nullable = false)
+    private Long externalId;
+    private String externalIdProvider;
 //    @Column(nullable = false)
     private String password;
 //    @Column(unique = true, nullable = false)
@@ -74,6 +77,14 @@ public class User {
     public void setUserName(String userName) {
         this.userName = userName;
     }
+
+    public Long getExternalId() { return externalId; }
+
+    public void setExternalId(Long externalId) {  this.externalId = externalId; }
+
+    public String getExternalIdProvider() { return externalIdProvider;}
+
+    public void setExternalIdProvider(String externalIdProvider) { this.externalIdProvider = externalIdProvider; }
 
     public String getPassword() { return password; }
 

@@ -57,7 +57,7 @@ public class UserController {
     @RequestMapping(value = "/user", method = RequestMethod.GET)
     public UserDTO getCurrentUser() {
         FacebookUserInfoDTO userInfo = (FacebookUserInfoDTO)request.getAttribute("user_info");
-        return userService.findByUserName(String.valueOf(userInfo.getId()));
+        return userService.findByExternalId(userInfo.getId());
     }
     
     //TODO probably need to send a bad request or something

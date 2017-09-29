@@ -24,6 +24,7 @@ public class StatsDTO {
     private int longuestWinStreak;
     private int longuestLoseStreak;
     private int longuestTieStreak;
+    private String username;
 
     public StatsDTO() {
         super();
@@ -133,11 +134,15 @@ public class StatsDTO {
         this.longuestWinStreak = longuestWinStreak;
     }
 
-    public int getLonguestLoseStreak() {
-        return longuestLoseStreak;
+    public int getLonguestLoseStreak() { return longuestLoseStreak;}
+
+    public void setLonguestLoseStreak(int longuestLoseStreak) { this.longuestLoseStreak = longuestLoseStreak; }
+
+    public String getUsername() {
+        return username;
     }
 
-    public void setLonguestLoseStreak(int longuestLoseStreak) {
-        this.longuestLoseStreak = longuestLoseStreak;
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

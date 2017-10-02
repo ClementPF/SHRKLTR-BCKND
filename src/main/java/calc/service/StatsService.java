@@ -36,7 +36,7 @@ public class StatsService {
     private ModelMapper modelMapper;
 
     public List<StatsDTO> findByTournament(TournamentDTO tournament){
-        return statsRepository.findByTournament(tournamentRepository.findOne(tournament.getTournamentId())).stream()
+        return statsRepository.findByTournamentOrderByScoreDesc(tournamentRepository.findOne(tournament.getTournamentId())).stream()
                 .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
 

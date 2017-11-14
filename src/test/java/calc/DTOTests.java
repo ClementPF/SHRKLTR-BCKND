@@ -76,7 +76,7 @@ public class DTOTests {
             u.setEmail(UUID.randomUUID().toString());
             u.setFirst(UUID.randomUUID().toString());
             u.setLast(UUID.randomUUID().toString());
-            u.setUserName(UUID.randomUUID().toString());
+            u.setUsername(UUID.randomUUID().toString());
             u.setStats();
             u.setOutcomes();
             u.setPassword(UUID.randomUUID().toString());

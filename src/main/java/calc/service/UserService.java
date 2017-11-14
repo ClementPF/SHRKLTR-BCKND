@@ -86,8 +86,8 @@ public class UserService{
                 .map(u -> convertToDto(u)).collect(Collectors.toList());
     }
     
-    public UserDTO findByUserName(String lastName){
-        return convertToDto(userRepository.findByUserName(lastName));
+    public UserDTO findByUserName(String username){
+        return convertToDto(userRepository.findByUserName(username));
 
     }
 
@@ -129,7 +129,7 @@ public class UserService{
         user.setFirst(userDto.getFirstName());
         user.setLast(userDto.getLastName());
         user.setFirst(userDto.getFirstName());
-        user.setUserName(userDto.getUserName());
+        user.setUserName(userDto.getUsername());
 
         if (userDto.getUserId() != null) {
             User u = userRepository.findOne(userDto.getUserId());
@@ -149,7 +149,7 @@ public class UserService{
         userDTO.setFirstName(user.getFirst());
         userDTO.setLastName(user.getLast());
         userDTO.setFirstName(user.getFirst());
-        userDTO.setUserName(user.getUserName());
+        userDTO.setUsername(user.getUserName());
 
         if (user.getUserId() != null)
             userDTO.setStats(new ArrayList<StatsDTO>(Arrays.asList(statsService.convertToDto(user.getStats(tournament)))));
@@ -165,7 +165,7 @@ public class UserService{
         userDTO.setFirstName(user.getFirst());
         userDTO.setLastName(user.getLast());
         userDTO.setFirstName(user.getFirst());
-        userDTO.setUserName(user.getUserName());
+        userDTO.setUsername(user.getUserName());
 
         return userDTO;
     }

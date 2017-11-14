@@ -67,7 +67,7 @@ public class GameService {
         UserDTO l = userService.whoIsLoggedIn();
 
 
-        System.out.print("winner  : " + (w == null ? "winner null" : w.getUserName()) + "\n" + "username looser : " + (l == null ? "looser null" : l.getUserName()) + "\n");
+        System.out.print("winner  : " + (w == null ? "winner null" : w.getUsername()) + "\n" + "username looser : " + (l == null ? "looser null" : l.getUsername()) + "\n");
 
         return addGame(tournament,w,l, isTie);
     }
@@ -75,7 +75,7 @@ public class GameService {
     public GameDTO addGame(Tournament tournament, User winner, User looser, boolean isTie) {
 
         UserDTO w = userService.convertToDto(winner);
-        System.out.print("addGame winner  : " + (winner == null ? "winner null" : winner.getUserName()) + "\n" + "username winnerDTO : " + (w == null ? "winnerDTO null" : w.getUserName()) + "\n");
+        System.out.print("addGame winner  : " + (winner == null ? "winner null" : winner.getUserName()) + "\n" + "username winnerDTO : " + (w == null ? "winnerDTO null" : w.getUsername()) + "\n");
 
 
         StatsDTO winnerStats = statsService.findByUserAndTournamentCreateIfNone(w,tournamentService.convertToDto(tournament));
@@ -94,7 +94,7 @@ public class GameService {
 
     public GameDTO addGame(TournamentDTO tournament, UserDTO winner, UserDTO looser, boolean isTie) {
 
-        System.out.print("username winnerDTO : " + (winner == null ? "winnerDTO null" : winner.getUserName() +" " +  winner.getUserId()) + "\n");
+        System.out.print("username winnerDTO : " + (winner == null ? "winnerDTO null" : winner.getUsername() +" " +  winner.getUserId()) + "\n");
 
         StatsDTO winnerStats = statsService.findByUserAndTournamentCreateIfNone(winner,tournament);
         StatsDTO loserStats = statsService.findByUserAndTournamentCreateIfNone(looser,tournament);

@@ -54,7 +54,7 @@ public class OutcomeService {
             outcome.setGame(gameRepository.findOne(outcomeDto.getGameId()));
 
         }
-        outcome.setUser(userRepository.findByUserName(outcomeDto.getUserName()));
+        outcome.setUser(userRepository.findByUserName(outcomeDto.getUsername()));
 */
         return outcome;
     }
@@ -67,7 +67,7 @@ public class OutcomeService {
         outcomeDTO.setScoreValue(outcome.getScoreValue());
         outcomeDTO.setResult(outcome.getResults());
         outcomeDTO.setGameId(outcome.getGame().getGameId());
-        outcomeDTO.setUserName(outcome.getUser().getUserName());*/
+        outcomeDTO.setUsername(outcome.getUser().getUsername());*/
 
         return outcomeDTO;
     }

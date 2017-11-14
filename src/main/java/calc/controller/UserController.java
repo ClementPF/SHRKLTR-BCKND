@@ -1,19 +1,13 @@
 package calc.controller;
 
 import calc.DTO.FacebookUserInfoDTO;
-import java.text.ParseException;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import calc.DTO.GameDTO;
 import calc.DTO.UserDTO;
 import calc.DTO.StatsDTO;
-import calc.entity.Game;
-import calc.entity.User;
-import calc.entity.Stats;
-import calc.repository.UserRepository;
 import calc.security.Secured;
 import calc.service.GameService;
 import calc.service.UserService;
@@ -23,9 +17,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @Secured
@@ -71,7 +62,7 @@ public class UserController {
         UserDTO p = userService.findOne(userId);
         p.setFirstName(user.getFirstName());
         p.setLastName(user.getLastName());
-        p.setUserName(user.getUserName());
+        p.setUsername(user.getUsername());
 
         return userService.save(p);
     }

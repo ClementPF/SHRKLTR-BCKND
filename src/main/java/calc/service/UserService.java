@@ -123,13 +123,13 @@ public class UserService{
 
 
     public User convertToEntity(UserDTO userDto) throws ParseException {
-        User user = modelMapper.map(userDto, User.class);
+       // User user = modelMapper.map(userDto, User.class);
 
+        User user = new User(userDto.getUsername());
         user.setUserId(userDto.getUserId());
         user.setFirst(userDto.getFirstName());
         user.setLast(userDto.getLastName());
         user.setFirst(userDto.getFirstName());
-        user.setUserName(userDto.getUsername());
 
         if (userDto.getUserId() != null) {
             User u = userRepository.findOne(userDto.getUserId());

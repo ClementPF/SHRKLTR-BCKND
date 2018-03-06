@@ -43,31 +43,33 @@ public class OutcomeService {
     }
 
     protected Outcome convertToEntity(OutcomeDTO outcomeDto) throws ParseException {
-        Outcome outcome = modelMapper.map(outcomeDto, Outcome.class);
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+       // Outcome outcome = modelMapper.map(outcomeDto, Outcome.class);
+       // modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
 
-/*
-        outcome.setOutcomeId(outcomeDto.getOutcomeId());
-        outcome.setScoreValue(outcomeDto.getScoreValue());
-        outcome.setResults(outcomeDto.getResult());
+        Outcome outcome = null;
+
         if(outcomeDto.getGameId() != null) {
-            outcome.setGame(gameRepository.findOne(outcomeDto.getGameId()));
-
+            outcome = new Outcome(
+                    outcomeDto.getScoreValue(),
+                    outcomeDto.getResult(),
+                    gameRepository.findOne(outcomeDto.getGameId()),
+                    userRepository.findByUserName(outcomeDto.getUserName()));
         }
-        outcome.setUser(userRepository.findByUserName(outcomeDto.getUsername()));
-*/
+
         return outcome;
     }
 
     protected OutcomeDTO convertToDto(Outcome outcome) {
-        OutcomeDTO outcomeDTO = modelMapper.map(outcome, OutcomeDTO.class);
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
-/*
+        // OutcomeDTO outcomeDTO = modelMapper.map(outcome, OutcomeDTO.class);
+        // modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+
+        OutcomeDTO outcomeDTO = new OutcomeDTO();
+
         outcomeDTO.setOutcomeId(outcome.getOutcomeId());
         outcomeDTO.setScoreValue(outcome.getScoreValue());
         outcomeDTO.setResult(outcome.getResults());
         outcomeDTO.setGameId(outcome.getGame().getGameId());
-        outcomeDTO.setUsername(outcome.getUser().getUsername());*/
+        outcomeDTO.setUserName(outcome.getUser().getUserName());
 
         return outcomeDTO;
     }

@@ -14,10 +14,18 @@ import java.util.*;
                 query = "SELECT m FROM Game m " +
                         "INNER JOIN m.outcomes o " +
                         "WHERE o.user.userId = ?1"),
+        @NamedQuery(name = "Game.findByUserName",
+                query = "SELECT m FROM Game m " +
+                        "INNER JOIN m.outcomes o " +
+                        "WHERE o.user.userName = ?1"),
         @NamedQuery(name = "Game.findByUserIdByTournamentName",
                 query = "SELECT m FROM Game m " +
                         "INNER JOIN m.outcomes o " +
-                        "WHERE o.user.userId = ?1 AND m.tournament.name=?2" )
+                        "WHERE o.user.userId = ?1 AND m.tournament.name=?2" ),
+        @NamedQuery(name = "Game.findByUserNameByTournamentName",
+        query = "SELECT m FROM Game m " +
+                "INNER JOIN m.outcomes o " +
+                "WHERE o.user.userName = ?1 AND m.tournament.name=?2" )
 })
 public class Game {
 

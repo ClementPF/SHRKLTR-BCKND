@@ -60,6 +60,12 @@ public class StatsService {
         return s == null ? null : convertToDto(s);
     }
 
+    public StatsDTO findByUserNameAndTournament(String username, String tournamentName){
+
+        Stats s = statsRepository.findByUserAndTournament(username, tournamentName);
+        return s == null ? null : convertToDto(s);
+    }
+
     public StatsDTO findByUserAndTournamentCreateIfNone(UserDTO user, TournamentDTO tournament){
 
         StatsDTO stats = findByUserAndTournament(user.getUserId(),tournament.getName());
@@ -145,6 +151,7 @@ public class StatsService {
         statsDTO.setBestScore(stats.getBestScore());
         statsDTO.setWorstScore(stats.getWorstScore());
         statsDTO.setUsername(stats.getUser().getUserName());
+        statsDTO.setTournamentName(stats.getTournament().getDisplayName());
 
         return statsDTO;
     }

@@ -25,6 +25,7 @@ public class StatsDTO {
     private int longuestLoseStreak;
     private int longuestTieStreak;
     private String username;
+    private String tournamentName;
 
     public StatsDTO() {
         super();
@@ -145,4 +146,9 @@ public class StatsDTO {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public String getTournamentName() {return tournamentName; }
+
+    public void setTournamentName(String tournamentName) { this.tournamentName = tournamentName; }
+
 }

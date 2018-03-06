@@ -45,6 +45,10 @@ public class TournamentService {
         return null;
     }
 
+    public List<TournamentDTO> findAll(){
+       return tournamentRepository.findAll().stream().map(t -> convertToDto(t)).collect(Collectors.toList());
+    }
+
     public List<TournamentDTO> findBySportId(Long sportId){
         return tournamentRepository.findBySportId(sportId).stream().map(t -> convertToDto(t)).collect(Collectors.toList());
     }
@@ -90,8 +94,9 @@ public class TournamentService {
 
     protected Tournament convertToEntity(TournamentDTO tournamentDto) throws ParseException {
 
-        Tournament tournament = modelMapper.map(tournamentDto, Tournament.class);
-/*
+       // Tournament tournament = modelMapper.map(tournamentDto, Tournament.class);
+
+        Tournament tournament = new Tournament();
         tournament.setTournamentId(tournamentDto.getTournamentId());
         tournament.setName(tournamentDto.getName());
         tournament.setDisplayName(tournamentDto.getDisplayName());
@@ -99,13 +104,15 @@ public class TournamentService {
         tournament.setSport(sportService.convertToEntity(tournamentDto.getSport()));
         tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName()));
         tournament.setOwner(userService.convertToEntity(tournamentDto.getOwner()));
-*/
+
         return tournament;
     }
 
     protected TournamentDTO convertToDto(Tournament tournament) {
-        TournamentDTO tournamentDTO = modelMapper.map(tournament, TournamentDTO.class);
-/*
+       // TournamentDTO tournamentDTO = modelMapper.map(tournament, TournamentDTO.class);
+
+        TournamentDTO tournamentDTO = new TournamentDTO();
+
         tournamentDTO.setTournamentId(tournament.getTournamentId());
         tournamentDTO.setName(tournament.getName());
         tournamentDTO.setDisplayName(tournament.getDisplayName());
@@ -116,7 +123,7 @@ public class TournamentService {
             tournamentDTO.setOwner(
                     userService.convertToDto(tournament.getOwner())
             );
-        }*/
+        }
         return tournamentDTO;
     }
 }

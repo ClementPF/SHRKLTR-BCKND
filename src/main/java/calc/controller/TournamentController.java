@@ -1,9 +1,7 @@
 package calc.controller;
 
-import calc.DTO.GameDTO;
-import calc.DTO.StatsDTO;
-import calc.DTO.TournamentDTO;
-import calc.DTO.UserDTO;
+import calc.DTO.*;
+import calc.entity.Sport;
 import calc.security.Secured;
 import calc.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +32,23 @@ public class TournamentController {
     @Autowired
     private UserService userService;
 
+    @RequestMapping(value = "/tournaments/all", method = RequestMethod.GET)
+    public List<TournamentDTO> tournaments() {
+
+        return tournamentService.findAll();
+    }
 
     @RequestMapping(value = "/tournaments", method = RequestMethod.GET)
-    public List<TournamentDTO> tournamentsForSport(@RequestParam(value="sport", defaultValue="") String name) {
+    public List<TournamentDTO> tournamentsForSport(@RequestParam(value="sport") String name) {
 
-        List<TournamentDTO> tournamentSet = tournamentService.findBySport(sportService.findByName(name));
+
+        List<TournamentDTO> tournamentSet;
+        if(name != null && !name.equalsIgnoreCase("")){
+            SportDTO sport = sportService.findByName(name);
+            tournamentSet = tournamentService.findBySport(sport);
+        }else{
+            tournamentSet = tournamentService.findAll();
+        }
 
         return tournamentSet;
     }

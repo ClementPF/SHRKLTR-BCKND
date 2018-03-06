@@ -40,9 +40,9 @@ public class UserController {
         return userService.findAll();
     }
 
-    @RequestMapping(value = "/user/{userId}", method = RequestMethod.GET)
-    public UserDTO getUser(@PathVariable(value="userId") Long userId) {
-        return userService.findOne(userId);
+    @RequestMapping(value = "/user/{userName}", method = RequestMethod.GET)
+    public UserDTO getUser(@PathVariable(value="userName") String username) {
+        return userService.findByUserName(username);
     }
 
     @RequestMapping(value = "/user", method = RequestMethod.GET)
@@ -57,9 +57,9 @@ public class UserController {
         return userService.save(user);
     }
 
-    @RequestMapping(value = "/user/{userId}", method = RequestMethod.PUT)
-    public UserDTO updateUser(@PathVariable(value="userId") Long userId, @RequestBody UserDTO user) {
-        UserDTO p = userService.findOne(userId);
+    @RequestMapping(value = "/user/{userName}", method = RequestMethod.PUT)
+    public UserDTO updateUser(@PathVariable(value="userName") String username, @RequestBody UserDTO user) {
+        UserDTO p = userService.findByUserName(username);
         p.setFirstName(user.getFirstName());
         p.setLastName(user.getLastName());
         p.setUsername(user.getUsername());
@@ -67,14 +67,14 @@ public class UserController {
         return userService.save(p);
     }
 
-    @RequestMapping(value = "/user/{userId}/stats", method = RequestMethod.GET)
-    public List<StatsDTO> userStats(@PathVariable(value="userId") Long userId) {
-        return statsService.findByUser(userService.findOne(userId));
+    @RequestMapping(value = "/user/{userName}/stats", method = RequestMethod.GET)
+    public List<StatsDTO> userStats(@PathVariable(value="userName") String username) {
+        return statsService.findByUser(userService.findByUserName(username));
     }
 
-    @RequestMapping(value = "/user/{userId}/stats2", method = RequestMethod.GET)
-    public StatsDTO userStatsForTournament(@PathVariable(value="userId") Long userId, @RequestParam(value="tournamentName", defaultValue="") String tournamentName) {
-        return statsService.findByUserAndTournament(userId, tournamentName);
+    @RequestMapping(value = "/user/{userName}/stats2", method = RequestMethod.GET)
+    public StatsDTO userStatsForTournament(@PathVariable(value="userName") String username, @RequestParam(value="tournamentName", defaultValue="") String tournamentName) {
+        return statsService.findByUserNameAndTournament(username, tournamentName);
     }
 /*
     @RequestMapping(value = "/user/{userId}/games", method = RequestMethod.GET)
@@ -82,14 +82,14 @@ public class UserController {
         return repoGames.findByUser(userService.findOne(userId));
     }*/
 
-    @RequestMapping(value = "/user/{userId}/games", method = RequestMethod.GET)
-    public List<GameDTO> userGamesForTournament(@PathVariable(value="userId") Long userId, @RequestParam(value="tournamentName", required = false) String tournamentName) {
+    @RequestMapping(value = "/user/{userName}/games", method = RequestMethod.GET)
+    public List<GameDTO> userGamesForTournament(@PathVariable(value="userName") String username, @RequestParam(value="tournamentName", required = false) String tournamentName) {
         List<GameDTO> m = new ArrayList<>();
 
         if(tournamentName != null){
-            m = gameService.findByUserByTournament(userId,tournamentName);
+            m = gameService.findByUserByTournament(username,tournamentName);
         }else
-            m = gameService.findByUser(userId);
+            m = gameService.findByUser(username);
 
         return m;
     }

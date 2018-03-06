@@ -136,15 +136,23 @@ public class GameService {
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
-
     public List<GameDTO> findByUserByTournament(Long userId, String tournamentName){
         return gameRepository.findByUserIdByTournamentName(userId, tournamentName).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
+    public List<GameDTO> findByUserByTournament(String username, String tournamentName){
+        return gameRepository.findByUserNameByTournamentName(username, tournamentName).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
+    }
 
     public List<GameDTO> findByUser(Long userId) {
         return gameRepository.findByUserId(userId).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
+    }
+
+    public List<GameDTO> findByUser(String username) {
+        return gameRepository.findByUserName(username).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 

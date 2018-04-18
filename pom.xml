@@ -4,8 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.sharkulator</groupId>
-    <artifactId>rest-service</artifactId>
-    <version>0.1.0</version>
+    <artifactId>rest-sharkulator</artifactId>
+    <version>0.0.2</version>
+    <packaging>war</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>

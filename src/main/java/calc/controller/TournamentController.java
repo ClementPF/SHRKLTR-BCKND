@@ -8,9 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Description;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -97,6 +99,9 @@ public class TournamentController {
     @RequestMapping(value = "/tournament/{tournamentName}/games", method = RequestMethod.GET)
     public List<GameDTO> gamesForTournament(@PathVariable(value="tournamentName") String name) {
         List<GameDTO> games = gameService.findByTournamentName(name);
+
+        games = games.stream().sorted(Comparator.comparing(GameDTO::getDate).reversed()).collect(Collectors.toList());
+
         return games;
     }
 

@@ -3,7 +3,10 @@ package calc.controller;
 import calc.DTO.FacebookUserInfoDTO;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import calc.DTO.GameDTO;
 import calc.DTO.UserDTO;
@@ -69,6 +72,8 @@ public class UserController {
 
     @RequestMapping(value = "/user/{userName}/stats", method = RequestMethod.GET)
     public List<StatsDTO> userStats(@PathVariable(value="userName") String username) {
+        List<StatsDTO> statsDTOs = statsService.findByUser(userService.findByUserName(username));
+
         return statsService.findByUser(userService.findByUserName(username));
     }
 
@@ -90,6 +95,8 @@ public class UserController {
             m = gameService.findByUserByTournament(username,tournamentName);
         }else
             m = gameService.findByUser(username);
+
+        m = m.stream().sorted(Comparator.comparing(GameDTO::getDate).reversed()).collect(Collectors.toList());
 
         return m;
     }

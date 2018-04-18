@@ -28,7 +28,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static jdk.nashorn.internal.objects.NativeMath.random;
-
+/*
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -59,7 +59,7 @@ public class DTOTests {
             s.setLonguestLoseStreak((int) Math.round(Math.random()*1000));
             s.setTournament(new Tournament());
 
-/*
+
             Sport sport = new Sport();
             sport.setSportId(secureRandomLong());
             sport.setName(UUID.randomUUID().toString());
@@ -81,7 +81,7 @@ public class DTOTests {
             u.setOutcomes();
             u.setPassword(UUID.randomUUID().toString());
 
-            s.setTournament(t);*/
+            s.setTournament(t);
 
 
 
@@ -119,7 +119,7 @@ public class DTOTests {
 
         @Test
         public void whenConvertPostDtoToPostEntity_thenCorrect() {
-            /*
+
             PostDto postDto = new PostDto();
             postDto.setId(Long.valueOf(1));
             postDto.setTitle(randomAlphabetic(100));
@@ -128,7 +128,8 @@ public class DTOTests {
             Post post = modelMapper.map(postDto, Post.class);
             assertEquals(postDto.getId(), post.getId());
             assertEquals(postDto.getTitle(), post.getTitle());
-            assertEquals(postDto.getUrl(), post.getUrl());*/
+            assertEquals(postDto.getUrl(), post.getUrl());
         }
     }
 }
+*/

@@ -12,6 +12,7 @@ public class StatsDTO {
 
     private Long statsId;
     private double score;
+    private int position;
     private int gameCount;
     private int winCount;
     private int loseCount;
@@ -54,6 +55,10 @@ public class StatsDTO {
     public void setScore(double score) {
         this.score = score;
     }
+
+    public int getPosition() { return position; }
+
+    public void setPosition(int position) { this.position = position; }
 
     public int getGameCount() {
         return gameCount;

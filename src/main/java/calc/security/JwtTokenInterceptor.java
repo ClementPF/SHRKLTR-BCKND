@@ -6,7 +6,6 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oracle.jrockit.jfr.ContentType;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import javax.servlet.http.HttpServletRequest;

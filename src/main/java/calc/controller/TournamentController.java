@@ -2,10 +2,13 @@ package calc.controller;
 
 import calc.DTO.*;
 import calc.entity.Sport;
+import calc.repository.SportRepository;
 import calc.security.Secured;
 import calc.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Description;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
@@ -73,10 +76,32 @@ public class TournamentController {
      * @param tournament
      */
     @RequestMapping(value = "/tournament", method = RequestMethod.POST)
-    public void createTournament(TournamentDTO tournament) {
-        UserDTO owner = userService.whoIsLoggedIn();
-        tournament.setOwner(owner);
-        tournamentService.save(tournament);
+    public ResponseEntity createTournament(@RequestBody TournamentDTO tournament) {
+
+
+        System.out.println(tournament.toString());
+
+        if(tournamentService.findByName(tournament.getName()) != null){
+
+            System.out.println("tournament already exist");
+            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+        }
+        if(tournament.getSport() == null){
+
+
+            System.out.println("no sport");
+            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+        }
+        if(tournament.getSport().getName() == null){
+
+
+
+            System.out.println("no sport name");
+            System.out.println();
+            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        return ResponseEntity.ok(tournamentService.createTournament(tournament));
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}", method = RequestMethod.PUT)

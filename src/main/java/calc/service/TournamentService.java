@@ -1,11 +1,10 @@
 package calc.service;
 
-import calc.DTO.GameDTO;
-import calc.DTO.OutcomeDTO;
-import calc.DTO.SportDTO;
-import calc.DTO.TournamentDTO;
+import calc.DTO.*;
+import calc.entity.Sport;
 import calc.entity.Tournament;
 import calc.repository.GameRepository;
+import calc.repository.SportRepository;
 import calc.repository.TournamentRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +29,8 @@ public class TournamentService {
     @Autowired
     private SportService sportService;
     @Autowired
+    private SportRepository sportRepository;
+    @Autowired
     private UserService userService;
     @Autowired
     private GameService gameService;
@@ -51,6 +52,32 @@ public class TournamentService {
 
     public List<TournamentDTO> findBySportId(Long sportId){
         return tournamentRepository.findBySportId(sportId).stream().map(t -> convertToDto(t)).collect(Collectors.toList());
+    }
+
+    public TournamentDTO createTournament(TournamentDTO tournament) {
+
+        UserDTO owner = userService.whoIsLoggedIn();
+        tournament.setOwner(owner);
+
+        SportDTO s = tournament.getSport();
+        String sportName = s.getName();
+        Sport sport = sportRepository.findByName(s.getName());
+
+        if(sport == null) {
+            sport = new Sport();
+            sport.setName(sportName);
+            sportRepository.save(sport);
+        }
+
+        // tournament already exist
+
+        // sport already exist
+
+        // sport doesn't exist
+
+        // tournament doesn't exist
+
+        return save(tournament);
     }
 
     public TournamentDTO save(TournamentDTO tournament){
@@ -101,7 +128,7 @@ public class TournamentService {
         tournament.setName(tournamentDto.getName());
         tournament.setDisplayName(tournamentDto.getDisplayName());
         tournament.setIsOver(tournamentDto.getIsOver());
-        tournament.setSport(sportService.convertToEntity(tournamentDto.getSport()));
+        tournament.setSport(sportRepository.findByName(tournamentDto.getSport().getName()));
         tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName()));
         tournament.setOwner(userService.convertToEntity(tournamentDto.getOwner()));
 

@@ -50,20 +50,22 @@ public class SportService {
 
     protected Sport convertToEntity(SportDTO sportDto) throws ParseException {
 
-        Sport sport = modelMapper.map(sportDto, Sport.class);
+        //Sport sport = modelMapper.map(sportDto, Sport.class);
 
-        sport.setSportId(sportDto.getSportId());
+        Sport sport = new Sport();
         sport.setName(sportDto.getName());
 
         if (sportDto.getSportId() != null) {
+            sport.setSportId(sportDto.getSportId());
             sport.setTournaments(tournamentRepository.findBySportId(sportDto.getSportId()));
         }
         return sport;
     }
 
     protected SportDTO convertToDto(Sport sport) {
-        SportDTO sportDTO = modelMapper.map(sport, SportDTO.class);
+        //SportDTO sportDTO = modelMapper.map(sport, SportDTO.class);
 
+        SportDTO sportDTO = new SportDTO();
         sportDTO.setSportId(sport.getSportId());
         sportDTO.setName(sport.getName());
         return sportDTO;

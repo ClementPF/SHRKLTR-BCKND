@@ -3,13 +3,16 @@ package calc.service;
 import calc.DTO.*;
 import calc.entity.Sport;
 import calc.entity.Tournament;
+import calc.entity.User;
 import calc.repository.GameRepository;
 import calc.repository.SportRepository;
 import calc.repository.TournamentRepository;
+import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.callback.TextOutputCallback;
 import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +35,8 @@ public class TournamentService {
     private SportRepository sportRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private GameService gameService;
     @Autowired
@@ -69,6 +74,7 @@ public class TournamentService {
             sportRepository.save(sport);
         }
 
+
         // tournament already exist
 
         // sport already exist
@@ -81,13 +87,11 @@ public class TournamentService {
     }
 
     public TournamentDTO save(TournamentDTO tournament){
-        try {
-            return convertToDto(tournamentRepository.save(convertToEntity(tournament)));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
 
-        return null;
+            Sport sport = sportRepository.findByName(tournament.getSport().getName());
+            User owner = userRepository.findByUserName(tournament.getOwner().getUsername());
+            Tournament t = new Tournament(tournament.getDisplayName(),sport, owner);
+            return convertToDto(tournamentRepository.save(t));
     }
 
     public void delete(TournamentDTO tournament){

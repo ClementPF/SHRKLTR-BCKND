@@ -59,6 +59,10 @@ public class TournamentService {
         return tournamentRepository.findBySportId(sportId).stream().map(t -> convertToDto(t)).collect(Collectors.toList());
     }
 
+    public List<TournamentDTO> findByUserName(String username) {
+        return tournamentRepository.findByUserName(username).stream().map(t -> convertToDto(t)).collect(Collectors.toList());
+    }
+
     public TournamentDTO createTournament(TournamentDTO tournament) {
 
         UserDTO owner = userService.whoIsLoggedIn();

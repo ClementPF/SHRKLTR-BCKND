@@ -7,5 +7,4 @@ build/*
 *.lst
 /build
 
-target/*
-src/main/resources/application.properties
+target/classes/*

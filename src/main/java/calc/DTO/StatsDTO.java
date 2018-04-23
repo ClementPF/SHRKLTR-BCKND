@@ -27,6 +27,7 @@ public class StatsDTO {
     private int longuestTieStreak;
     private String username;
     private String tournamentName;
+    private String tournamentDisplayName;
 
     public StatsDTO() {
         super();
@@ -156,4 +157,11 @@ public class StatsDTO {
 
     public void setTournamentName(String tournamentName) { this.tournamentName = tournamentName; }
 
+    public String getTournamentDisplayName() {
+        return tournamentDisplayName;
+    }
+
+    public void setTournamentDisplayName(String tournamentDisplayName) {
+        this.tournamentDisplayName = tournamentDisplayName;
+    }
 }

@@ -1,6 +1,6 @@
 package calc.controller;
 
-import calc.DTO.FacebookUserInfoDTO;
+import calc.DTO.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,9 +8,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import calc.DTO.GameDTO;
-import calc.DTO.UserDTO;
-import calc.DTO.StatsDTO;
 import calc.security.Secured;
 import calc.service.GameService;
 import calc.service.UserService;
@@ -80,6 +77,12 @@ public class UserController {
     @RequestMapping(value = "/user/{userName}/stats2", method = RequestMethod.GET)
     public StatsDTO userStatsForTournament(@PathVariable(value="userName") String username, @RequestParam(value="tournamentName", defaultValue="") String tournamentName) {
         return statsService.findByUserNameAndTournament(username, tournamentName);
+    }
+
+
+    @RequestMapping(value = "/user/{userName}/tournaments", method = RequestMethod.GET)
+    public List<TournamentDTO> userTournaments(@PathVariable(value="userName") String username) {
+        return tournamentService.findByUserName(username);
     }
 /*
     @RequestMapping(value = "/user/{userId}/games", method = RequestMethod.GET)

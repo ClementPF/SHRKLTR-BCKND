@@ -14,4 +14,5 @@ public interface TournamentRepository extends CrudRepository<Tournament, Long> {
     List<Tournament> findBySportId(Long sportId);
     Tournament findByName(String name);
     List<Tournament> findAll();
+    List<Tournament> findByUserName(String username);
 }

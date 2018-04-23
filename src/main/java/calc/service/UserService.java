@@ -88,7 +88,6 @@ public class UserService{
     
     public UserDTO findByUserName(String username){
         return convertToDto(userRepository.findByUserName(username));
-
     }
 
 

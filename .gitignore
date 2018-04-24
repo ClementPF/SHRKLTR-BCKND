@@ -7,4 +7,8 @@ build/*
 *.lst
 /build
 
+<<<<<<< HEAD
 target/classes/*
+=======
+target/*
+>>>>>>> parent of f6d7ae3... changes tournament save method

@@ -151,7 +151,8 @@ public class StatsService {
         statsDTO.setBestScore(stats.getBestScore());
         statsDTO.setWorstScore(stats.getWorstScore());
         statsDTO.setUsername(stats.getUser().getUserName());
-        statsDTO.setTournamentName(stats.getTournament().getDisplayName());
+        statsDTO.setTournamentDisplayName(stats.getTournament().getDisplayName());
+        statsDTO.setTournamentName(stats.getTournament().getName());
 
         return statsDTO;
     }

@@ -9,7 +9,11 @@ import java.util.List;
 @Entity
 @NamedQueries({
         @NamedQuery(name = "Tournament.findByName", query = "SELECT t FROM Tournament t WHERE t.name = ?1"),
-        @NamedQuery(name = "Tournament.findBySportId", query = "SELECT t FROM Tournament t WHERE t.sport.sportId = ?1")
+        @NamedQuery(name = "Tournament.findBySportId", query = "SELECT t FROM Tournament t WHERE t.sport.sportId = ?1"),
+        @NamedQuery(name = "Tournament.findByUserName",
+                query = "SELECT t FROM Tournament t " +
+                        "INNER JOIN t.stats s " +
+                        "WHERE s.user.userName = ?12" )
 })
 @Table(uniqueConstraints={@UniqueConstraint(columnNames={"name"})})
 public class Tournament {

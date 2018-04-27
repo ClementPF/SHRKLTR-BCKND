@@ -1,6 +1,7 @@
 package calc.service;
 
 import calc.DTO.*;
+import calc.entity.Outcome;
 import calc.entity.Sport;
 import calc.entity.Tournament;
 import calc.entity.User;
@@ -111,7 +112,7 @@ public class TournamentService {
         return t == null ? null : convertToDto(t);
     }
 
-    public GameDTO addGameForTournament(String tournamentName, GameDTO game) {
+    public GameDTO addGameForTournament(String tournamentName, GameDTO game){
 
 
         //TODO validate data
@@ -121,7 +122,6 @@ public class TournamentService {
 
         TournamentDTO tournament =  tournamentService.findByName(tournamentName);
         List<OutcomeDTO> outcomes = game.getOutcomes();
-
 
         return gameService.addGame(tournament, outcomes);
 

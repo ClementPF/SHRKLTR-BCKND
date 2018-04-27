@@ -1,6 +1,7 @@
 package calc.controller;
 
 import calc.DTO.*;
+import calc.entity.Outcome;
 import calc.entity.Sport;
 import calc.repository.SportRepository;
 import calc.security.Secured;
@@ -131,7 +132,7 @@ public class TournamentController {
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/games", method = RequestMethod.POST)
-    public GameDTO addGameForTournament(@PathVariable(value="tournamentName") String name, @RequestBody GameDTO game) {
+    public ResponseEntity addGameForTournament(@PathVariable(value="tournamentName") String name, @RequestBody GameDTO game){
 
         //TODO validate data
         //TODO looser send game
@@ -139,7 +140,19 @@ public class TournamentController {
         //TODO might make more sense to be in POST /game ??
 
 
-        return tournamentService.addGameForTournament(name,game);
+        UserDTO l = userService.whoIsLoggedIn();
+        List<OutcomeDTO> outcomes = game.getOutcomes();
+        String winner = outcomes.get(0).getResult().equals(Outcome.Result.WIN) ? outcomes.get(0).getUserName() : outcomes.get(1).getUserName();
+
+        if(outcomes.size() != 2 ||
+                (outcomes.get(0).getResult().equals(Outcome.Result.WIN) && outcomes.get(1).getResult().equals(Outcome.Result.WIN)) ||
+                (outcomes.get(0).getResult().equals(Outcome.Result.LOSS) && outcomes.get(1).getResult().equals(Outcome.Result.LOSS))){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Only two outcomes accepted");
+        }else if(winner.equalsIgnoreCase(l.getUsername())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Same username for both outcomes");
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(tournamentService.addGameForTournament(name,game));
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/stats", method = RequestMethod.GET)

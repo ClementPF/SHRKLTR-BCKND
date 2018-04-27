@@ -13,7 +13,7 @@ import java.util.List;
         @NamedQuery(name = "Tournament.findByUserName",
                 query = "SELECT t FROM Tournament t " +
                         "INNER JOIN t.stats s " +
-                        "WHERE s.user.userName = ?12" )
+                        "WHERE s.user.userName = ?1" )
 })
 @Table(uniqueConstraints={@UniqueConstraint(columnNames={"name"})})
 public class Tournament {

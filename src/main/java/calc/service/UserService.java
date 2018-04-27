@@ -110,14 +110,14 @@ public class UserService{
 
     public List<UserDTO> findUsersInTournamentNamed(String tournamentName){
         List<User> p = new ArrayList<>();
-
-        List<Stats> stats = statsRepository.findByTournament(tournamentRepository.findByName(tournamentName));
+        Tournament t = tournamentRepository.findByName(tournamentName);
+        List<Stats> stats = statsRepository.findByTournament(t);
         for(Stats s : stats){
             p.add(s.getUser());
         }
 
         return p.stream()
-                .map(u -> convertToDto(u)).collect(Collectors.toList());
+                .map(u -> convertToDto(u, t)).collect(Collectors.toList());
     }
 
 

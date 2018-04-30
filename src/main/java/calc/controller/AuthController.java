@@ -35,4 +35,14 @@ public class AuthController {
     public TokenDTO getToken(@RequestBody TokenRequestDTO tokenRequest) {
         return authService.getToken(tokenRequest);
     }
+
+    /**
+     * API endpoint to refresh previously created long living JWToken
+     * @param tokenRefresh a JSON object containing a JWToken
+     * @return JWToken that can be used to access secured APIs
+     */
+    @RequestMapping(value = "/auth/refresh", method = RequestMethod.POST)
+    public TokenDTO refreshToken(@RequestBody TokenDTO tokenRefresh) {
+        return authService.refreshToken(tokenRefresh);
+    }
 }

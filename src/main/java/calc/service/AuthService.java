@@ -11,6 +11,10 @@ import calc.property.JwtProperties;
 import calc.repository.UserRepository;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,12 +52,14 @@ public class AuthService {
     @Autowired
     private ObjectMapper objectMapper;
     
+    private long tokenRefreshExpirationMillis; //1y
     private long tokenExpirationMillis;
     private RestTemplate restTemplate;
 
     @PostConstruct
     private void setUp() {
-        tokenExpirationMillis = jwtProperties.getTokenExpirationMinutes() * 60 * 60 * 1000;
+        tokenExpirationMillis = jwtProperties.getTokenExpirationMinutes() * 60 * 1000;
+        tokenRefreshExpirationMillis = jwtProperties.getTokenRefreshExpirationMinutes() * 60 * 1000; // 1y
         restTemplate = new RestTemplate();
     }
     
@@ -67,6 +73,13 @@ public class AuthService {
             logger.debug("Making graph API request for user info");
             ResponseEntity<FacebookUserInfoDTO> response = restTemplate.getForEntity(requestURL, FacebookUserInfoDTO.class);
             logger.debug("Received 200 from graph API");
+
+            FacebookUserInfoDTO userInfo = response.getBody();
+            User user = userRepository.findByExternalId(userInfo.getId());
+            if (user == null) {
+                createNewUserFromExternalProvider(userInfo);
+            }
+
             return createToken(response.getBody());
         } catch (HttpStatusCodeException hsce) {
             // Received HTTP status != 200 from Graph API
@@ -85,44 +98,34 @@ public class AuthService {
             throw new APIException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to reach Facebook Graph API");
         }
     }
+
+    public TokenDTO refreshToken(TokenDTO tokenRefresh){
+
+        try {
+            DecodedJWT jwt = jwtVerifier.verify(tokenRefresh);
+
+            Claim uid = jwt.getClaim("uid");
+            Claim name = jwt.getClaim("name");
+            Claim email = jwt.getClaim("email");
+            Claim roles = jwt.getClaim("roles");
+
+            logger.debug("JWToken refresh verified for uid: {}", uid.asLong());
+
+            if(roles.asString().equals("REFRESH_TOKEN")){
+                FacebookUserInfoDTO userInfo = new FacebookUserInfoDTO(uid.asLong(), name.asString(), email.asString());
+                return createToken(userInfo);
+            }else{
+                throw new APIException(HttpStatus.UNAUTHORIZED, "trying to refresh a token which is not a refresh token");
+            }
+        } catch (JWTVerificationException ve) {
+            logger.warn("JWToken refresh verification failed: {}", ve.getMessage());
+            setJSONErrorResponse(response, HttpStatus.UNAUTHORIZED, ve.getMessage());
+            return false;
+        }
+    }
     
     private TokenDTO createToken(FacebookUserInfoDTO userInfo) {
         // check if user exists and create a new user if needed
-        User user = userRepository.findByExternalId(userInfo.getId());
-        if (user == null) {
-
-            String username = userInfo.getName().toLowerCase().replace(' ','-');
-            username = Normalizer.normalize(username, Normalizer.Form.NFD);
-            username = username.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
-
-            User check = userRepository.findByUserName(username);
-            int suffix = 1;
-            int max = 999;
-            while(check != null && suffix < max + 1){
-                check = userRepository.findByUserName(username + "-" + suffix);
-                if(check == null){
-                    username = username + '-' + suffix;
-                }
-            }
-
-            if(suffix == max){
-                System.out.print("username reached 999 for " + username);
-            }
-
-            user = new User(username);
-            int indexOfLastSpace = userInfo.getName().lastIndexOf(" ");
-            if (indexOfLastSpace > 0) {
-                user.setEmail(userInfo.getEmail());
-                user.setLast(userInfo.getName().substring(indexOfLastSpace + 1));
-                user.setFirst(userInfo.getName().substring(0, indexOfLastSpace));
-                user.setExternalIdProvider("facebook");
-                user.setExternalId(userInfo.getId());
-            } else {
-                user.setFirst(userInfo.getName());
-                user.setEmail(userInfo.getEmail());
-            }
-            userRepository.save(user);
-        }
         
         Date now = new Date();
 
@@ -141,4 +144,62 @@ public class AuthService {
 
         return new TokenDTO(jwt);
     }
+
+    private TokenDTO createTokenRefresh(FacebookUserInfoDTO userInfo) {
+
+        Date now = new Date();
+
+        System.out.println(jwtProperties.getTokenRefreshExpirationMinutes());
+        System.out.println(tokenRefreshExpirationMillis);
+        System.out.println(new Date(now.getTime() + tokenRefreshExpirationMillis));
+
+        String jwt = JWT.create()
+                .withIssuer(jwtProperties.getIss())
+                .withIssuedAt(now)
+                .withExpiresAt(new Date(now.getTime() + tokenRefreshExpirationMillis))
+                .withClaim("uid", userInfo.getId())
+                .withClain("scopes","REFRESH_TOKEN")
+                .withClaim("name", userInfo.getName())
+                .withClaim("email", userInfo.getEmail())
+                .sign(algorithm);
+
+        return new TokenDTO(jwt);
+    }
+
+    private User createNewUserFromExternalProvider(FacebookUserInfoDTO userInfo){
+
+        String username = userInfo.getName().toLowerCase().replace(' ','-');
+        username = Normalizer.normalize(username, Normalizer.Form.NFD);
+        username = username.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+
+        User check = userRepository.findByUserName(username);
+        int suffix = 1;
+        int max = 999;
+        while(check != null && suffix < max + 1){
+            check = userRepository.findByUserName(username + "-" + suffix);
+            if(check == null){
+                username = username + '-' + suffix;
+            }
+        }
+
+        if(suffix == max){
+            System.out.print("username reached 999 for " + username);
+        }
+
+        User user = new User(username);
+        int indexOfLastSpace = userInfo.getName().lastIndexOf(" ");
+        if (indexOfLastSpace > 0) {
+            user.setEmail(userInfo.getEmail());
+            user.setLast(userInfo.getName().substring(indexOfLastSpace + 1));
+            user.setFirst(userInfo.getName().substring(0, indexOfLastSpace));
+            user.setExternalIdProvider("facebook");
+            user.setExternalId(userInfo.getId());
+        } else {
+            user.setFirst(userInfo.getName());
+            user.setEmail(userInfo.getEmail());
+        }
+        userRepository.save(user);
+
+    }
+
 }

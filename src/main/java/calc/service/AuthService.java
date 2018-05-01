@@ -20,8 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -41,6 +43,8 @@ public class AuthService {
     
     @Autowired
     private JwtProperties jwtProperties;
+    @Autowired
+    private JWTVerifier jwtVerifier;
     @Autowired
     private FacebookProperties facebookProperties;
     
@@ -77,10 +81,10 @@ public class AuthService {
             FacebookUserInfoDTO userInfo = response.getBody();
             User user = userRepository.findByExternalId(userInfo.getId());
             if (user == null) {
-                createNewUserFromExternalProvider(userInfo);
+                createUserFromExternalProvider(userInfo);
             }
 
-            return createToken(response.getBody());
+            return new TokenDTO(createToken(response.getBody()),createTokenRefresh(response.getBody()));
         } catch (HttpStatusCodeException hsce) {
             // Received HTTP status != 200 from Graph API
             logger.warn("Received bad HTTP status code from Graph API. Exception message: {}", hsce.getMessage());
@@ -102,29 +106,37 @@ public class AuthService {
     public TokenDTO refreshToken(TokenDTO tokenRefresh){
 
         try {
-            DecodedJWT jwt = jwtVerifier.verify(tokenRefresh);
+            DecodedJWT jwt = jwtVerifier.verify(tokenRefresh.getRefreshToken());
 
             Claim uid = jwt.getClaim("uid");
             Claim name = jwt.getClaim("name");
             Claim email = jwt.getClaim("email");
-            Claim roles = jwt.getClaim("roles");
+            Claim roles = jwt.getClaim("scopes");
 
             logger.debug("JWToken refresh verified for uid: {}", uid.asLong());
 
             if(roles.asString().equals("REFRESH_TOKEN")){
                 FacebookUserInfoDTO userInfo = new FacebookUserInfoDTO(uid.asLong(), name.asString(), email.asString());
-                return createToken(userInfo);
+                return createTokenPair(userInfo);
             }else{
                 throw new APIException(HttpStatus.UNAUTHORIZED, "trying to refresh a token which is not a refresh token");
             }
         } catch (JWTVerificationException ve) {
             logger.warn("JWToken refresh verification failed: {}", ve.getMessage());
-            setJSONErrorResponse(response, HttpStatus.UNAUTHORIZED, ve.getMessage());
-            return false;
         }
+        return null;
     }
-    
-    private TokenDTO createToken(FacebookUserInfoDTO userInfo) {
+
+    private TokenDTO createTokenPair(FacebookUserInfoDTO userInfo) {
+        // check if user exists and create a new user if needed
+
+        String accessToken = createToken(userInfo);
+        String refreshToken = createTokenRefresh(userInfo);
+
+        return new TokenDTO(accessToken,refreshToken);
+    }
+
+    private String createToken(FacebookUserInfoDTO userInfo) {
         // check if user exists and create a new user if needed
         
         Date now = new Date();
@@ -142,10 +154,10 @@ public class AuthService {
             .withClaim("email", userInfo.getEmail())
             .sign(algorithm);
 
-        return new TokenDTO(jwt);
+        return jwt;
     }
 
-    private TokenDTO createTokenRefresh(FacebookUserInfoDTO userInfo) {
+    private String createTokenRefresh(FacebookUserInfoDTO userInfo) {
 
         Date now = new Date();
 
@@ -158,17 +170,19 @@ public class AuthService {
                 .withIssuedAt(now)
                 .withExpiresAt(new Date(now.getTime() + tokenRefreshExpirationMillis))
                 .withClaim("uid", userInfo.getId())
-                .withClain("scopes","REFRESH_TOKEN")
+                .withClaim("scopes","REFRESH_TOKEN")
                 .withClaim("name", userInfo.getName())
                 .withClaim("email", userInfo.getEmail())
                 .sign(algorithm);
 
-        return new TokenDTO(jwt);
+        logger.debug("Refresh Token Created: " + jwt);
+
+        return jwt;
     }
 
-    private User createNewUserFromExternalProvider(FacebookUserInfoDTO userInfo){
+    private User createUserFromExternalProvider(FacebookUserInfoDTO userInfo){
 
-        String username = userInfo.getName().toLowerCase().replace(' ','-');
+        String username = userInfo.getName().toLowerCase().replace(' ', '-');
         username = Normalizer.normalize(username, Normalizer.Form.NFD);
         username = username.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
 
@@ -198,8 +212,8 @@ public class AuthService {
             user.setFirst(userInfo.getName());
             user.setEmail(userInfo.getEmail());
         }
-        userRepository.save(user);
 
+        return userRepository.save(user);
     }
 
 }

@@ -192,6 +192,7 @@ public class GameService {
         gameDTO.setGameId(game.getGameId());
         gameDTO.setDate(game.getDate());
         gameDTO.setTournamentName(game.getTournament().getName());
+        gameDTO.setTournamentDisplayName(game.getTournament().getDisplayName());
 
         if (game.getGameId() != null)
             gameDTO.setOutcomes(game.getOutcomes().stream().map(o -> outcomeService.convertToDto(o) ).collect(Collectors.toList()));

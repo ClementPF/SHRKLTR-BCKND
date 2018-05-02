@@ -16,6 +16,7 @@ public class GameDTO {
     private Long gameId;
     private Date date;
     private String tournamentName;
+    private String tournamentDisplayName;
     private List<OutcomeDTO> outcomes;
 
     public GameDTO() {
@@ -45,6 +46,10 @@ public class GameDTO {
     public void setTournamentName(String tournamentName) {
         this.tournamentName = tournamentName;
     }
+
+    public String getTournamentDisplayName() { return tournamentDisplayName; }
+
+    public void setTournamentDisplayName(String tournamentDisplayName) { this.tournamentDisplayName = tournamentDisplayName;}
 
     public Long getGameId() {
         return gameId;

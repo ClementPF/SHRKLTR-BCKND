@@ -1,10 +1,6 @@
 package calc.controller;
 
 import calc.DTO.SportDTO;
-import calc.entity.User;
-import calc.entity.Sport;
-import calc.repository.UserRepository;
-import calc.repository.SportRepository;
 import calc.security.Secured;
 import calc.service.SportService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -47,7 +47,7 @@ public class UserController {
 
     @RequestMapping(value = "/user", method = RequestMethod.GET)
     public UserDTO getCurrentUser() {
-        FacebookUserInfoDTO userInfo = (FacebookUserInfoDTO)request.getAttribute("user_info");
+        ProviderUserInfoDTO userInfo = (ProviderUserInfoDTO)request.getAttribute("user_info");
         return userService.findByExternalId(userInfo.getId());
     }
     

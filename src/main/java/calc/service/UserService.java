@@ -1,9 +1,6 @@
 package calc.service;
 
-import calc.DTO.FacebookUserInfoDTO;
-import calc.DTO.StatsDTO;
-import calc.DTO.TournamentDTO;
-import calc.DTO.UserDTO;
+import calc.DTO.*;
 import calc.entity.Stats;
 import calc.entity.Tournament;
 import calc.entity.User;
@@ -77,7 +74,7 @@ public class UserService{
 
     public UserDTO whoIsLoggedIn(){
 
-        FacebookUserInfoDTO userInfo = (FacebookUserInfoDTO) request.getAttribute("user_info");
+        ProviderUserInfoDTO userInfo = (ProviderUserInfoDTO) request.getAttribute("user_info");
         return findByExternalId(userInfo.getId());
     }
 
@@ -90,11 +87,13 @@ public class UserService{
         return convertToDto(userRepository.findByUserName(username));
     }
 
-
-    public UserDTO findByExternalId(long id){
-        return convertToDto(userRepository.findByExternalId(id));
+    public UserDTO findByUserId(long id){
+        return convertToDto(userRepository.findByUserId(id));
     }
 
+    public UserDTO findByExternalId(String id){
+        return convertToDto(userRepository.findByExternalId(id));
+    }
 
     public List<UserDTO> findUsersInTournament(TournamentDTO tournament){
         List<User> p = new ArrayList<>();
@@ -167,5 +166,9 @@ public class UserService{
         userDTO.setUsername(user.getUserName());
 
         return userDTO;
+    }
+
+    public boolean exists(String username) {
+        return findByUserName(username) != null;
     }
 }

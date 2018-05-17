@@ -4,25 +4,26 @@ package calc.DTO;
  *
  * @author danny
  */
-public class FacebookUserInfoDTO {
-    private long id;
+public class ProviderUserInfoDTO {
+    private String id;
     private String name;
     private String email;
+    private String provider;
 
-    public FacebookUserInfoDTO() {
+    public ProviderUserInfoDTO() {
     }
-    
-    public FacebookUserInfoDTO(long id, String name, String email) {
+
+    public ProviderUserInfoDTO(String id, String name, String email) {
         this.id = id;
         this.name = name;
         this.email = email;
     }
     
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -40,5 +41,13 @@ public class FacebookUserInfoDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 }

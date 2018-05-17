@@ -1,19 +1,19 @@
 package calc.service;
 
 import calc.DTO.*;
-import calc.entity.Outcome;
 import calc.entity.Sport;
 import calc.entity.Tournament;
 import calc.entity.User;
+import calc.exception.APIException;
 import calc.repository.GameRepository;
 import calc.repository.SportRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.security.auth.callback.TextOutputCallback;
 import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,12 +44,7 @@ public class TournamentService {
     private ModelMapper modelMapper;
 
     public List<TournamentDTO> findBySport(SportDTO sport){
-        try {
-            return tournamentRepository.findBySport(sportService.convertToEntity(sport)).stream().map(t -> convertToDto(t)).collect(Collectors.toList());
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return this.findBySportId(sport.getSportId());
     }
 
     public List<TournamentDTO> findAll(){
@@ -57,14 +52,26 @@ public class TournamentService {
     }
 
     public List<TournamentDTO> findBySportId(Long sportId){
+        if(sportRepository.findBySportId(sportId) == null){
+            throw new APIException(Sport.class, sportId + "", HttpStatus.NOT_FOUND);
+        }
         return tournamentRepository.findBySportId(sportId).stream().map(t -> convertToDto(t)).collect(Collectors.toList());
     }
 
     public List<TournamentDTO> findByUserName(String username) {
+        if(userRepository.findByUserName(username) == null){
+            throw new APIException(User.class, username + "", HttpStatus.NOT_FOUND);
+        }
         return tournamentRepository.findByUserName(username).stream().map(t -> convertToDto(t)).collect(Collectors.toList());
     }
 
     public TournamentDTO createTournament(TournamentDTO tournament) {
+
+        if(tournamentService.findByName(tournament.getName()) != null){
+            throw new APIException(Tournament.class, tournament.getName() + " Already exists", HttpStatus.BAD_REQUEST);
+        }else if (tournament.getSport() == null){
+            throw new APIException(Tournament.class, tournament.getName() + " sport is a required field", HttpStatus.BAD_REQUEST);
+        }
 
         UserDTO owner = userService.whoIsLoggedIn();
         tournament.setOwner(owner);
@@ -74,32 +81,56 @@ public class TournamentService {
         Sport sport = sportRepository.findByName(s.getName());
 
         if(sport == null) {
-            sport = new Sport();
-            sport.setName(sportName);
+            sport = new Sport(sportName);
             sportRepository.save(sport);
         }
-
-
-        // tournament already exist
-
-        // sport already exist
-
-        // sport doesn't exist
-
-        // tournament doesn't exist
 
         return save(tournament);
     }
 
     public TournamentDTO save(TournamentDTO tournament){
 
-            Sport sport = sportRepository.findByName(tournament.getSport().getName());
-            User owner = userRepository.findByUserName(tournament.getOwner().getUsername());
-            Tournament t = new Tournament(tournament.getDisplayName(),sport, owner);
-            return convertToDto(tournamentRepository.save(t));
+        if(tournamentService.findByName(tournament.getName()) != null){
+            throw new APIException(Tournament.class, tournament.getName() + " is not a valid name", HttpStatus.BAD_REQUEST);
+        }else if (tournament.getSport() == null){
+            throw new APIException(Tournament.class, tournament.getName() + " sport is a required field", HttpStatus.BAD_REQUEST);
+        }
+
+        Sport sport = sportRepository.findByName(tournament.getSport().getName());
+        User owner = userRepository.findByUserName(tournament.getOwner().getUsername());
+        Tournament t = new Tournament(tournament.getDisplayName(),sport, owner);
+        return convertToDto(tournamentRepository.save(t));
+    }
+
+    public TournamentDTO update(TournamentDTO tournament){
+        UserDTO loggedInUser = userService.whoIsLoggedIn();
+
+        if(tournamentService.findByName(tournament.getName()) == null){
+            throw new APIException(Tournament.class,tournament.getName(), HttpStatus.NOT_FOUND);
+        }else if(tournament.getOwner().getUserId() != loggedInUser.getUserId()){
+            throw new APIException(Tournament.class, "Only the owner of " + tournament.getName() + " can modify it", HttpStatus.UNAUTHORIZED);
+        }else if (tournament.getSport() == null){
+            throw new APIException(Tournament.class, tournament.getName() + " sport is a required field", HttpStatus.BAD_REQUEST);
+        }
+
+        Sport sport = sportRepository.findByName(tournament.getSport().getName());
+        User owner = userRepository.findByUserName(tournament.getOwner().getUsername());
+        Tournament t = new Tournament(tournament.getDisplayName(),sport, owner);
+        return convertToDto(tournamentRepository.save(t));
     }
 
     public void delete(TournamentDTO tournament){
+
+        UserDTO loggedInUser = userService.whoIsLoggedIn();
+
+        if(tournamentService.findByName(tournament.getName()) == null){
+            throw new APIException(Tournament.class,tournament.getName(),HttpStatus.NOT_FOUND);
+        }else if(tournament.getOwner().getUserId() != loggedInUser.getUserId()){
+            throw new APIException(Tournament.class, "Only the owner of " + tournament.getName() + " can modify it", HttpStatus.UNAUTHORIZED);
+        }else if (tournament.getSport() == null){
+            throw new APIException(Tournament.class, tournament.getName() + " sport is a required field", HttpStatus.BAD_REQUEST);
+        }
+
         try {
             tournamentRepository.delete(convertToEntity(tournament));
         } catch (ParseException e) {
@@ -131,14 +162,12 @@ public class TournamentService {
 
        // Tournament tournament = modelMapper.map(tournamentDto, Tournament.class);
 
-        Tournament tournament = new Tournament();
+        Tournament tournament = new Tournament(tournamentDto.getDisplayName(),
+                sportRepository.findByName(tournamentDto.getSport().getName()),
+                userService.convertToEntity(tournamentDto.getOwner()));
         tournament.setTournamentId(tournamentDto.getTournamentId());
-        tournament.setName(tournamentDto.getName());
-        tournament.setDisplayName(tournamentDto.getDisplayName());
         tournament.setIsOver(tournamentDto.getIsOver());
-        tournament.setSport(sportRepository.findByName(tournamentDto.getSport().getName()));
         tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName()));
-        tournament.setOwner(userService.convertToEntity(tournamentDto.getOwner()));
 
         return tournament;
     }

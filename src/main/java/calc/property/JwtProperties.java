@@ -13,6 +13,7 @@ public class JwtProperties {
     private String secret;
     private String iss;
     private int tokenExpirationMinutes;
+    private int tokenRefreshExpirationMinutes;
 
     public String getSecret() {
         return secret;
@@ -36,5 +37,13 @@ public class JwtProperties {
 
     public void setTokenExpirationMinutes(int tokenExpirationMinutes) {
         this.tokenExpirationMinutes = tokenExpirationMinutes;
+    }
+
+    public int getTokenRefreshExpirationMinutes() {
+        return tokenRefreshExpirationMinutes;
+    }
+
+    public void setTokenRefreshExpirationMinutes(int tokenRefreshExpirationMinutes) {
+        this.tokenRefreshExpirationMinutes = tokenRefreshExpirationMinutes;
     }
 }

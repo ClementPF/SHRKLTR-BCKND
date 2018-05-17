@@ -86,6 +86,7 @@ public class StatsService {
 
         if(stats == null){
             stats = new Stats(outcome.getUser(),outcome.getGame().getTournament());
+            statsRepository.save(stats);
         }
 
         stats.setScore(stats.getScore() + outcome.getScoreValue());
@@ -106,7 +107,7 @@ public class StatsService {
         statsRepository.save(stats);
     }
 
-    protected Stats convertToEntity(StatsDTO statsDto) throws ParseException {
+    public Stats convertToEntity(StatsDTO statsDto) throws ParseException {
 
         Stats stats = modelMapper.map(statsDto, Stats.class);
 
@@ -132,7 +133,7 @@ public class StatsService {
         return stats;
     }
 
-    protected StatsDTO convertToDto(Stats stats) {
+    public StatsDTO convertToDto(Stats stats) {
 
         StatsDTO statsDTO = modelMapper.map(stats, StatsDTO.class);
 

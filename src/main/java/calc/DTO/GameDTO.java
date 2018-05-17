@@ -23,6 +23,14 @@ public class GameDTO {
         super();
     }
 
+    public GameDTO(TournamentDTO t, List<OutcomeDTO> o) {
+        super();
+        this.tournamentName = t.getName();
+        this.tournamentDisplayName = t.getDisplayName();
+        this.outcomes = o;
+        this.date = new Date();
+    }
+
     public List<OutcomeDTO> getOutcomes() {
         return outcomes;
     }

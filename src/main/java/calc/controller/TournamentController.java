@@ -1,15 +1,13 @@
 package calc.controller;
 
 import calc.DTO.*;
-import calc.entity.Outcome;
-import calc.entity.Sport;
-import calc.repository.SportRepository;
+import calc.entity.Tournament;
+import calc.exception.APIException;
 import calc.security.Secured;
 import calc.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Description;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
@@ -47,7 +45,6 @@ public class TournamentController {
     @RequestMapping(value = "/tournaments", method = RequestMethod.GET)
     public List<TournamentDTO> tournamentsForSport(@RequestParam(value="sport") String name) {
 
-
         List<TournamentDTO> tournamentSet;
         if(name != null && !name.equalsIgnoreCase("")){
             SportDTO sport = sportService.findByName(name);
@@ -66,9 +63,8 @@ public class TournamentController {
     @RequestMapping(value = "/tournament/{tournamentName}", method = RequestMethod.DELETE)
     @Description("Let the owner of a Tournament to delete it.")
     public void deleteTournament(@PathVariable(value="tournamentName") String name) {
-        // need to check if tournament is deleted by owner
-
-        tournamentService.delete(tournamentService.findByName(name));
+        TournamentDTO t = tournamentService.findByName(name);
+        tournamentService.delete(t);
     }
 
     /**
@@ -77,94 +73,79 @@ public class TournamentController {
      * @param tournament
      */
     @RequestMapping(value = "/tournament", method = RequestMethod.POST)
-    public ResponseEntity createTournament(@RequestBody TournamentDTO tournament) {
+    public TournamentDTO createTournament(@RequestBody TournamentDTO tournament) {
 
-
-        System.out.println(tournament.toString());
-
-        if(tournamentService.findByName(tournament.getName()) != null){
-
-            System.out.println("tournament already exist");
-            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
-        }
-        if(tournament.getSport() == null){
-
-
-            System.out.println("no sport");
-            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
-        }
-        if(tournament.getSport().getName() == null){
-
-
-
-            System.out.println("no sport name");
-            System.out.println();
-            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
-        }
-
-        return ResponseEntity.ok(tournamentService.createTournament(tournament));
+        return tournamentService.createTournament(tournament);
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}", method = RequestMethod.PUT)
-    public void updateTournament(@PathVariable(value="tournamentName") String name, TournamentDTO tournament) {
-        UserDTO owner = userService.whoIsLoggedIn();
-        tournamentService.save(tournament);
+    public TournamentDTO updateTournament(@PathVariable(value="tournamentName") String name, TournamentDTO tournament) {
+
+        TournamentDTO t = tournamentService.findByName(tournament.getName());
+        if(t == null){
+            throw new APIException(Tournament.class,name, HttpStatus.NOT_FOUND);
+        }
+        return tournamentService.update(tournament);
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}", method = RequestMethod.GET)
     public Map tournamentNamed(@PathVariable(value="tournamentName") String name) {
-        TournamentDTO tournament =  tournamentService.findByName(name);
+
+        TournamentDTO t = tournamentService.findByName(name);
+        if(t == null){
+            throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
+        }
+
 //        List<StatsDTO> stats = statsService.findByTournament(tournament);
 
         HashMap map = new HashMap<>();
-        map.put("tournament",tournament);
+        map.put("tournament",t);
  //       map.put("stats",stats);
         return map;
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/games", method = RequestMethod.GET)
     public List<GameDTO> gamesForTournament(@PathVariable(value="tournamentName") String name) {
-        List<GameDTO> games = gameService.findByTournamentName(name);
 
+        TournamentDTO t = tournamentService.findByName(name);
+        if(t == null){
+            throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
+        }
+
+        List<GameDTO> games = gameService.findByTournamentName(name);
         games = games.stream().sorted(Comparator.comparing(GameDTO::getDate).reversed()).collect(Collectors.toList());
 
         return games;
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/games", method = RequestMethod.POST)
-    public ResponseEntity addGameForTournament(@PathVariable(value="tournamentName") String name, @RequestBody GameDTO game){
+    public GameDTO addGameForTournament(@PathVariable(value="tournamentName") String name, @RequestBody GameDTO game){
 
-        //TODO validate data
-        //TODO looser send game
-        //TODO calculate point value
-        //TODO might make more sense to be in POST /game ??
-
-
-        UserDTO l = userService.whoIsLoggedIn();
-        List<OutcomeDTO> outcomes = game.getOutcomes();
-        String winner = outcomes.get(0).getResult().equals(Outcome.Result.WIN) ? outcomes.get(0).getUserName() : outcomes.get(1).getUserName();
-
-        if(outcomes.size() != 2 ||
-                (outcomes.get(0).getResult().equals(Outcome.Result.WIN) && outcomes.get(1).getResult().equals(Outcome.Result.WIN)) ||
-                (outcomes.get(0).getResult().equals(Outcome.Result.LOSS) && outcomes.get(1).getResult().equals(Outcome.Result.LOSS))){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Only two outcomes accepted");
-        }else if(winner.equalsIgnoreCase(l.getUsername())){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Same username for both outcomes");
+        TournamentDTO t = tournamentService.findByName(name);
+        if(t == null){
+            throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(tournamentService.addGameForTournament(name,game));
+        return tournamentService.addGameForTournament(name,game);
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/stats", method = RequestMethod.GET)
     public List<StatsDTO> statsForTournament(@PathVariable(value="tournamentName") String name) {
-        TournamentDTO tournament =  tournamentService.findByName(name);
-        List<StatsDTO> stats = statsService.findByTournament(tournament);
-        return stats;
+
+        TournamentDTO t = tournamentService.findByName(name);
+        if(t == null){
+            throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
+        }
+        return statsService.findByTournament(t);
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/users", method = RequestMethod.GET)
     public List<UserDTO> usersForTournament(@PathVariable(value="tournamentName") String name) {
 
+        TournamentDTO t = tournamentService.findByName(name);
+        if(t == null){
+            throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
+        }
         return userService.findUsersInTournamentNamed(name);
     }
 }

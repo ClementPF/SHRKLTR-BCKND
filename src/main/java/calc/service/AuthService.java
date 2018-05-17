@@ -1,36 +1,38 @@
 package calc.service;
 
-import calc.DTO.FacebookErrorDTO;
-import calc.DTO.FacebookUserInfoDTO;
-import calc.DTO.TokenDTO;
-import calc.DTO.TokenRequestDTO;
+import calc.DTO.*;
 import calc.entity.User;
 import calc.exception.APIException;
 import calc.property.FacebookProperties;
+import calc.property.GoogleProperties;
 import calc.property.JwtProperties;
 import calc.repository.UserRepository;
+import calc.security.GoogleTokenVerifier;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.Payload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.Normalizer;
+import java.util.Collections;
 import java.util.Date;
 
 /**
@@ -47,6 +49,8 @@ public class AuthService {
     private JWTVerifier jwtVerifier;
     @Autowired
     private FacebookProperties facebookProperties;
+    @Autowired
+    private GoogleProperties googleProperties;
     
     @Autowired
     private UserRepository userRepository;
@@ -66,25 +70,37 @@ public class AuthService {
         tokenRefreshExpirationMillis = jwtProperties.getTokenRefreshExpirationMinutes() * 60 * 1000; // 1y
         restTemplate = new RestTemplate();
     }
-    
-    public TokenDTO getToken(TokenRequestDTO tokenRequest) {
-        String requestURL = facebookProperties.getGraphApiUri() + "/me?fields=" + 
-            facebookProperties.getUserFields() + "&access_token=" + tokenRequest.getFbAccessToken();
 
-        logger.debug("get TOKEN :" + tokenRequest.getFbAccessToken() );
+    public TokenDTO getTokenFromProvider(TokenRequestDTO tokenRequest) {
+        logger.debug("getTokenFromProvider :" + tokenRequest.getProviderAccessToken() );
+        if(tokenRequest.getTokenProvider().equalsIgnoreCase("facebook")){
+            return getTokenFromFB(tokenRequest);
+        }else if(tokenRequest.getTokenProvider().equalsIgnoreCase("google")){
+            return getTokenFromGoogle(tokenRequest);
+        }
+        return null;
+    }
+
+    protected TokenDTO getTokenFromFB(TokenRequestDTO tokenRequest) {
+        String requestURL = facebookProperties.getGraphApiUri() + "/me?fields=" + 
+            facebookProperties.getUserFields() + "&access_token=" + tokenRequest.getProviderAccessToken();
+
+        logger.debug("get TOKEN :" + tokenRequest.getProviderAccessToken() );
 
         try {
             logger.debug("Making graph API request for user info");
-            ResponseEntity<FacebookUserInfoDTO> response = restTemplate.getForEntity(requestURL, FacebookUserInfoDTO.class);
+            ResponseEntity<ProviderUserInfoDTO> response = restTemplate.getForEntity(requestURL, ProviderUserInfoDTO.class);
             logger.debug("Received 200 from graph API");
 
-            FacebookUserInfoDTO userInfo = response.getBody();
+            ProviderUserInfoDTO userInfo = response.getBody();
+            userInfo.setProvider(tokenRequest.getTokenProvider());
+
             User user = userRepository.findByExternalId(userInfo.getId());
             if (user == null) {
                 createUserFromExternalProvider(userInfo);
             }
 
-            return new TokenDTO(createToken(response.getBody()),createTokenRefresh(response.getBody()));
+            return createTokenPair(userInfo);
         } catch (HttpStatusCodeException hsce) {
             // Received HTTP status != 200 from Graph API
             logger.warn("Received bad HTTP status code from Graph API. Exception message: {}", hsce.getMessage());
@@ -103,6 +119,57 @@ public class AuthService {
         }
     }
 
+    protected TokenDTO getTokenFromGoogle(TokenRequestDTO tokenRequest) {
+
+        GoogleTokenVerifier googleTokenVerifier = new GoogleTokenVerifier();
+
+        logger.debug("getTokenFromGoogle: {}", tokenRequest.getProviderAccessToken());
+        try {
+
+            GoogleIdToken.Payload payload = googleTokenVerifier.verify(tokenRequest.getProviderAccessToken());
+
+            ProviderUserInfoDTO userInfo = new ProviderUserInfoDTO();
+
+            // Print user identifier
+
+            String userId = payload.getSubject(); //YOLO
+            String name = (String) payload.get("name");
+
+            userInfo.setId(userId);
+            userInfo.setEmail(payload.getEmail());
+            userInfo.setName(name);
+            userInfo.setProvider(tokenRequest.getTokenProvider());
+
+            boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
+            String pictureUrl = (String) payload.get("picture");
+            String locale = (String) payload.get("locale");
+            String familyName = (String) payload.get("family_name");
+            String givenName = (String) payload.get("given_name");
+
+
+            System.out.println("User ID: " + userId);
+            System.out.println("User name: " + name);
+            System.out.println("User family_name: " + familyName);
+            System.out.println("User email: " + payload.getEmail());
+
+            User user = userRepository.findByExternalId(userInfo.getId());
+            if (user == null) {
+                createUserFromExternalProvider(userInfo);
+            }
+
+            return new TokenDTO(createToken(userInfo),createTokenRefresh(userInfo));
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+            throw new APIException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new APIException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw new APIException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
     public TokenDTO refreshToken(TokenDTO tokenRefresh){
 
         try {
@@ -113,10 +180,10 @@ public class AuthService {
             Claim email = jwt.getClaim("email");
             Claim roles = jwt.getClaim("scopes");
 
-            logger.debug("JWToken refresh verified for uid: {}", uid.asLong());
+            logger.debug("JWToken refresh verified for uid: {}", uid.asString());
 
             if(roles.asString().equals("REFRESH_TOKEN")){
-                FacebookUserInfoDTO userInfo = new FacebookUserInfoDTO(uid.asLong(), name.asString(), email.asString());
+                ProviderUserInfoDTO userInfo = new ProviderUserInfoDTO(uid.asString(), name.asString(), email.asString());
                 return createTokenPair(userInfo);
             }else{
                 throw new APIException(HttpStatus.UNAUTHORIZED, "trying to refresh a token which is not a refresh token");
@@ -127,7 +194,7 @@ public class AuthService {
         return null;
     }
 
-    private TokenDTO createTokenPair(FacebookUserInfoDTO userInfo) {
+    private TokenDTO createTokenPair(ProviderUserInfoDTO userInfo) {
         // check if user exists and create a new user if needed
 
         String accessToken = createToken(userInfo);
@@ -136,7 +203,7 @@ public class AuthService {
         return new TokenDTO(accessToken,refreshToken);
     }
 
-    private String createToken(FacebookUserInfoDTO userInfo) {
+    private String createToken(ProviderUserInfoDTO userInfo) {
         // check if user exists and create a new user if needed
         
         Date now = new Date();
@@ -157,7 +224,7 @@ public class AuthService {
         return jwt;
     }
 
-    private String createTokenRefresh(FacebookUserInfoDTO userInfo) {
+    private String createTokenRefresh(ProviderUserInfoDTO userInfo) {
 
         Date now = new Date();
 
@@ -180,7 +247,7 @@ public class AuthService {
         return jwt;
     }
 
-    private User createUserFromExternalProvider(FacebookUserInfoDTO userInfo){
+    private User createUserFromExternalProvider(ProviderUserInfoDTO userInfo){
 
         String username = userInfo.getName().toLowerCase().replace(' ', '-');
         username = Normalizer.normalize(username, Normalizer.Form.NFD);
@@ -206,7 +273,7 @@ public class AuthService {
             user.setEmail(userInfo.getEmail());
             user.setLast(userInfo.getName().substring(indexOfLastSpace + 1));
             user.setFirst(userInfo.getName().substring(0, indexOfLastSpace));
-            user.setExternalIdProvider("facebook");
+            user.setExternalIdProvider(userInfo.getProvider());
             user.setExternalId(userInfo.getId());
         } else {
             user.setFirst(userInfo.getName());

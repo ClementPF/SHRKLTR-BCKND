@@ -128,7 +128,7 @@ public class Application extends WebMvcConfigurerAdapter {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtTokenInterceptor);
     }
-
+/*
     //@PostConstruct
     public void initDB(){
         long count = repoSport.count();
@@ -182,5 +182,5 @@ public class Application extends WebMvcConfigurerAdapter {
                 }
             }
         }
-    }
+    }*/
 }

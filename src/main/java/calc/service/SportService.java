@@ -52,8 +52,7 @@ public class SportService {
 
         //Sport sport = modelMapper.map(sportDto, Sport.class);
 
-        Sport sport = new Sport();
-        sport.setName(sportDto.getName());
+        Sport sport = new Sport(sportDto.getName());
 
         if (sportDto.getSportId() != null) {
             sport.setSportId(sportDto.getSportId());

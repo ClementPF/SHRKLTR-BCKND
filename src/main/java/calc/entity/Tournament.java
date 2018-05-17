@@ -42,7 +42,9 @@ public class Tournament {
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
     private List<Stats> stats;
 
-    public Tournament() {}
+    public Tournament() {
+        super();
+    }
 
     public Tournament(String displayName, Sport sport, User owner) {
         name = displayName.replaceAll("\\s+","").toLowerCase();

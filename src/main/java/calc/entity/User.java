@@ -17,7 +17,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String userName;
     @Column(unique = true, nullable = false)
-    private Long externalId;
+    private String externalId;
     private String externalIdProvider;
 //    @Column(nullable = false)
     private String password;
@@ -78,9 +78,9 @@ public class User {
         this.userName = userName;
     }
 
-    public Long getExternalId() { return externalId; }
+    public String getExternalId() { return externalId; }
 
-    public void setExternalId(Long externalId) {  this.externalId = externalId; }
+    public void setExternalId(String externalId) {  this.externalId = externalId; }
 
     public String getExternalIdProvider() { return externalIdProvider;}
 

@@ -1,6 +1,6 @@
 package calc.security;
 
-import calc.DTO.FacebookUserInfoDTO;
+import calc.DTO.ProviderUserInfoDTO;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
@@ -62,10 +62,10 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
                     Claim name = jwt.getClaim("name");
                     Claim email = jwt.getClaim("email");
                     
-                    logger.debug("JWToken verified for uid: {}", uid.asLong());
+                    logger.debug("JWToken verified for uid: {}", uid.asString());
                     
                     // add the FacebookUserInfoDTO as a request attribute for easy access
-                    request.setAttribute("user_info", new FacebookUserInfoDTO(uid.asLong(), name.asString(), email.asString()));
+                    request.setAttribute("user_info", new ProviderUserInfoDTO(uid.asString(), name.asString(), email.asString()));
                 } catch (JWTVerificationException ve) {
                     logger.warn("JWToken verification failed: {}", ve.getMessage());
                     setJSONErrorResponse(response, HttpStatus.UNAUTHORIZED, ve.getMessage());

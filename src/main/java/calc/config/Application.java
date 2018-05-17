@@ -1,40 +1,49 @@
 package calc.config;
 
+import calc.DTO.SportDTO;
+import calc.DTO.TournamentDTO;
+import calc.DTO.UserDTO;
 import calc.entity.*;
 import calc.property.JwtProperties;
 import calc.repository.UserRepository;
 import calc.security.JwtTokenInterceptor;
 import calc.service.GameService;
+import calc.service.SportService;
+import calc.service.TournamentService;
 import calc.service.UserService;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import java.io.UnsupportedEncodingException;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.schema.ModelRef;
+import springfox.documentation.service.Parameter;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {
@@ -63,13 +72,15 @@ public class Application extends WebMvcConfigurerAdapter {
     @Autowired
     private CrudRepository<Tournament,Long> repoTournament;
     @Autowired
-    private CrudRepository<Game,Long> repoMatch;
+    private CrudRepository<Game,Long> repoGame;
     @Autowired
     private CrudRepository<Outcome,Long> repoOutcome;
     @Autowired
+    private CrudRepository<User,Long> repoUser;
+    @Autowired
     private UserService userService;
     @Autowired
-    private GameService matchService;
+    private GameService gameService;
     @Autowired
     private JwtProperties jwtProperties;
     @Autowired
@@ -87,11 +98,18 @@ public class Application extends WebMvcConfigurerAdapter {
 
     @Bean
     public Docket api() {
+
+        ParameterBuilder aParameterBuilder = new ParameterBuilder();
+        aParameterBuilder.name("Authorization").modelRef(new ModelRef("string")).parameterType("header").required(true).build();
+        List<Parameter> aParameters = new ArrayList<Parameter>();
+        aParameters.add(aParameterBuilder.build());
+
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
                 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
-                .build();
+                .build()
+                .globalOperationParameters(aParameters);
     }
     
     @Bean
@@ -110,11 +128,11 @@ public class Application extends WebMvcConfigurerAdapter {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtTokenInterceptor);
     }
-
-//    @PostConstruct
+/*
+    //@PostConstruct
     public void initDB(){
         long count = repoSport.count();
-        
+
         List<Sport> sports = Arrays.asList(
                  new Sport("Pool"),
                  new Sport("Ping Pong"),
@@ -136,7 +154,7 @@ public class Application extends WebMvcConfigurerAdapter {
                 new User("HHHHH"));
 
         for(User user : users){
-            userService.save(user);
+            repoUser.save(user);
         }
 
         List<Tournament> tournaments = Arrays.asList(
@@ -160,9 +178,9 @@ public class Application extends WebMvcConfigurerAdapter {
                     User opponent = opponents.get(rdm.nextInt(opponents.size() - 1));
 
                     int result = rdm.nextInt(1);
-                    matchService.addGame(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
+                    gameService.addGame(tournament, result == 0 ? user : opponent, result != 0 ? user : opponent, false);
                 }
             }
         }
-    }
+    }*/
 }

@@ -13,5 +13,6 @@ import java.util.List;
 
 @Repository
 public interface SportRepository extends CrudRepository<Sport, Long> {
+    Sport findBySportId(Long id);
     Sport findByName(String name);
 }

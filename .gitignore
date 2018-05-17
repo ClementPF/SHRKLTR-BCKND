@@ -5,6 +5,7 @@ build/*
 .mvn/*
 
 *.lst
-classes/
 /build
-target/
+target/*
+
+src/main/resources/application.properties

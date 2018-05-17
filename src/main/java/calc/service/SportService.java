@@ -3,7 +3,6 @@ package calc.service;
 import calc.DTO.SportDTO;
 import calc.DTO.TournamentDTO;
 import calc.entity.Sport;
-import calc.entity.Tournament;
 import calc.repository.SportRepository;
 import calc.repository.TournamentRepository;
 import org.modelmapper.ModelMapper;
@@ -12,9 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by clementperez on 9/25/16.
@@ -27,43 +25,58 @@ public class SportService {
     @Autowired
     private SportRepository sportRepository;
     @Autowired
+    private TournamentService tournamentService;
+    @Autowired
     private ModelMapper modelMapper;
 
-    public List<Tournament> findBySport(Sport sport){
-        return tournamentRepository.findBySport(sport);
+    public List<TournamentDTO> findBySport(Sport sport){
+        return tournamentRepository.findBySport(sport).stream()
+                .map(s -> tournamentService.convertToDto(s)).collect(Collectors.toList());
     }
 
-    public Sport findByName(String name){
-        return sportRepository.findByName(name);
+    public SportDTO save(SportDTO sport){
+        try {
+            return convertToDto(sportRepository.save(convertToEntity(sport)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
-    public Sport convertToEntity(SportDTO sportDto) throws ParseException {
+    public SportDTO findByName(String name){
+        return convertToDto(sportRepository.findByName(name));
+    }
 
-        Sport sport = modelMapper.map(sportDto, Sport.class);
+    protected Sport convertToEntity(SportDTO sportDto) throws ParseException {
 
-        sport.setSportId(sportDto.getSportId());
-        sport.setName(sportDto.getName());
+        //Sport sport = modelMapper.map(sportDto, Sport.class);
+
+        Sport sport = new Sport(sportDto.getName());
 
         if (sportDto.getSportId() != null) {
+            sport.setSportId(sportDto.getSportId());
             sport.setTournaments(tournamentRepository.findBySportId(sportDto.getSportId()));
         }
         return sport;
     }
 
-    public SportDTO convertToDto(Sport sport) {
-        SportDTO sportDTO = modelMapper.map(sport, SportDTO.class);
+    protected SportDTO convertToDto(Sport sport) {
+        //SportDTO sportDTO = modelMapper.map(sport, SportDTO.class);
 
+        SportDTO sportDTO = new SportDTO();
         sportDTO.setSportId(sport.getSportId());
         sportDTO.setName(sport.getName());
         return sportDTO;
     }
 
-    public List<Sport> findAll() {
+    public List<SportDTO> findAll() {
         List<Sport> copy = new ArrayList<>();
 
         for (Sport sport : sportRepository.findAll()) {
             copy.add(sport);
         }
-        return copy;
+        return copy.stream()
+                .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
 }

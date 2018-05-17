@@ -1,13 +1,9 @@
 // tag::sample[]
 package calc.entity;
 
-import calc.DTO.UserDTO;
-
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @NamedQuery(name = "User.findByUserName", query = "SELECT p FROM User p WHERE p.userName = ?1")
@@ -20,6 +16,9 @@ public class User {
     private String lastName;
     @Column(unique = true, nullable = false)
     private String userName;
+    @Column(unique = true, nullable = false)
+    private String externalId;
+    private String externalIdProvider;
 //    @Column(nullable = false)
     private String password;
 //    @Column(unique = true, nullable = false)
@@ -31,7 +30,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Outcome> outcomes;
 
-    protected User() {}
+    public User() {}
 
     public User(String userName) {
         this.userName = userName;
@@ -55,19 +54,19 @@ public class User {
         return userId;
     }
 
-    public String getFirstName() { return firstName; }
+    public String getFirst() { return firstName; }
 
-    public String getLastName() { return lastName; }
+    public String getLast() { return lastName; }
 
     public void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public void setFirstName(String firstName) {
+    public void setFirst(String firstName) {
         this.firstName = firstName;
     }
 
-    public void setLastName(String lastName) {
+    public void setLast(String lastName) {
         this.lastName = lastName;
     }
 
@@ -78,6 +77,14 @@ public class User {
     public void setUserName(String userName) {
         this.userName = userName;
     }
+
+    public String getExternalId() { return externalId; }
+
+    public void setExternalId(String externalId) {  this.externalId = externalId; }
+
+    public String getExternalIdProvider() { return externalIdProvider;}
+
+    public void setExternalIdProvider(String externalIdProvider) { this.externalIdProvider = externalIdProvider; }
 
     public String getPassword() { return password; }
 

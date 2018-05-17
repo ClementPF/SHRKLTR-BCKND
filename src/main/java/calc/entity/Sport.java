@@ -22,7 +22,10 @@ public class Sport {
     @OneToMany(mappedBy = "sport", cascade = CascadeType.ALL)
     private List<Tournament> tournaments;
 
-    protected Sport() {}
+    public Sport() {
+        super();
+    }
+
     public Sport(String name) {
         this.name = name;
     }

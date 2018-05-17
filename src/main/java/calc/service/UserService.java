@@ -1,21 +1,24 @@
 package calc.service;
 
-import calc.DTO.UserDTO;
-import calc.entity.*;
+import calc.DTO.*;
+import calc.entity.Stats;
+import calc.entity.Tournament;
+import calc.entity.User;
 import calc.repository.OutcomeRepository;
-import calc.repository.UserRepository;
 import calc.repository.StatsRepository;
+import calc.repository.TournamentRepository;
+import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.CascadeType;
-import javax.persistence.OneToMany;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by clementperez on 9/20/16.
@@ -32,95 +35,140 @@ public class UserService{
     @Autowired
     private OutcomeService outcomeService;
     @Autowired
+    private OutcomeRepository outcomeRepository;
+    @Autowired
+    private TournamentRepository tournamentRepository;
+    @Autowired
     private ModelMapper modelMapper;
+
+    @Resource
+    private HttpServletRequest request;
     
 /*
     private List<User> userFromTournament(Tournament tournament){
 
     }*/
 
-    public List<User> findAll(){
+    public List<UserDTO> findAll(){
         List<User> copy = new ArrayList<>();
 
         for (User user : userRepository.findAll()) {
             copy.add(user);
         }
-        return copy;
+        return copy.stream()
+                .map(u -> convertToDto(u)).collect(Collectors.toList());
     }
 
-    public User findOne(Long id){
-        return userRepository.findOne(id);
+    public UserDTO findOne(Long id){
+        return convertToDto(userRepository.findOne(id));
     }
 
-    public User save(User user){
-        return userRepository.save(user);
+    public UserDTO save(UserDTO user){
+        try {
+            return convertToDto(userRepository.save(convertToEntity(user)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public User whoIsLoggedIn(){
-        User user = null; //find the logged in user
-        return user;
+    public UserDTO whoIsLoggedIn(){
+
+        ProviderUserInfoDTO userInfo = (ProviderUserInfoDTO) request.getAttribute("user_info");
+        return findByExternalId(userInfo.getId());
     }
 
-    public List<User> findByLastName(String lastName){
-        return userRepository.findByLastName(lastName);
+    public List<UserDTO> findByLastName(String lastName){
+        return userRepository.findByLastName(lastName).stream()
+                .map(u -> convertToDto(u)).collect(Collectors.toList());
+    }
+    
+    public UserDTO findByUserName(String username){
+        return convertToDto(userRepository.findByUserName(username));
     }
 
-    public User findByUserName(String userName){
-        return userRepository.findByUserName(userName);
+    public UserDTO findByUserId(long id){
+        return convertToDto(userRepository.findByUserId(id));
     }
 
-    public List<User> findUsersInTournament(Tournament tournament){
+    public UserDTO findByExternalId(String id){
+        return convertToDto(userRepository.findByExternalId(id));
+    }
+
+    public List<UserDTO> findUsersInTournament(TournamentDTO tournament){
         List<User> p = new ArrayList<>();
 
-        List<Stats> stats = tournament.getStats();
+        List<Stats> stats = statsRepository.findByTournament(tournamentRepository.findOne(tournament.getTournamentId()));
         for(Stats s : stats){
             p.add(s.getUser());
         }
 
-        return p;
+        return p.stream()
+                .map(u -> convertToDto(u)).collect(Collectors.toList());
+    }
+
+    public List<UserDTO> findUsersInTournamentNamed(String tournamentName){
+        List<User> p = new ArrayList<>();
+        Tournament t = tournamentRepository.findByName(tournamentName);
+        List<Stats> stats = statsRepository.findByTournament(t);
+        for(Stats s : stats){
+            p.add(s.getUser());
+        }
+
+        return p.stream()
+                .map(u -> convertToDto(u, t)).collect(Collectors.toList());
     }
 
 
     public User convertToEntity(UserDTO userDto) throws ParseException {
-        User user = modelMapper.map(userDto, User.class);
+       // User user = modelMapper.map(userDto, User.class);
 
+        User user = new User(userDto.getUsername());
         user.setUserId(userDto.getUserId());
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setFirstName(userDto.getFirstName());
-        user.setUserName(userDto.getUserName());
+        user.setFirst(userDto.getFirstName());
+        user.setLast(userDto.getLastName());
+        user.setFirst(userDto.getFirstName());
 
         if (userDto.getUserId() != null) {
+            User u = userRepository.findOne(userDto.getUserId());
+            user.setExternalId(u.getExternalId());
+            user.setExternalIdProvider(u.getExternalIdProvider());
             user.setStats(statsRepository.findByUserId(userDto.getUserId()));
-            user.setOutcomes(outcomeService.findByUserId(userDto.getUserId()));
+            user.setOutcomes(outcomeRepository.findByUserId(userDto.getUserId()));
         }
         return user;
     }
 
-    public UserDTO convertToDto(User user, Tournament tournament) {
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+    protected UserDTO convertToDto(User user, Tournament tournament) {
+        //UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        UserDTO userDTO = new UserDTO();
 
         userDTO.setUserId(user.getUserId());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setLastName(user.getLastName());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setUserName(user.getUserName());
+        userDTO.setFirstName(user.getFirst());
+        userDTO.setLastName(user.getLast());
+        userDTO.setFirstName(user.getFirst());
+        userDTO.setUsername(user.getUserName());
 
         if (user.getUserId() != null)
-            userDTO.setStats(statsService.convertToDto(user.getStats(tournament)));
+            userDTO.setStats(new ArrayList<StatsDTO>(Arrays.asList(statsService.convertToDto(user.getStats(tournament)))));
 
         return userDTO;
     }
 
-    public UserDTO convertToDto(User user) {
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+    protected UserDTO convertToDto(User user) {
+    //UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        UserDTO userDTO = new UserDTO();
 
         userDTO.setUserId(user.getUserId());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setLastName(user.getLastName());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setUserName(user.getUserName());
+        userDTO.setFirstName(user.getFirst());
+        userDTO.setLastName(user.getLast());
+        userDTO.setFirstName(user.getFirst());
+        userDTO.setUsername(user.getUserName());
 
         return userDTO;
+    }
+
+    public boolean exists(String username) {
+        return findByUserName(username) != null;
     }
 }

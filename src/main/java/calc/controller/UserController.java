@@ -1,19 +1,13 @@
 package calc.controller;
 
-import calc.DTO.FacebookUserInfoDTO;
-import java.text.ParseException;
+import calc.DTO.*;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import calc.DTO.GameDTO;
-import calc.DTO.UserDTO;
-import calc.DTO.StatsDTO;
-import calc.entity.Game;
-import calc.entity.User;
-import calc.entity.Stats;
-import calc.repository.UserRepository;
 import calc.security.Secured;
 import calc.service.GameService;
 import calc.service.UserService;
@@ -35,7 +29,7 @@ public class UserController {
     @Autowired
     private StatsService statsService;
     @Autowired
-    private GameService matchService;
+    private GameService gameService;
     
     @Resource
     private HttpServletRequest request;
@@ -43,71 +37,70 @@ public class UserController {
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public List<UserDTO> users() {
 
-        return userService.findAll().stream()
-                .map(users -> userService.convertToDto(users)).collect(Collectors.toList());
+        return userService.findAll();
     }
 
-    @RequestMapping(value = "/user/{userId}", method = RequestMethod.GET)
-    public UserDTO getUser(@PathVariable(value="userId") Long userId) {
-        User p =  userService.findOne(userId);
-        return userService.convertToDto(p);
+    @RequestMapping(value = "/user/{userName}", method = RequestMethod.GET)
+    public UserDTO getUser(@PathVariable(value="userName") String username) {
+        return userService.findByUserName(username);
     }
 
     @RequestMapping(value = "/user", method = RequestMethod.GET)
     public UserDTO getCurrentUser() {
-        FacebookUserInfoDTO userInfo = (FacebookUserInfoDTO)request.getAttribute("user_info");
-        return userService.convertToDto(userService.findByUserName(String.valueOf(userInfo.getId())));
+        ProviderUserInfoDTO userInfo = (ProviderUserInfoDTO)request.getAttribute("user_info");
+        return userService.findByExternalId(userInfo.getId());
     }
     
     //TODO probably need to send a bad request or something
     @RequestMapping(value = "/user", method = RequestMethod.POST)
     public UserDTO createUser(@RequestBody UserDTO user) {
-        try {
-            User p = userService.convertToEntity(user);
-            return userService.convertToDto(userService.save(p));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return userService.save(user);
     }
 
-    @RequestMapping(value = "/user/{userId}", method = RequestMethod.PUT)
-    public UserDTO updateUser(@PathVariable(value="userId") Long userId, @RequestBody UserDTO user) {
-        User p = userService.findOne(userId);
+    @RequestMapping(value = "/user/{userName}", method = RequestMethod.PUT)
+    public UserDTO updateUser(@PathVariable(value="userName") String username, @RequestBody UserDTO user) {
+        UserDTO p = userService.findByUserName(username);
         p.setFirstName(user.getFirstName());
         p.setLastName(user.getLastName());
-        p.setUserName(user.getUserName());
+        p.setUsername(user.getUsername());
 
-        return userService.convertToDto(userService.save(p));
+        return userService.save(p);
     }
 
-    @RequestMapping(value = "/user/{userId}/stats", method = RequestMethod.GET)
-    public List<StatsDTO> userStats(@PathVariable(value="userId") Long userId) {
-        List<Stats> s = statsService.findByUser(userService.findOne(userId));
-        return s.stream()
-                .map(stats -> statsService.convertToDto(stats)).collect(Collectors.toList());
+    @RequestMapping(value = "/user/{userName}/stats", method = RequestMethod.GET)
+    public List<StatsDTO> userStats(@PathVariable(value="userName") String username) {
+        List<StatsDTO> statsDTOs = statsService.findByUser(userService.findByUserName(username));
+
+        return statsService.findByUser(userService.findByUserName(username));
     }
 
-    @RequestMapping(value = "/user/{userId}/stats2", method = RequestMethod.GET)
-    public StatsDTO userStatsForTournament(@PathVariable(value="userId") Long userId, @RequestParam(value="tournamentName", defaultValue="") String tournamentName) {
-        Stats s = statsService.findByUserAndTournament(userId, tournamentName);
-        return statsService.convertToDto(s);
+    @RequestMapping(value = "/user/{userName}/stats2", method = RequestMethod.GET)
+    public StatsDTO userStatsForTournament(@PathVariable(value="userName") String username, @RequestParam(value="tournamentName", defaultValue="") String tournamentName) {
+        return statsService.findByUserNameAndTournament(username, tournamentName);
+    }
+
+
+    @RequestMapping(value = "/user/{userName}/tournaments", method = RequestMethod.GET)
+    public List<TournamentDTO> userTournaments(@PathVariable(value="userName") String username) {
+        return tournamentService.findByUserName(username);
     }
 /*
-    @RequestMapping(value = "/user/{userId}/matchs", method = RequestMethod.GET)
-    public List<Match> userMacths(@PathVariable(value="userId") Long userId) {
-        return repoMatchs.findByUser(userService.findOne(userId));
+    @RequestMapping(value = "/user/{userId}/games", method = RequestMethod.GET)
+    public List<Game> userMacths(@PathVariable(value="userId") Long userId) {
+        return repoGames.findByUser(userService.findOne(userId));
     }*/
 
-    @RequestMapping(value = "/user/{userId}/matchs", method = RequestMethod.GET)
-    public List<GameDTO> userMatchsForTournament(@PathVariable(value="userId") Long userId, @RequestParam(value="tournamentName", required = false) String tournamentName) {
-        List<Game> m = new ArrayList<>();
-        if(tournamentName != null){
-            m = matchService.findByUserByTournament(userId,tournamentName);
-        }else
-            m = matchService.findByUser(userId);
+    @RequestMapping(value = "/user/{userName}/games", method = RequestMethod.GET)
+    public List<GameDTO> userGamesForTournament(@PathVariable(value="userName") String username, @RequestParam(value="tournamentName", required = false) String tournamentName) {
+        List<GameDTO> m = new ArrayList<>();
 
-        return m.stream()
-                .map(matchs -> matchService.convertToDto(matchs)).collect(Collectors.toList());
+        if(tournamentName != null){
+            m = gameService.findByUserByTournament(username,tournamentName);
+        }else
+            m = gameService.findByUser(username);
+
+        m = m.stream().sorted(Comparator.comparing(GameDTO::getDate).reversed()).collect(Collectors.toList());
+
+        return m;
     }
 }

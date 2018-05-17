@@ -12,6 +12,7 @@ public class StatsDTO {
 
     private Long statsId;
     private double score;
+    private int position;
     private int gameCount;
     private int winCount;
     private int loseCount;
@@ -24,6 +25,13 @@ public class StatsDTO {
     private int longuestWinStreak;
     private int longuestLoseStreak;
     private int longuestTieStreak;
+    private String username;
+    private String tournamentName;
+    private String tournamentDisplayName;
+
+    public StatsDTO() {
+        super();
+    }
 
     public int getLonguestTieStreak() {
         return longuestTieStreak;
@@ -48,6 +56,10 @@ public class StatsDTO {
     public void setScore(double score) {
         this.score = score;
     }
+
+    public int getPosition() { return position; }
+
+    public void setPosition(int position) { this.position = position; }
 
     public int getGameCount() {
         return gameCount;
@@ -129,11 +141,27 @@ public class StatsDTO {
         this.longuestWinStreak = longuestWinStreak;
     }
 
-    public int getLonguestLoseStreak() {
-        return longuestLoseStreak;
+    public int getLonguestLoseStreak() { return longuestLoseStreak;}
+
+    public void setLonguestLoseStreak(int longuestLoseStreak) { this.longuestLoseStreak = longuestLoseStreak; }
+
+    public String getUsername() {
+        return username;
     }
 
-    public void setLonguestLoseStreak(int longuestLoseStreak) {
-        this.longuestLoseStreak = longuestLoseStreak;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getTournamentName() {return tournamentName; }
+
+    public void setTournamentName(String tournamentName) { this.tournamentName = tournamentName; }
+
+    public String getTournamentDisplayName() {
+        return tournamentDisplayName;
+    }
+
+    public void setTournamentDisplayName(String tournamentDisplayName) {
+        this.tournamentDisplayName = tournamentDisplayName;
     }
 }

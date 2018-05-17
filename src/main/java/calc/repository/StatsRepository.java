@@ -15,7 +15,9 @@ import java.util.Set;
 @Repository
 public interface StatsRepository extends CrudRepository<Stats, Long> {
     List<Stats> findByTournament(Tournament tournament);
+    List<Stats> findByTournamentOrderByScoreDesc(Tournament tournament);
     List<Stats> findByUser(User user);
     List<Stats> findByUserId(Long userId);
     public Stats findByUserAndTournament(@Param("userId") Long userId,@Param("tournamentName") String tournamentId);
+    public Stats findByUserAndTournament(@Param("username") String username,@Param("tournamentName") String tournamentId);
 }

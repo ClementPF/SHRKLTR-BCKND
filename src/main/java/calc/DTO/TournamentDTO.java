@@ -4,6 +4,7 @@ import calc.entity.User;
 import calc.entity.Sport;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 
 /**
  * Created by clementperez on 10/2/16.
@@ -16,6 +17,16 @@ public class TournamentDTO {
     private Boolean isOver;
     private SportDTO sport;
     private UserDTO owner;
+
+    public TournamentDTO() {
+        super();
+    }
+
+    public TournamentDTO(String name, SportDTO sport, UserDTO owner) {
+        this.displayName = name;
+        this.sport = sport;
+        this.owner = owner;
+    }
 
     public UserDTO getOwner() {
         return owner;

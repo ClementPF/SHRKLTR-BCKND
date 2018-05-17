@@ -18,6 +18,8 @@ import java.util.Set;
 public interface GameRepository extends CrudRepository<Game, Long> {
     List<Game> findByTournament(Tournament tournament);
     public List<Game> findByUserIdByTournamentName(@Param("userId") Long userId, @Param("tournamentName") String tournamentId);
+    public List<Game> findByUserNameByTournamentName(@Param("userName") String username, @Param("tournamentName") String tournamentId);
     List<Game> findByTournamentName(String tournamentName);
     List<Game> findByUserId(Long userId);
+    List<Game> findByUserName(String username);
 }

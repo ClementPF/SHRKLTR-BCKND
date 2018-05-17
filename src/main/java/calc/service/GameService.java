@@ -1,16 +1,26 @@
 package calc.service;
 
-import calc.DTO.GameDTO;
+import calc.DTO.*;
 import calc.ELO.EloRating;
-import calc.entity.*;
+import calc.entity.Game;
+import calc.entity.Outcome;
+import calc.entity.Tournament;
+import calc.entity.User;
+import calc.exception.APIException;
+import calc.repository.GameRepository;
+import calc.repository.StatsRepository;
+import calc.repository.TournamentRepository;
+import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
-import calc.repository.GameRepository;
 
 /**
  * Created by clementperez on 9/20/16.
@@ -23,92 +33,151 @@ public class GameService {
     @Autowired
     private TournamentService tournamentService;
     @Autowired
-    private OutcomeService outcomeService;
+    private TournamentRepository tournamentRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private OutcomeService outcomeService;;
+    @Autowired
+    private UserService userService;
     @Autowired
     private StatsService statsService;
     @Autowired
+    private StatsRepository statsRepository;
+    @Autowired
     private ModelMapper modelMapper;
 
-    public Game findOne(Long gameId){
-        return gameRepository.findOne(gameId);
+    public GameDTO findOne(Long gameId){
+        return convertToDto(gameRepository.findOne(gameId));
     }
 
+    public GameDTO addGame(TournamentDTO tournament, List<OutcomeDTO> outcomes) {
 
-    public Game addGame(Tournament tournament, List<Outcome> outcomes) {
+        System.out.print("outcome username : " +outcomes.get(0).getUserName() + " " + outcomes.get(1).getUserName() + "\n");
 
-        if(outcomes.size() != 2 ||
-                (outcomes.get(0).getResults().equals(Outcome.Result.WIN) && outcomes.get(1).getResults().equals(Outcome.Result.WIN)) ||
-                (outcomes.get(0).getResults().equals(Outcome.Result.LOSS) && outcomes.get(1).getResults().equals(Outcome.Result.LOSS))){
-            throw new AssertionError();
+        int winnerOutcomeIndex = outcomes.get(0).isWin() ? 0 : 1;
+        int looserOutcomeIndex = outcomes.get(1).isWin() ? 0 : 1;
+        Boolean isTie = outcomes.get(0).isTie();
+
+        UserDTO w = userService.findByUserName(outcomes.get(winnerOutcomeIndex).getUserName());
+        UserDTO l = userService.findByUserName(outcomes.get(looserOutcomeIndex).getUserName());
+        UserDTO u = userService.whoIsLoggedIn();
+
+        StatsDTO winnerStats = statsService.findByUserNameAndTournament(w.getUsername(),tournament.getName());
+        StatsDTO loserStats = statsService.findByUserNameAndTournament(l.getUsername(),tournament.getName());
+
+        double pointValue = EloRating.calculatePointValue(
+                winnerStats == null ? 1000 : winnerStats.getScore(),
+                loserStats == null ? 1000 : loserStats.getScore(),
+                isTie ? "=" : "+");
+
+        outcomes.get(winnerOutcomeIndex).setScoreValue(pointValue);
+        outcomes.get(looserOutcomeIndex).setScoreValue(-pointValue);
+
+        GameDTO game = new GameDTO(tournament,outcomes);
+
+        return save(game);
+    }
+
+    public List<GameDTO> findByTournament(TournamentDTO tournament){
+        if(tournamentService.findByName(tournament.getName()) == null){
+            throw new APIException(Tournament.class,tournament.getName(),HttpStatus.NOT_FOUND);
         }
 
-        // this method init both users even when there is a tie
-        User winner = outcomes.get(0).getResults().equals(Outcome.Result.WIN) ? outcomes.get(0).getUser() : outcomes.get(1).getUser();
-        User looser = outcomes.get(0).getResults().equals(Outcome.Result.WIN) ? outcomes.get(1).getUser() : outcomes.get(0).getUser();
-        Boolean isTie = outcomes.get(0).getResults().equals(Outcome.Result.TIE);
-
-        return addGame(tournament,winner,looser, isTie);
+        return findByTournamentName(tournament.getName());
     }
 
-    public Game addGame(Tournament tournament, User winner, User looser, boolean isTie) {
-
-        Stats winnerStats = statsService.findByUserAndTournamentCreateIfNone(winner,tournament);
-        Stats loserStats = statsService.findByUserAndTournamentCreateIfNone(looser,tournament);
-
-        double pointValue = EloRating.calculatePointValue(winnerStats.getScore(),loserStats.getScore(),isTie ? "=" : "+");
-
-        return addGame(tournament,winner,looser, pointValue, isTie);
+    public List<GameDTO> findByTournamentName(String tournamentName){
+        if(tournamentService.findByName(tournamentName) == null){
+            throw new APIException(Tournament.class,tournamentName,HttpStatus.NOT_FOUND);
+        }
+        return gameRepository.findByTournamentName(tournamentName).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
-    protected Game addGame(Tournament tournament, User winner, User looser, double pointValue, boolean isTie) {
+    public List<GameDTO> findByUserByTournament(Long userId, String tournamentName){
+        if(tournamentService.findByName(tournamentName) == null){
+            throw new APIException(Tournament.class,tournamentName,HttpStatus.NOT_FOUND);
+        }
+        if(userService.findOne(userId) == null){
+            throw new APIException(User.class,userId+"",HttpStatus.NOT_FOUND);
+        }
+        return gameRepository.findByUserIdByTournamentName(userId, tournamentName).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
+    }
 
-        Game game = new Game(tournament);
-        List<Outcome> outcomes = new ArrayList<>(Arrays.asList(
-                new Outcome(pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.WIN, game, winner),
-                new Outcome(-pointValue, isTie ? Outcome.Result.TIE : Outcome.Result.LOSS, game, looser))
-        );
-        game.setOutcomes(outcomes);
-        Game m = this.save(game);
+    public List<GameDTO> findByUserByTournament(String username, String tournamentName){
+        if(tournamentService.findByName(tournamentName) == null){
+            throw new APIException(Tournament.class,tournamentName,HttpStatus.NOT_FOUND);
+        }
+        if(userService.findByUserName(username) == null){
+            throw new APIException(User.class,username+"",HttpStatus.NOT_FOUND);
+        }
+        return gameRepository.findByUserNameByTournamentName(username, tournamentName).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
+    }
 
-        for (Outcome outcome : outcomes) {
+    public List<GameDTO> findByUser(Long userId) {
+        if(userService.findOne(userId) == null){
+            throw new APIException(User.class,userId+"",HttpStatus.NOT_FOUND);
+        }
+        return gameRepository.findByUserId(userId).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
+    }
+
+    public List<GameDTO> findByUser(String username) {
+        if(userService.findByUserName(username) == null){
+            throw new APIException(User.class,username+"",HttpStatus.NOT_FOUND);
+        }
+        return gameRepository.findByUserName(username).stream()
+                .map(m -> convertToDto(m)).collect(Collectors.toList());
+    }
+
+    public GameDTO save(GameDTO game){
+
+        int winnerOutcomeIndex = game.getOutcomes().get(0).isWin() ? 0 : 1;
+        int looserOutcomeIndex = game.getOutcomes().get(1).isWin() ? 0 : 1;
+        Boolean isTie = game.getOutcomes().get(0).isTie();
+
+        UserDTO w = userService.findByUserName(game.getOutcomes().get(winnerOutcomeIndex).getUserName());
+        UserDTO l = userService.findByUserName(game.getOutcomes().get(looserOutcomeIndex).getUserName());
+        UserDTO u = userService.whoIsLoggedIn();
+
+        TournamentDTO tournament = tournamentService.findByName(game.getTournamentName());
+
+        if(game.getOutcomes().size() != 2){
+            throw new APIException(this.getClass(), game.getTournamentName() + " Only two outcomes accepted " + game.getOutcomes().size() + " were provided", HttpStatus.BAD_REQUEST);
+        }else if(winnerOutcomeIndex == looserOutcomeIndex){
+            throw new APIException(this.getClass(), tournament.getName() + " Outcomes invalid - incompatible results", HttpStatus.BAD_REQUEST);
+        }else if(l.getUserId() == u.getUserId()){
+            throw new APIException(this.getClass(), tournament.getName() + " Only the looser can enter a game", HttpStatus.UNAUTHORIZED);
+        }else if(w.getUserId() == l.getUserId()){
+            throw new APIException(this.getClass(), tournament.getName() + " Same username for both outcomes", HttpStatus.BAD_REQUEST);
+        }else if(isTie){
+            throw new APIException(this.getClass(), tournament.getName() + " Tie is not supported", HttpStatus.BAD_REQUEST);
+        }
+
+        Game g = null;
+
+        try {
+            g = convertToEntity(game);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        for (Outcome outcome : g.getOutcomes()) {
             statsService.recalculateAfterOutcome(outcome);
         }
 
-        return m;
+        return convertToDto(gameRepository.save(g));
     }
 
-    List<Game> findByTournament(Tournament tournament){
-        return gameRepository.findByTournament(tournament);
-    }
-
-    List<Game> findByTournamentName(String tournamentName){
-        return gameRepository.findByTournamentName(tournamentName);
-    }
-
-
-    public List<Game> findByUserByTournament(Long userId, String tournamentName){
-        return gameRepository.findByUserIdByTournamentName(userId, tournamentName);
-    }
-
-
-    public List<Game> findByUser(Long userId) {
-        return gameRepository.findByUserId(userId);
-    }
-
-    public Iterable<Game> findAll() {
-        return gameRepository.findAll();
-    }
-
-    public Game save(Game game){
-        return gameRepository.save(game);
-    }
-
-    public Game convertToEntity(GameDTO gameDto) throws ParseException {
+    protected Game convertToEntity(GameDTO gameDto) throws ParseException {
         Game game = modelMapper.map(gameDto, Game.class);
 
         game.setGameId(gameDto.getGameId());
         game.setDate(gameDto.getDate());
-        game.setTournament(tournamentService.findByName(gameDto.getTournamentName()));
+        game.setTournament(tournamentRepository.findByName(gameDto.getTournamentName()));
 
         List<Outcome> outcomeSet = gameDto.getOutcomes().stream()
                 .map(o -> {
@@ -124,12 +193,13 @@ public class GameService {
         return game;
     }
 
-    public GameDTO convertToDto(Game game) {
+    protected GameDTO convertToDto(Game game) {
         GameDTO gameDTO = modelMapper.map(game, GameDTO.class);
 
         gameDTO.setGameId(game.getGameId());
         gameDTO.setDate(game.getDate());
         gameDTO.setTournamentName(game.getTournament().getName());
+        gameDTO.setTournamentDisplayName(game.getTournament().getDisplayName());
 
         if (game.getGameId() != null)
             gameDTO.setOutcomes(game.getOutcomes().stream().map(o -> outcomeService.convertToDto(o) ).collect(Collectors.toList()));

@@ -8,7 +8,8 @@ import javax.persistence.*;
 @Entity
 @NamedQueries({
         @NamedQuery(name = "Stats.findByUserId", query = "SELECT s FROM Stats s WHERE s.user.userId = ?1"),
-        @NamedQuery(name = "Stats.findByUserAndTournament", query = "SELECT s FROM Stats s WHERE s.user.userId = ?1 AND s.tournament.name = ?2")
+        @NamedQuery(name = "Stats.findByUserAndTournament", query = "SELECT s FROM Stats s WHERE s.user.userId = ?1 AND s.tournament.name = ?2"),
+        @NamedQuery(name = "Stats.findByUsernameAndTournament", query = "SELECT s FROM Stats s WHERE s.user.userName = ?1 AND s.tournament.name = ?2")
 })
 public class Stats {
     @Id
@@ -35,7 +36,9 @@ public class Stats {
     @JoinColumn(name="userId", nullable = false)
     private User user;
 
-    protected Stats() {}
+    public Stats() {
+        super();
+    }
 
     public Stats(User user, Tournament tournament) {
         this.user = user;

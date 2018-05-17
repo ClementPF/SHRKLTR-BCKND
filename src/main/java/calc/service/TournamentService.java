@@ -1,23 +1,22 @@
 package calc.service;
 
-import calc.DTO.GameDTO;
-import calc.DTO.TournamentDTO;
-import calc.entity.Game;
-import calc.entity.User;
+import calc.DTO.*;
 import calc.entity.Sport;
 import calc.entity.Tournament;
-import calc.repository.StatsRepository;
+import calc.entity.User;
+import calc.exception.APIException;
+import calc.repository.GameRepository;
+import calc.repository.SportRepository;
 import calc.repository.TournamentRepository;
+import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.persistence.*;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by clementperez on 9/25/16.
@@ -28,51 +27,155 @@ public class TournamentService {
     @Autowired
     private TournamentRepository tournamentRepository;
     @Autowired
+    private TournamentService tournamentService;
+    @Autowired
+    private GameRepository gameRepository;
+    @Autowired
     private SportService sportService;
+    @Autowired
+    private SportRepository sportRepository;
     @Autowired
     private UserService userService;
     @Autowired
-    private GameService matchService;
+    private UserRepository userRepository;
+    @Autowired
+    private GameService gameService;
     @Autowired
     private ModelMapper modelMapper;
 
-    List<Tournament> findBySport(Sport sport){
-        return tournamentRepository.findBySport(sport);
+    public List<TournamentDTO> findBySport(SportDTO sport){
+        return this.findBySportId(sport.getSportId());
     }
 
-    Tournament findByName(String name){
-        return tournamentRepository.findByName(name);
+    public List<TournamentDTO> findAll(){
+       return tournamentRepository.findAll().stream().map(t -> convertToDto(t)).collect(Collectors.toList());
     }
 
-    public Game addMatchForTournament(String tournamentName, Game match) {
+    public List<TournamentDTO> findBySportId(Long sportId){
+        if(sportRepository.findBySportId(sportId) == null){
+            throw new APIException(Sport.class, sportId + "", HttpStatus.NOT_FOUND);
+        }
+        return tournamentRepository.findBySportId(sportId).stream().map(t -> convertToDto(t)).collect(Collectors.toList());
+    }
+
+    public List<TournamentDTO> findByUserName(String username) {
+        if(userRepository.findByUserName(username) == null){
+            throw new APIException(User.class, username + "", HttpStatus.NOT_FOUND);
+        }
+        return tournamentRepository.findByUserName(username).stream().map(t -> convertToDto(t)).collect(Collectors.toList());
+    }
+
+    public TournamentDTO createTournament(TournamentDTO tournament) {
+
+        if(tournamentService.findByName(tournament.getName()) != null){
+            throw new APIException(Tournament.class, tournament.getName() + " Already exists", HttpStatus.BAD_REQUEST);
+        }else if (tournament.getSport() == null){
+            throw new APIException(Tournament.class, tournament.getName() + " sport is a required field", HttpStatus.BAD_REQUEST);
+        }
+
+        UserDTO owner = userService.whoIsLoggedIn();
+        tournament.setOwner(owner);
+
+        SportDTO s = tournament.getSport();
+        String sportName = s.getName();
+        Sport sport = sportRepository.findByName(s.getName());
+
+        if(sport == null) {
+            sport = new Sport(sportName);
+            sportRepository.save(sport);
+        }
+
+        return save(tournament);
+    }
+
+    public TournamentDTO save(TournamentDTO tournament){
+
+        if(tournamentService.findByName(tournament.getName()) != null){
+            throw new APIException(Tournament.class, tournament.getName() + " is not a valid name", HttpStatus.BAD_REQUEST);
+        }else if (tournament.getSport() == null){
+            throw new APIException(Tournament.class, tournament.getName() + " sport is a required field", HttpStatus.BAD_REQUEST);
+        }
+
+        Sport sport = sportRepository.findByName(tournament.getSport().getName());
+        User owner = userRepository.findByUserName(tournament.getOwner().getUsername());
+        Tournament t = new Tournament(tournament.getDisplayName(),sport, owner);
+        return convertToDto(tournamentRepository.save(t));
+    }
+
+    public TournamentDTO update(TournamentDTO tournament){
+        UserDTO loggedInUser = userService.whoIsLoggedIn();
+
+        if(tournamentService.findByName(tournament.getName()) == null){
+            throw new APIException(Tournament.class,tournament.getName(), HttpStatus.NOT_FOUND);
+        }else if(tournament.getOwner().getUserId() != loggedInUser.getUserId()){
+            throw new APIException(Tournament.class, "Only the owner of " + tournament.getName() + " can modify it", HttpStatus.UNAUTHORIZED);
+        }else if (tournament.getSport() == null){
+            throw new APIException(Tournament.class, tournament.getName() + " sport is a required field", HttpStatus.BAD_REQUEST);
+        }
+
+        Sport sport = sportRepository.findByName(tournament.getSport().getName());
+        User owner = userRepository.findByUserName(tournament.getOwner().getUsername());
+        Tournament t = new Tournament(tournament.getDisplayName(),sport, owner);
+        return convertToDto(tournamentRepository.save(t));
+    }
+
+    public void delete(TournamentDTO tournament){
+
+        UserDTO loggedInUser = userService.whoIsLoggedIn();
+
+        if(tournamentService.findByName(tournament.getName()) == null){
+            throw new APIException(Tournament.class,tournament.getName(),HttpStatus.NOT_FOUND);
+        }else if(tournament.getOwner().getUserId() != loggedInUser.getUserId()){
+            throw new APIException(Tournament.class, "Only the owner of " + tournament.getName() + " can modify it", HttpStatus.UNAUTHORIZED);
+        }else if (tournament.getSport() == null){
+            throw new APIException(Tournament.class, tournament.getName() + " sport is a required field", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            tournamentRepository.delete(convertToEntity(tournament));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public TournamentDTO findByName(String name){
+        Tournament t = tournamentRepository.findByName(name);
+        return t == null ? null : convertToDto(t);
+    }
+
+    public GameDTO addGameForTournament(String tournamentName, GameDTO game){
+
 
         //TODO validate data
         //TODO looser send game
         //TODO calculate point value
-        //TODO might make more sense to be in POST /match ??
+        //TODO might make more sense to be in POST /game ??
 
-        Tournament tournament =  tournamentRepository.findByName(tournamentName);
+        TournamentDTO tournament =  tournamentService.findByName(tournamentName);
+        List<OutcomeDTO> outcomes = game.getOutcomes();
 
-        return matchService.addGame(tournament, match.getOutcomes());
+        return gameService.addGame(tournament, outcomes);
+
     }
 
-    public Tournament convertToEntity(TournamentDTO tournamentDto) throws ParseException {
+    protected Tournament convertToEntity(TournamentDTO tournamentDto) throws ParseException {
 
-        Tournament tournament = modelMapper.map(tournamentDto, Tournament.class);
+       // Tournament tournament = modelMapper.map(tournamentDto, Tournament.class);
 
+        Tournament tournament = new Tournament(tournamentDto.getDisplayName(),
+                sportRepository.findByName(tournamentDto.getSport().getName()),
+                userService.convertToEntity(tournamentDto.getOwner()));
         tournament.setTournamentId(tournamentDto.getTournamentId());
-        tournament.setName(tournamentDto.getName());
-        tournament.setDisplayName(tournamentDto.getDisplayName());
         tournament.setIsOver(tournamentDto.getIsOver());
-        tournament.setSport(sportService.convertToEntity(tournamentDto.getSport()));
-        tournament.setMatchs(matchService.findByTournamentName(tournamentDto.getName()));
-        tournament.setOwner(userService.convertToEntity(tournamentDto.getOwner()));
+        tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName()));
 
         return tournament;
     }
 
-    public TournamentDTO convertToDto(Tournament tournament) {
-        TournamentDTO tournamentDTO = modelMapper.map(tournament, TournamentDTO.class);
+    protected TournamentDTO convertToDto(Tournament tournament) {
+       // TournamentDTO tournamentDTO = modelMapper.map(tournament, TournamentDTO.class);
+
+        TournamentDTO tournamentDTO = new TournamentDTO();
 
         tournamentDTO.setTournamentId(tournament.getTournamentId());
         tournamentDTO.setName(tournament.getName());

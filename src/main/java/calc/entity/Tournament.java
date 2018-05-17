@@ -2,7 +2,6 @@ package calc.entity;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by clementperez on 9/13/16.
@@ -10,7 +9,11 @@ import java.util.Set;
 @Entity
 @NamedQueries({
         @NamedQuery(name = "Tournament.findByName", query = "SELECT t FROM Tournament t WHERE t.name = ?1"),
-        @NamedQuery(name = "Tournament.findBySportId", query = "SELECT t FROM Tournament t WHERE t.sport.sportId = ?1")
+        @NamedQuery(name = "Tournament.findBySportId", query = "SELECT t FROM Tournament t WHERE t.sport.sportId = ?1"),
+        @NamedQuery(name = "Tournament.findByUserName",
+                query = "SELECT t FROM Tournament t " +
+                        "INNER JOIN t.stats s " +
+                        "WHERE s.user.userName = ?1" )
 })
 @Table(uniqueConstraints={@UniqueConstraint(columnNames={"name"})})
 public class Tournament {
@@ -34,12 +37,14 @@ public class Tournament {
     private User owner;
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
-    private List<Game> matchs;
+    private List<Game> games;
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
     private List<Stats> stats;
 
-    protected Tournament() {}
+    public Tournament() {
+        super();
+    }
 
     public Tournament(String displayName, Sport sport, User owner) {
         name = displayName.replaceAll("\\s+","").toLowerCase();
@@ -89,12 +94,12 @@ public class Tournament {
 
     public void setOwner(User owner) { this.owner = owner; }
 
-    public List<Game> getMatchs() {
-        return matchs;
+    public List<Game> getGames() {
+        return games;
     }
 
-    public void setMatchs(List<Game> matchs) {
-        this.matchs = matchs;
+    public void setGames(List<Game> games) {
+        this.games = games;
     }
 
     public List<Stats> getStats() {

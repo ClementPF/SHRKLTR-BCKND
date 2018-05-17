@@ -5,13 +5,22 @@ package calc.DTO;
  * @author danny
  */
 public class TokenRequestDTO {
-    private String fbAccessToken;
+    private String providerAccessToken;
+    private String tokenProvider;
 
-    public String getFbAccessToken() {
-        return fbAccessToken;
+    public String getProviderAccessToken() {
+        return providerAccessToken;
     }
 
-    public void setFbAccessToken(String fbAccessToken) {
-        this.fbAccessToken = fbAccessToken;
-    }    
+    public void setProviderAccessToken(String providerAccessToken) {
+        this.providerAccessToken = providerAccessToken;
+    }
+
+    public String getTokenProvider() {
+        return tokenProvider;
+    }
+
+    public void setTokenProvider(String tokenProvider) {
+        this.tokenProvider = tokenProvider;
+    }
 }

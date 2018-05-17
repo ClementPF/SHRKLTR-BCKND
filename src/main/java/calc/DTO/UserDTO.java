@@ -1,8 +1,12 @@
 package calc.DTO;
 
+import calc.entity.Stats;
+
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by clementperez on 10/2/16.
@@ -12,14 +16,23 @@ public class UserDTO {
     private Long userId;
     private String firstName;
     private String lastName;
-    private String userName;
-    private StatsDTO stats;
+    private String username;
+    private List<StatsDTO> stats;
 
-    public StatsDTO getStats() {
+    public UserDTO() {
+        super();
+    }
+
+    public UserDTO(String username) {
+        this.username = username;
+        this.stats = new ArrayList<StatsDTO>();
+    }
+
+    public List<StatsDTO> getStats() {
         return stats;
     }
 
-    public void setStats(StatsDTO stats) {
+    public void setStats(List<StatsDTO> stats) {
         this.stats = stats;
     }
 
@@ -47,11 +60,11 @@ public class UserDTO {
         this.lastName = lastName;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

@@ -18,6 +18,10 @@ public class OutcomeDTO {
     private String userName;
     private Long gameId;
 
+    public OutcomeDTO() {
+        super();
+    }
+
     public String getUserName() {
         return userName;
     }
@@ -56,5 +60,15 @@ public class OutcomeDTO {
 
     public void setGameId(Long gameId) {
         this.gameId = gameId;
+    }
+
+    public boolean isWin(){
+        return this.result == Outcome.Result.WIN;
+    }
+    public boolean isLose(){
+        return this.result == Outcome.Result.LOSS;
+    }
+    public boolean isTie(){
+        return this.result == Outcome.Result.TIE;
     }
 }

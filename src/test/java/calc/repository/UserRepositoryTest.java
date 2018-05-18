@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
+/*
 @SpringBootTest(classes = {Application.class})
 //@PropertySource(value = {"classpath:application.properties", "${api.config.location}"}, ignoreResourceNotFound = true)
 @TestExecutionListeners(inheritListeners = false, listeners = {
@@ -146,4 +146,4 @@ public class UserRepositoryTest {
         Mockito.verify(userRepository, VerificationModeFactory.times(1)).findAll();
         Mockito.reset(userRepository);
     }
-}
+}*/

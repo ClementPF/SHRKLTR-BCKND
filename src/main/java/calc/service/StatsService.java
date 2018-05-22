@@ -14,7 +14,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.jws.soap.SOAPBinding;
 import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,13 +55,13 @@ public class StatsService {
 
     public StatsDTO findByUserAndTournament(Long userId, String tournamentName){
 
-        Stats s = statsRepository.findByUserAndTournament(userId, tournamentName);
+        Stats s = statsRepository.findByUserIdAndTournament(userId, tournamentName);
         return s == null ? null : convertToDto(s);
     }
 
     public StatsDTO findByUserNameAndTournament(String username, String tournamentName){
 
-        Stats s = statsRepository.findByUserAndTournament(username, tournamentName);
+        Stats s = statsRepository.findByUsernameAndTournament(username, tournamentName);
         return s == null ? null : convertToDto(s);
     }
 
@@ -82,7 +81,7 @@ public class StatsService {
     }
 
     public void recalculateAfterOutcome(Outcome outcome){
-        Stats stats = statsRepository.findByUserAndTournament(outcome.getUser().getUserId(), outcome.getGame().getTournament().getName());
+        Stats stats = statsRepository.findByUserIdAndTournament(outcome.getUser().getUserId(), outcome.getGame().getTournament().getName());
 
         if(stats == null){
             stats = new Stats(outcome.getUser(),outcome.getGame().getTournament());
@@ -109,7 +108,8 @@ public class StatsService {
 
     public Stats convertToEntity(StatsDTO statsDto) throws ParseException {
 
-        Stats stats = modelMapper.map(statsDto, Stats.class);
+        //modelMapper.getConfiguration().setAmbiguityIgnored(true);
+        Stats stats = new Stats(); //modelMapper.map(statsDto, Stats.class);
 
         stats.setStatsId(statsDto.getStatsId());
         stats.setScore(statsDto.getScore());
@@ -135,7 +135,7 @@ public class StatsService {
 
     public StatsDTO convertToDto(Stats stats) {
 
-        StatsDTO statsDTO = modelMapper.map(stats, StatsDTO.class);
+        StatsDTO statsDTO = new StatsDTO(); //modelMapper.map(stats, StatsDTO.class);
 
         statsDTO.setStatsId(stats.getStatsId());
         statsDTO.setScore(stats.getScore());

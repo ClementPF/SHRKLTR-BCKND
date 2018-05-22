@@ -143,13 +143,13 @@ public class GameService {
         UserDTO l = userService.findByUserName(game.getOutcomes().get(looserOutcomeIndex).getUserName());
         UserDTO u = userService.whoIsLoggedIn();
 
-        TournamentDTO tournament = tournamentService.findByName(game.getTournamentName());
+        TournamentDTO tournament = tournamentService.findByName(game.getTournament().getName());
 
         if(game.getOutcomes().size() != 2){
-            throw new APIException(this.getClass(), game.getTournamentName() + " Only two outcomes accepted " + game.getOutcomes().size() + " were provided", HttpStatus.BAD_REQUEST);
+            throw new APIException(this.getClass(), game.getTournament().getName() + " Only two outcomes accepted " + game.getOutcomes().size() + " were provided", HttpStatus.BAD_REQUEST);
         }else if(winnerOutcomeIndex == looserOutcomeIndex){
             throw new APIException(this.getClass(), tournament.getName() + " Outcomes invalid - incompatible results", HttpStatus.BAD_REQUEST);
-        }else if(l.getUserId() == u.getUserId()){
+        }else if(l.getUserId() != u.getUserId()){
             throw new APIException(this.getClass(), tournament.getName() + " Only the looser can enter a game", HttpStatus.UNAUTHORIZED);
         }else if(w.getUserId() == l.getUserId()){
             throw new APIException(this.getClass(), tournament.getName() + " Same username for both outcomes", HttpStatus.BAD_REQUEST);
@@ -173,11 +173,12 @@ public class GameService {
     }
 
     protected Game convertToEntity(GameDTO gameDto) throws ParseException {
-        Game game = modelMapper.map(gameDto, Game.class);
+        //modelMapper.getConfiguration().setAmbiguityIgnored(true);
+        Game game = new Game(); //modelMapper.map(gameDto, Game.class);
 
         game.setGameId(gameDto.getGameId());
         game.setDate(gameDto.getDate());
-        game.setTournament(tournamentRepository.findByName(gameDto.getTournamentName()));
+        game.setTournament(tournamentRepository.findByName(gameDto.getTournament().getName()));
 
         List<Outcome> outcomeSet = gameDto.getOutcomes().stream()
                 .map(o -> {
@@ -194,7 +195,8 @@ public class GameService {
     }
 
     protected GameDTO convertToDto(Game game) {
-        GameDTO gameDTO = modelMapper.map(game, GameDTO.class);
+        //modelMapper.getConfiguration().setAmbiguityIgnored(true);
+        GameDTO gameDTO = new GameDTO();//modelMapper.map(game, GameDTO.class);
 
         gameDTO.setGameId(game.getGameId());
         gameDTO.setDate(game.getDate());

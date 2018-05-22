@@ -48,13 +48,11 @@ public class OutcomeService {
 
         Outcome outcome = null;
 
-        if(outcomeDto.getGameId() != null) {
-            outcome = new Outcome(
-                    outcomeDto.getScoreValue(),
-                    outcomeDto.getResult(),
-                    gameRepository.findOne(outcomeDto.getGameId()),
-                    userRepository.findByUserName(outcomeDto.getUserName()));
-        }
+        outcome = new Outcome(
+                outcomeDto.getScoreValue(),
+                outcomeDto.getResult(),
+                outcomeDto.getGameId() == null ? null : gameRepository.findOne(outcomeDto.getGameId()), //might no be created yet
+                userRepository.findByUserName(outcomeDto.getUserName()));
 
         return outcome;
     }

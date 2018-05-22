@@ -41,7 +41,7 @@ public class Game {
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
     private List<Outcome> outcomes;
 
-    protected Game() {}
+    public Game() {}
 
     public Game(Date date, Tournament tournament) {
         this.date = date;

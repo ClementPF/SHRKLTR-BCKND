@@ -2,11 +2,13 @@
 package calc.entity;
 
 import javax.persistence.*;
+import javax.validation.constraints.Null;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@NamedQuery(name = "User.findByUserName", query = "SELECT p FROM User p WHERE p.userName = ?1")
+@NamedQuery(name = "User.findByUserName", query = "SELECT u FROM User u WHERE u.userName = ?1")
 public class User {
 
     @Id
@@ -43,11 +45,39 @@ public class User {
         this.stats = new ArrayList<Stats>();
     }
 
+    public User(String firstName, String lastName, String userName, String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.userName = userName;
+        this.email = email;
+        this.stats = new ArrayList<Stats>();
+    }
+
     @Override
     public String toString() {
         return String.format(
                 "User[id=%d, firstName='%s', lastName='%s']",
                 userId, firstName, lastName);
+    }
+
+    public boolean isEqualTo(User user){
+        boolean b = true;
+
+        for(Field f : this.getClass().getDeclaredFields()){
+            try {
+                try {
+                    b = b && f.get(this).equals(f.get(user));
+                }catch(NullPointerException npe){
+                    b = b && f.get(this) == f.get(user);
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                b = false;
+            }
+        }
+
+        System.out.print(this.getUserName() + (b ? " is " : " isn't ") + user.getUserName() + "\n" );
+        return b;
     }
 
     public Long getUserId() {

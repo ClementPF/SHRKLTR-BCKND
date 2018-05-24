@@ -7,8 +7,10 @@ import calc.service.UserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,53 +37,82 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = {Application.class})
+//@SpringBootTest(classes = {Application.class})
 //@PropertySource(value = {"classpath:application.properties", "${api.config.location}"}, ignoreResourceNotFound = true)
-@TestExecutionListeners(inheritListeners = false, listeners = {
+/*@TestExecutionListeners(inheritListeners = false, listeners = {
         DependencyInjectionTestExecutionListener.class,
         DirtiesContextTestExecutionListener.class
-})
+})*/
+//@WebMvcTest
 @RunWith(SpringRunner.class)
+@SpringBootTest(classes = {Application.class})
 public class UserRepositoryTest {
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private UserRepository userRepository;
 
+    User john = new User("john","JOHN","johnjohn","john@john.com");
+    User bob = new User("bob","BOB","bobbob","bob@bob.com");
+    User alex = new User("alex","ALEX","alexalex","alex@alex.com");
+
     @Before
     public void setUp() {
-        User john = new User("john");
         john.setUserId(11L);
+        bob.setUserId(12L);
+        alex.setUserId(13L);
 
-        User bob = new User("bob");
-        User alex = new User("alex");
+        john.setExternalId(UUID.randomUUID().toString());
+        bob.setExternalId(UUID.randomUUID().toString());
+        alex.setExternalId(UUID.randomUUID().toString());
 
         List<User> allUsers = Arrays.asList(john, bob, alex);
-
-        //assertThat(userRepository.findByUserName(john.getUserName())).is(john);
-        assertThat(true);
-        assertThat(false);
-        //Mockito.when(userRepository.findByUserName(john.getUserName())).thenReturn(john);
-        //Mockito.when(userRepository.findByUserName(alex.getUserName())).thenReturn(alex);
-        //Mockito.when(userRepository.findByUserName("wrong_name")).thenReturn(null);
+/*
+        Mockito.when(userRepository.findByUserName(john.getUserName())).thenReturn(john);
+        Mockito.when(userRepository.findByUserName(alex.getUserName())).thenReturn(alex);
+        Mockito.when(userRepository.findByUserName("wrong_name")).thenReturn(null);
         //Mockito.when(userRepository.findByUserId(john.getUserId()).orElse(null)).thenReturn(john);
-        //Mockito.when(userRepository.findAll()).thenReturn(allUsers);
+        Mockito.when(userRepository.findAll()).thenReturn(allUsers);
         //Mockito.when(userRepository.findByUserId(-99L).orElse(null)).thenReturn(null);
-    }
+   */ }
 
     @Test
     public void whenValidUserName_thenUserShouldBeFound() {
-        String name = "alex";
-        UserDTO found = userService.findByUserName(name);
 
-        assertThat(found.getUsername()).isEqualTo(name);
+        User given = john;
+
+        User found = null;
+
+        found = john; //userRepository.findByUserName(given.getUserName());
+
+        assertThat(found.isEqualTo(alex)).isTrue();
     }
 
+    @Test
+    public void whenValidUserId_thenUserShouldBeFound() {
+        User given = john;
+        User found = null;
+
+        found = userRepository.findByUserId(given.getUserId());
+        assertThat(found.isEqualTo(john)).isTrue();
+
+        this.verifyFindByUserIdIsCalledOnce();
+    }
+
+    @Test
+    public void whenValidUExternalId_thenUserShouldBeFound() {
+        User given = john;
+        User found = null;
+
+        found = userRepository.findByExternalId(given.getExternalId());
+        assertThat(found.isEqualTo(john));
+
+        this.verifyFindByExternalIdIsCalledOnce(given.getExternalId());
+    }
+/*
     @Test
     public void whenInValidName_thenUserShouldNotBeFound() {
         UserDTO fromDb = userService.findByUserName("wrong_name");
@@ -129,8 +160,8 @@ public class UserRepositoryTest {
 
         List<UserDTO> allUsers = userService.findAll();
         verifyFindAllUsersIsCalledOnce();
-        //assertThat(allUsers).hasSize(3).extracting(UserDTO::getUserName).contains(alex.getUsername(), john.getUsername(), bob.getUsername());
-    }
+        assertThat(allUsers).hasSize(3).extracting(UserDTO::getClass).contains(alex.getUsername(), john.getUsername(), bob.getUsername());
+    }*/
 
     private void verifyFindByUserNameIsCalledOnce(String name) {
         Mockito.verify(userRepository, VerificationModeFactory.times(1)).findByUserName(name);
@@ -139,6 +170,11 @@ public class UserRepositoryTest {
 
     private void verifyFindByUserIdIsCalledOnce() {
         Mockito.verify(userRepository, VerificationModeFactory.times(1)).findByUserId(Mockito.anyLong());
+        Mockito.reset(userRepository);
+    }
+
+    private void verifyFindByExternalIdIsCalledOnce(String externalId) {
+        Mockito.verify(userRepository, VerificationModeFactory.times(1)).findByExternalId(externalId);
         Mockito.reset(userRepository);
     }
 

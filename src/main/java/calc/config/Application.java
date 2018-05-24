@@ -64,7 +64,7 @@ public class Application extends WebMvcConfigurerAdapter {
     public static void main(String[] args) { SpringApplication.run(Application.class, args);}
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
-
+/*
     @Autowired
     private CrudRepository<Sport,Long> repoSport;
     @Autowired
@@ -80,7 +80,7 @@ public class Application extends WebMvcConfigurerAdapter {
     @Autowired
     private UserService userService;
     @Autowired
-    private GameService gameService;
+    private GameService gameService;*/
     @Autowired
     private JwtProperties jwtProperties;
     @Autowired

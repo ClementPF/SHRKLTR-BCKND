@@ -1,6 +1,7 @@
 package calc.entity;
 
 import javax.persistence.*;
+import java.lang.reflect.Field;
 
 /**
  * Created by clementperez on 9/13/16.
@@ -196,5 +197,29 @@ public class Stats {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean equals(Stats s){
+        boolean b = true;
+
+        for(Field f : this.getClass().getDeclaredFields()){
+            try {
+                try {
+                    b = b && f.get(this).equals(f.get(s));
+                }catch(NullPointerException npe){
+                    b = b && f.get(this) == f.get(s);
+                }
+            } catch (IllegalAccessException e) {
+
+                System.out.print(this.getStatsId() + " isn't " + s.getStatsId());
+                e.printStackTrace();
+                b = false;
+            }
+        }
+
+        if(b) {
+            System.out.print(this.getStatsId() + " is " + s.getStatsId());
+        }
+        return b;
     }
 }

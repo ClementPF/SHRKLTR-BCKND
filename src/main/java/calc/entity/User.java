@@ -60,23 +60,32 @@ public class User {
                 userId, firstName, lastName);
     }
 
-    public boolean isEqualTo(User user){
+    public boolean equals(User user){
         boolean b = true;
 
         for(Field f : this.getClass().getDeclaredFields()){
             try {
-                try {
-                    b = b && f.get(this).equals(f.get(user));
-                }catch(NullPointerException npe){
+
+                if(f.get(this) == null){
                     b = b && f.get(this) == f.get(user);
+                }else{
+                    b = b && f.get(this).equals(f.get(user));
+                }
+
+                if(!b) {
+                    System.out.print("Field: " + f.getName() + " value of obj1 " + f.get(this) + (b ? " is  " : " isn't ") + " obj2 : " + f.get(user) + "\n");
                 }
             } catch (IllegalAccessException e) {
+
+                System.out.print(this.getUserName() + " isn't " + user.getUserName());
                 e.printStackTrace();
                 b = false;
             }
         }
 
-        System.out.print(this.getUserName() + (b ? " is " : " isn't ") + user.getUserName() + "\n" );
+        if(b) {
+            System.out.print(this.getUserName() + " is " + user.getUserName());
+        }
         return b;
     }
 

@@ -156,15 +156,17 @@ public class UserService{
     }
 
     protected UserDTO convertToDto(User user) {
-    //UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-        UserDTO userDTO = new UserDTO();
+    UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+
+
+        /*UserDTO userDTO = new UserDTO();
 
         userDTO.setUserId(user.getUserId());
         userDTO.setFirstName(user.getFirst());
         userDTO.setLastName(user.getLast());
         userDTO.setFirstName(user.getFirst());
         userDTO.setUsername(user.getUserName());
-
+*/
         return userDTO;
     }
 

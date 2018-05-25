@@ -1,6 +1,7 @@
 package calc.entity;
 
 import javax.persistence.*;
+import java.lang.reflect.Field;
 import java.util.List;
 
 /**
@@ -109,7 +110,7 @@ public class Tournament {
     public void setStats(List<Stats> stats) {
         this.stats = stats;
     }
-
+/*
     public boolean equals(Tournament obj) {
         if (this.getTournamentId() == null || obj == null) {
             return false;
@@ -117,5 +118,27 @@ public class Tournament {
         else {
             return this.getTournamentId() == obj.getTournamentId();
         }
+    }*/
+
+    public boolean equals(Tournament t){
+        boolean b = true;
+
+        for(Field f : this.getClass().getDeclaredFields()){
+            try {
+                try {
+                    b = b && f.get(this).equals(f.get(t));
+                }catch(NullPointerException npe){
+                    b = b && f.get(this) == f.get(t);
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                b = false;
+            }
+        }
+
+        if(b) {
+            System.out.print(this.getName() + " is " + t.getName());
+        }
+        return b;
     }
 }

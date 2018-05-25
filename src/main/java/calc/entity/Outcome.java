@@ -1,6 +1,7 @@
 package calc.entity;
 
 import javax.persistence.*;
+import java.lang.reflect.Field;
 
 /**
  * Created by clementperez on 9/13/16.
@@ -28,7 +29,7 @@ public class Outcome {
     @JoinColumn(name = "userId")
     private User user;
 
-    protected Outcome() {}
+    public Outcome() {}
 
     public Outcome(double scoreValue, Result results, Game game, User user) {
         this.scoreValue = scoreValue;
@@ -85,4 +86,26 @@ public class Outcome {
          Result(int i) {
         }
     };
+
+    public boolean equals(Outcome o){
+        boolean b = true;
+
+        for(Field f : this.getClass().getDeclaredFields()){
+            try {
+                try {
+                    b = b && f.get(this).equals(f.get(o));
+                }catch(NullPointerException npe){
+                    b = b && f.get(this) == f.get(o);
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                b = false;
+            }
+        }
+
+        if(b) {
+            System.out.print(this.getOutcomeId() + " is " + o.getOutcomeId());
+        }
+        return b;
+    }
 }

@@ -1,6 +1,7 @@
 package calc.entity;
 
 import javax.persistence.*;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Set;
 
@@ -61,4 +62,27 @@ public class Sport {
     public void setMainTourmanent(Tournament mainTourmanent) {
         this.mainTourmanent = mainTourmanent;
     }*/
+
+
+    public boolean equals(Tournament t){
+        boolean b = true;
+
+        for(Field f : this.getClass().getDeclaredFields()){
+            try {
+                try {
+                    b = b && f.get(this).equals(f.get(t));
+                }catch(NullPointerException npe){
+                    b = b && f.get(this) == f.get(t);
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                b = false;
+            }
+        }
+
+        if(b) {
+            System.out.print(this.getName() + " is " + t.getName());
+        }
+        return b;
+    }
 }

@@ -214,7 +214,7 @@ public class UserService{
         //map.add("sound", "");
         map.put("title", title);
         map.put("body", message);
-        //map.put("data",  obj);
+        map.put("data",  "{\"message\" : \"" + message + "\"}");
 
         HttpEntity<Map<String, String>> request = new HttpEntity<>(map, headers);
 

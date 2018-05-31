@@ -169,7 +169,13 @@ public class GameService {
             statsService.recalculateAfterOutcome(outcome);
         }
 
-        return convertToDto(gameRepository.save(g));
+        int value = (int) Math.abs(g.getOutcomes().get(0).getScoreValue());
+
+        GameDTO gameDTO =  convertToDto(gameRepository.save(g));
+
+        userService.pushNotificationForUser(w,"Well done Champ !","You just got " + value  + " points from " + l.getUsername(), gameDTO);
+
+        return gameDTO;
     }
 
     protected Game convertToEntity(GameDTO gameDto) throws ParseException {

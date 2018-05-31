@@ -209,6 +209,7 @@ CREATE TABLE `user` (
   `external_id_provider` varchar(255) DEFAULT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   `external_id` bigint(20) DEFAULT NULL,
+  `push_id` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `UK_lqjrcobrh9jc8wpcar64q1bfh` (`user_name`),
   UNIQUE KEY `external_id` (`external_id`)

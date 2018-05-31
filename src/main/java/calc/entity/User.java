@@ -23,6 +23,7 @@ public class User {
     private String password;
 //    @Column(unique = true, nullable = false)
     private String email;
+    private String pushId;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Stats> stats;
@@ -118,5 +119,8 @@ public class User {
     public void setOutcomes(List<Outcome> outcomes) {
         this.outcomes = outcomes;
     }
+    public String getPushId() { return pushId; }
+
+    public void setPushId(String pushId) { this.pushId = pushId; }
 }
 

@@ -16,6 +16,7 @@ import calc.service.TournamentService;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,6 +39,12 @@ public class UserController {
     public List<UserDTO> users() {
 
         return userService.findAll();
+    }
+
+    @RequestMapping(value = "/user/push", method = RequestMethod.POST)
+    public ResponseEntity registerForPushNotification(@RequestBody PushTokenDTO token) {
+
+        return userService.registerForPushNotification(token);
     }
 
     @RequestMapping(value = "/user/{userName}", method = RequestMethod.GET)

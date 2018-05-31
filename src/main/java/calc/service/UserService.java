@@ -4,20 +4,32 @@ import calc.DTO.*;
 import calc.entity.Stats;
 import calc.entity.Tournament;
 import calc.entity.User;
+import calc.exception.APIException;
 import calc.repository.OutcomeRepository;
 import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
+import org.apache.http.*;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +38,7 @@ import java.util.stream.Collectors;
 @Service
 public class UserService{
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -76,6 +89,11 @@ public class UserService{
 
         ProviderUserInfoDTO userInfo = (ProviderUserInfoDTO) request.getAttribute("user_info");
         return findByExternalId(userInfo.getId());
+    }
+
+    private User whoIsLoggedInEntity(){
+        ProviderUserInfoDTO userInfo = (ProviderUserInfoDTO) request.getAttribute("user_info");
+        return userRepository.findByExternalId(userInfo.getId());
     }
 
     public List<UserDTO> findByLastName(String lastName){
@@ -170,5 +188,50 @@ public class UserService{
 
     public boolean exists(String username) {
         return findByUserName(username) != null;
+    }
+
+
+    public ResponseEntity registerForPushNotification(PushTokenDTO token) {
+
+        User u = whoIsLoggedInEntity();
+        u.setPushId(token.getValue());
+
+        userRepository.save(u);
+
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    public void pushNotificationForUser(UserDTO user, String title ,String message, Object obj){
+
+        User u = userRepository.findByUserId(user.getUserId());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, String> map= new HashMap<>();
+
+        map.put("to", u.getPushId());
+        //map.add("sound", "");
+        map.put("title", title);
+        map.put("body", message);
+        //map.put("data",  obj);
+
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(map, headers);
+
+        try {
+            logger.debug("Making Expo push API request");
+            ResponseEntity<String> response = new RestTemplate().postForEntity("https://exp.host/--/api/v2/push/send", request, String.class);
+
+            if(response.getStatusCode() == HttpStatus.OK && response.getStatusCode() == HttpStatus.BAD_REQUEST){
+                logger.warn("Pushing the notification failed : {}", response.getBody());
+            }
+        } catch (HttpStatusCodeException hsce) {
+
+            logger.warn("Received bad HTTP status code from EXPO push API. Exception message: {}", hsce.getMessage());
+            //throw new APIException(hsce.getStatusCode(), hsce.getCause().getMessage(), hsce);
+        }
+
+
+
     }
 }

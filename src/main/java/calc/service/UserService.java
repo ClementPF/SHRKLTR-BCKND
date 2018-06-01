@@ -9,6 +9,7 @@ import calc.repository.OutcomeRepository;
 import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.*;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -137,7 +138,6 @@ public class UserService{
                 .map(u -> convertToDto(u, t)).collect(Collectors.toList());
     }
 
-
     public User convertToEntity(UserDTO userDto) throws ParseException {
        // User user = modelMapper.map(userDto, User.class);
 
@@ -201,9 +201,13 @@ public class UserService{
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    public void pushNotificationForUser(UserDTO user, String title ,String message, Object obj){
+    public ResponseEntity pushNotificationForUser(UserDTO user, String title ,String message, Object obj){
 
         User u = userRepository.findByUserId(user.getUserId());
+
+        if(u == null || u.getPushId().equals(null)){
+            throw new APIException(UserService.class, user.getUsername() + " doesn't accept challenges or doesn't have push notifications turned on.", HttpStatus.BAD_REQUEST);
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -211,19 +215,39 @@ public class UserService{
         Map<String, String> map= new HashMap<>();
 
         map.put("to", u.getPushId());
-        //map.add("sound", "");
         map.put("title", title);
         map.put("body", message);
-        map.put("data",  "{\"message\" : \"" + message + "\"}");
+
+        ObjectMapper mapperObj = new ObjectMapper();
+
+        if(obj != null){
+            String jsonStr = null;
+            try {
+                jsonStr = mapperObj.writeValueAsString(obj);
+                System.out.println(jsonStr);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            map.put("data",  "{" +
+                    "\"message\" : \"" + message + "\"," +
+                    "\"payload\" : " + jsonStr +
+                    "}");
+        }else{
+            map.put("data",  "{" +
+                    "\"message\" : \"" + message + "\"" +
+                    "}");
+        }
 
         HttpEntity<Map<String, String>> request = new HttpEntity<>(map, headers);
+        ResponseEntity<String> response = null;
 
         try {
             logger.debug("Making Expo push API request");
-            ResponseEntity<String> response = new RestTemplate().postForEntity("https://exp.host/--/api/v2/push/send", request, String.class);
+            response = new RestTemplate().postForEntity("https://exp.host/--/api/v2/push/send", request, String.class);
 
             if(response.getStatusCode() == HttpStatus.OK && response.getStatusCode() == HttpStatus.BAD_REQUEST){
-                logger.warn("Pushing the notification failed : {}", response.getBody());
+                logger.warn("Pushing the notification failed but request is valid: {}", response.getBody());
             }
         } catch (HttpStatusCodeException hsce) {
 
@@ -231,7 +255,6 @@ public class UserService{
             //throw new APIException(hsce.getStatusCode(), hsce.getCause().getMessage(), hsce);
         }
 
-
-
+        return response;
     }
 }

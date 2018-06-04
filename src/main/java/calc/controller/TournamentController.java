@@ -2,6 +2,7 @@ package calc.controller;
 
 import calc.DTO.*;
 import calc.entity.Tournament;
+import calc.entity.User;
 import calc.exception.APIException;
 import calc.security.Secured;
 import calc.service.*;
@@ -29,6 +30,8 @@ public class TournamentController {
     private TournamentService tournamentService;
     @Autowired
     private StatsService statsService;
+    @Autowired
+    private RivalryStatsService rivalryStatsService;
     @Autowired
     private GameService gameService;
     @Autowired
@@ -137,6 +140,24 @@ public class TournamentController {
             throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
         }
         return statsService.findByTournament(t);
+    }
+
+    @RequestMapping(value = "/tournament/{tournamentName}/rivalry", method = RequestMethod.GET)
+    public RivalryStatsDTO statsForTournamentBetweenUsers(@PathVariable(value="tournamentName") String name,@RequestParam(value="userName") String userName,@RequestParam(value="rivalName") String rivalName) {
+
+        TournamentDTO t = tournamentService.findByName(name);
+        if(t == null){
+            throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
+        }
+
+        UserDTO u = userService.findByUserName(userName);
+        UserDTO r = userService.findByUserName(rivalName);
+
+        if(u == null || r == null){
+            throw new APIException(User.class,userName + " or " + rivalName,HttpStatus.NOT_FOUND);
+        }
+
+        return rivalryStatsService.findByUserAndRivalAndTournament(u.getUserId(),r.getUserId(),t.getName());
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/users", method = RequestMethod.GET)

@@ -43,6 +43,8 @@ public class GameService {
     @Autowired
     private StatsService statsService;
     @Autowired
+    private RivalryStatsService rivalryStatsService;
+    @Autowired
     private StatsRepository statsRepository;
     @Autowired
     private ModelMapper modelMapper;
@@ -168,6 +170,9 @@ public class GameService {
         for (Outcome outcome : g.getOutcomes()) {
             statsService.recalculateAfterOutcome(outcome);
         }
+
+        rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(0),g.getOutcomes().get(1));
+        rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(1),g.getOutcomes().get(0));
 
         int value = (int) Math.abs(g.getOutcomes().get(0).getScoreValue());
 

@@ -3,10 +3,7 @@ package calc.service;
 import calc.DTO.StatsDTO;
 import calc.DTO.TournamentDTO;
 import calc.DTO.UserDTO;
-import calc.entity.Outcome;
-import calc.entity.Stats;
-import calc.entity.Tournament;
-import calc.entity.User;
+import calc.entity.*;
 import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
@@ -32,10 +29,14 @@ public class StatsService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private TournamentService tournamentService;
+    @Autowired
+    private UserService userService;
+    @Autowired
     private ModelMapper modelMapper;
 
     public List<StatsDTO> findByTournament(TournamentDTO tournament){
-        return statsRepository.findByTournamentOrderByScoreDesc(tournamentRepository.findOne(tournament.getTournamentId())).stream()
+        return statsRepository.findByTournament(tournamentRepository.findOne(tournament.getTournamentId())).stream()
                 .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
 
@@ -43,6 +44,12 @@ public class StatsService {
         return statsRepository.findByUser(userRepository.findOne(user.getUserId())).stream()
                 .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
+
+    public List<StatsDTO> findByUserName(String username){
+        return statsRepository.findByUser(userRepository.findByUserName(username)).stream()
+                .map(s -> convertToDto(s)).collect(Collectors.toList());
+    }
+
 
     public StatsDTO save(StatsDTO stats){
         try {
@@ -53,21 +60,21 @@ public class StatsService {
         return null;
     }
 
-    public StatsDTO findByUserAndTournament(Long userId, String tournamentName){
+    public StatsDTO findByUserAndTournament(Long userId, Long tournamentId){
 
-        Stats s = statsRepository.findByUserIdAndTournament(userId, tournamentName);
+        Stats s = statsRepository.findByUserUserIdAndTournamentTournamentId(userId, tournamentId);
         return s == null ? null : convertToDto(s);
     }
 
     public StatsDTO findByUserNameAndTournament(String username, String tournamentName){
 
-        Stats s = statsRepository.findByUsernameAndTournament(username, tournamentName);
+        Stats s = statsRepository.findByUserUserNameAndTournamentName(username, tournamentName);
         return s == null ? null : convertToDto(s);
     }
 
     public StatsDTO findByUserAndTournamentCreateIfNone(UserDTO user, TournamentDTO tournament){
 
-        StatsDTO stats = findByUserAndTournament(user.getUserId(),tournament.getName());
+        StatsDTO stats = findByUserAndTournament(user.getUserId(),tournament.getTournamentId());
 
         User u = userRepository.findOne(user.getUserId());
         Tournament t = tournamentRepository.findOne(tournament.getTournamentId());
@@ -81,7 +88,7 @@ public class StatsService {
     }
 
     public void recalculateAfterOutcome(Outcome outcome){
-        Stats stats = statsRepository.findByUserIdAndTournament(outcome.getUser().getUserId(), outcome.getGame().getTournament().getName());
+        Stats stats = statsRepository.findByUserUserIdAndTournamentTournamentId(outcome.getUser().getUserId(), outcome.getGame().getTournament().getTournamentId());
 
         if(stats == null){
             stats = new Stats(outcome.getUser(),outcome.getGame().getTournament());
@@ -151,9 +158,8 @@ public class StatsService {
         statsDTO.setLonguestTieStreak(stats.getLonguestTieStreak());
         statsDTO.setBestScore(stats.getBestScore());
         statsDTO.setWorstScore(stats.getWorstScore());
-        statsDTO.setUsername(stats.getUser().getUserName());
-        statsDTO.setTournamentDisplayName(stats.getTournament().getDisplayName());
-        statsDTO.setTournamentName(stats.getTournament().getName());
+        statsDTO.setUser(userService.convertToDto(stats.getUser()));
+        statsDTO.setTournament(tournamentService.convertToDto(stats.getTournament()));
 
         return statsDTO;
     }

@@ -22,6 +22,13 @@ public class OutcomeDTO {
         super();
     }
 
+    public OutcomeDTO(String username, Outcome.Result result, double score) {
+        super();
+        this.userName = username;
+        this.result = result;
+        this.scoreValue = score;
+    }
+
     public String getUserName() {
         return userName;
     }

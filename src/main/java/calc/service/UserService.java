@@ -230,11 +230,13 @@ public class UserService{
             }
 
             map.put("data",  "{" +
+                    "\"title\" : \"" + title + "\"," +
                     "\"message\" : \"" + message + "\"," +
                     "\"payload\" : " + jsonStr +
                     "}");
         }else{
             map.put("data",  "{" +
+                    "\"title\" : \"" + title + "\"," +
                     "\"message\" : \"" + message + "\"" +
                     "}");
         }

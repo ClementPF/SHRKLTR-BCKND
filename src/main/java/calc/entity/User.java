@@ -29,6 +29,9 @@ public class User {
     private List<Stats> stats;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<RivalryStats> rivalry_stats;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Outcome> outcomes;
 
     public User() {}
@@ -106,6 +109,14 @@ public class User {
             }
         }
         return null;
+    }
+
+    public List<RivalryStats> getRivalryStats() {
+        return rivalry_stats;
+    }
+
+    public void setRivalryStats(List<RivalryStats> rivalryStats) {
+        this.rivalry_stats = rivalryStats;
     }
 
     public void setStats(List<Stats> stats) {

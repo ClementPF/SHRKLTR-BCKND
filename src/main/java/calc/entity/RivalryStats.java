@@ -3,24 +3,37 @@ package calc.entity;
 import javax.persistence.*;
 
 /**
- * Created by clementperez on 9/13/16.
+ * Created by clementperez on 02/06/18.
  */
 @Entity
 @NamedQueries({
-        @NamedQuery(name = "Stats.findByUserId", query = "SELECT s FROM Stats s WHERE s.user.userId = ?1"),
-        @NamedQuery(name = "Stats.findByUserIdAndTournamentId", query = "SELECT s FROM Stats s WHERE s.user.userId = ?1 AND s.tournament.tournamentId = ?2"),
-        @NamedQuery(name = "Stats.findByUsernameAndTournament", query = "SELECT s FROM Stats s WHERE s.user.userName = ?1 AND s.tournament.name = ?2")
+        @NamedQuery(name = "RivalryStats.findByUserId", query = "SELECT s FROM RivalryStats s WHERE s.user.userId = ?1"),
+        @NamedQuery(name = "RivalryStats.findByRivalId", query = "SELECT s FROM RivalryStats s WHERE s.rival.userId = ?1"),
+        @NamedQuery(name = "RivalryStats.findByUserAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.user.userId = ?1 AND s.tournament.name = ?2"),
+        @NamedQuery(name = "RivalryStats.findByRivalAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.rival.userId = ?1 AND s.tournament.name = ?2"),
+        @NamedQuery(name = "RivalryStats.findByUserUserIdAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.user.userId = ?1 AND s.tournament.name = ?2"),
+        @NamedQuery(name = "RivalryStats.findByRivalUserIdAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.rival.userId = ?1 AND s.tournament.name = ?2"),
+        @NamedQuery(name = "RivalryStats.findByUserUsernameAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.user.userName = ?1 AND s.tournament.name = ?2"),
+        @NamedQuery(name = "RivalryStats.findByRivalUsernameAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.rival.userId = ?1 AND s.tournament.name = ?2"),
+        @NamedQuery(name = "RivalryStats.findByUserAndRivalAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.user.userId = ?1 AND s.rival.userId = ?2 AND s.tournament.name = ?3"),
+        @NamedQuery(name = "RivalryStats.findByUserUserIdAndRivalUserIdAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.user.userId = ?1 AND s.rival.userId = ?2 AND s.tournament.name = ?3"),
+        @NamedQuery(name = "RivalryStats.findByUserUsernameAndRivalUsernameTournament", query = "SELECT s FROM RivalryStats s WHERE s.user.userName = ?1 AND s.rival.userName = ?2 AND s.tournament.name = ?3")
 })
-public class Stats {
+public class RivalryStats {
+
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
-    private Long statsId;
+    private Long rivalryStatsId;
+
     @ManyToOne
     @JoinColumn(name="tournamentId")
     private Tournament tournament;
     @ManyToOne
     @JoinColumn(name="userId", nullable = false)
     private User user;
+    @ManyToOne
+    @JoinColumn(name="rivalId", nullable = false)
+    private User rival;
 
     private double score;
     private double bestScore;
@@ -36,16 +49,18 @@ public class Stats {
     private int longuestLoseStreak;
     private int longuestTieStreak;
 
-    public Stats() {
+    public RivalryStats() {
         super();
     }
 
-    public Stats(User user, Tournament tournament) {
+    public RivalryStats(User owner, User rival, Tournament tournament) {
         super();
-
-        this.user = user;
         this.tournament = tournament;
-        this.setScore(1000);
+        this.user = owner;
+        this.rival = rival;
+        setScore(0);
+        setBestScore(0);
+        setWorstScore(0);
     }
 
     public double getScore() {
@@ -175,27 +190,36 @@ public class Stats {
 
     public void setLonguestTieStreak(int longuestTieStreak) {this.longuestTieStreak = longuestTieStreak; }
 
-    public Long getStatsId() {
-        return statsId;
+    public Long getRivalryStatsId() {
+        return rivalryStatsId;
     }
 
-    public void setStatsId(Long statsId) {
-        this.statsId = statsId;
+    public void setRivalryStatsId(Long rivalryStatsId) {
+        this.rivalryStatsId = rivalryStatsId;
     }
 
     public Tournament getTournament() {
         return tournament;
     }
 
-    public void setTournament(Tournament tournament) {
-        this.tournament = tournament;
+    public void setTournament(Tournament t){
+        this.tournament = t;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public User getRival() {
+        return rival;
+    }
+
+    public void setRival(User user) {
+        this.rival = user;
     }
 }
+

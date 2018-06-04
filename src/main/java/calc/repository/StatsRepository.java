@@ -1,5 +1,6 @@
 package calc.repository;
 
+import calc.entity.RivalryStats;
 import calc.entity.Stats;
 import calc.entity.Tournament;
 import calc.entity.User;
@@ -12,9 +13,10 @@ import java.util.List;
 @Repository
 public interface StatsRepository extends CrudRepository<Stats, Long> {
     List<Stats> findByTournament(Tournament tournament);
-    List<Stats> findByTournamentOrderByScoreDesc(Tournament tournament);
+    //List<Stats> findByTournamentOrderByScoreDesc(Tournament tournament);
     List<Stats> findByUser(User user);
     List<Stats> findByUserId(Long userId);
-    public Stats findByUserIdAndTournament(@Param("userId") Long userId,@Param("tournamentName") String tournamentId);
-    public Stats findByUsernameAndTournament(@Param("username") String username,@Param("tournamentName") String tournamentId);
+    //public Stats findByUserUserNameAndTournamentName(@Param("user") User user, @Param("tournament") Tournament tournament);
+    public Stats findByUserUserIdAndTournamentTournamentId(@Param("userId") Long userId, @Param("tournamentId") Long tournamentId);
+    public Stats findByUserUserNameAndTournamentName(@Param("username") String username, @Param("tournamentName") String tournamentId);
 }

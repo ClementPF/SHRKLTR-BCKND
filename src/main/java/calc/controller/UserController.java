@@ -11,10 +11,8 @@ import java.util.stream.Collectors;
 import calc.entity.Tournament;
 import calc.exception.APIException;
 import calc.security.Secured;
-import calc.service.GameService;
-import calc.service.UserService;
-import calc.service.StatsService;
-import calc.service.TournamentService;
+import calc.service.*;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +30,8 @@ public class UserController {
     private TournamentService tournamentService;
     @Autowired
     private StatsService statsService;
+    @Autowired
+    private RivalryStatsService rivalryStatsService;
     @Autowired
     private GameService gameService;
     
@@ -79,22 +79,22 @@ public class UserController {
 
     @RequestMapping(value = "/user/{userName}/stats", method = RequestMethod.GET)
     public List<StatsDTO> userStats(@PathVariable(value="userName") String username) {
-        List<StatsDTO> statsDTOs = statsService.findByUser(userService.findByUserName(username));
-
-        return statsService.findByUser(userService.findByUserName(username));
+        return statsService.findByUserName(username);
     }
 
-    @RequestMapping(value = "/user/{userName}/stats2", method = RequestMethod.GET)
-    public StatsDTO userStatsForTournament(@PathVariable(value="userName") String username, @RequestParam(value="tournamentName", defaultValue="") String tournamentName) {
-        return statsService.findByUserNameAndTournament(username, tournamentName);
+    @RequestMapping(value = "/user/{userName}/rivalry", method = RequestMethod.GET)
+    public List<RivalryStatsDTO> userRivalryStats(@PathVariable(value="userName") String username,  @RequestParam(value="tournamentName", defaultValue="") String tournamentName) {
+        if(tournamentName == null) {
+            return rivalryStatsService.findByUsername(username);
+        }else{
+            return rivalryStatsService.findByUserNameAndTournament(username, tournamentName);
+        }
     }
-
 
     @RequestMapping(value = "/user/{userName}/tournaments", method = RequestMethod.GET)
     public List<TournamentDTO> userTournaments(@PathVariable(value="userName") String username) {
         return tournamentService.findByUserName(username);
     }
-
 
     @RequestMapping(value = "/user/{userName}/challenge", method = RequestMethod.POST)
     public ResponseEntity challengeUser(@PathVariable(value="userName") String username, @RequestBody ChallengeDTO challenge) {

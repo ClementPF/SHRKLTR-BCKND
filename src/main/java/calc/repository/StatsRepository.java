@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface StatsRepository extends CrudRepository<Stats, Long> {
     List<Stats> findByTournament(Tournament tournament);
-    //List<Stats> findByTournamentOrderByScoreDesc(Tournament tournament);
+    List<Stats> findByTournamentOrderByScoreDesc(Tournament tournament);
     List<Stats> findByUser(User user);
     List<Stats> findByUserId(Long userId);
     //public Stats findByUserUserNameAndTournamentName(@Param("user") User user, @Param("tournament") Tournament tournament);

@@ -23,6 +23,6 @@ public interface RivalryStatsRepository extends CrudRepository<RivalryStats, Lon
     public List<RivalryStats> findByUserUserNameAndTournamentName(@Param("username") String username, @Param("tournamentName") String tournamentId);
     public List<RivalryStats> findByRivalUserIdAndTournamentTournamentId(@Param("rivalUserId") Long userId, @Param("tournamentName") String tournamentId);
     public List<RivalryStats> findByRivalUserNameAndTournamentName(@Param("rivalUsername") String username, @Param("tournamentName") String tournamentId);
-    public RivalryStats findByUserUserIdAndRivalUserIdAndTournamentTournamentId(@Param("userId") Long userId, @Param("rivalUserId") Long rivalUserId, @Param("tournamentId") String tournamentId);
+    public RivalryStats findByUserUserIdAndRivalUserIdAndTournamentTournamentId(@Param("userId") Long userId, @Param("rivalUserId") Long rivalUserId, @Param("tournamentId") Long tournamentId);
     public RivalryStats findByUserUserNameAndRivalUserNameAndTournamentName(@Param("userName") String username, @Param("rivalUsername") String rivalUsername, @Param("tournamentName") String tournamentId);
 }

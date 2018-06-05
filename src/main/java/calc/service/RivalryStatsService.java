@@ -94,9 +94,9 @@ public class RivalryStatsService {
                 .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
 
-    public RivalryStatsDTO findByUserAndRivalAndTournament(Long userId,Long rivalId, String tournamentName){
+    public RivalryStatsDTO findByUserAndRivalAndTournament(Long userId,Long rivalId, Long tournamentId){
 
-        RivalryStats stats = rivalryStatsRepository.findByUserUserIdAndRivalUserIdAndTournamentTournamentId(userId, rivalId, tournamentName);
+        RivalryStats stats = rivalryStatsRepository.findByUserUserIdAndRivalUserIdAndTournamentTournamentId(userId, rivalId, tournamentId);
 
         return stats == null ? null : convertToDto(stats);
     }
@@ -110,7 +110,7 @@ public class RivalryStatsService {
 
     public RivalryStatsDTO findByUserAndRivalAndTournamentCreateIfNone(UserDTO user,UserDTO rival, TournamentDTO tournament){
 
-        RivalryStatsDTO stats = findByUserAndRivalAndTournament(user.getUserId(),rival.getUserId(),tournament.getName());
+        RivalryStatsDTO stats = findByUserAndRivalAndTournament(user.getUserId(),rival.getUserId(),tournament.getTournamentId());
 
         User u = userRepository.findOne(user.getUserId());
         User r = userRepository.findOne(rival.getUserId());
@@ -129,7 +129,7 @@ public class RivalryStatsService {
         RivalryStats stats = rivalryStatsRepository.findByUserUserIdAndRivalUserIdAndTournamentTournamentId(
                 outcome1.getUser().getUserId(),
                 outcome2.getUser().getUserId(),
-                outcome1.getGame().getTournament().getName());
+                outcome1.getGame().getTournament().getTournamentId());
 
         if(stats == null){
             stats = new RivalryStats(outcome1.getUser(),outcome2.getUser(),outcome1.getGame().getTournament());

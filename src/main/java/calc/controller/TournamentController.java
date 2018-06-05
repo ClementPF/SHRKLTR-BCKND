@@ -157,7 +157,7 @@ public class TournamentController {
             throw new APIException(User.class,userName + " or " + rivalName,HttpStatus.NOT_FOUND);
         }
 
-        return rivalryStatsService.findByUserAndRivalAndTournament(u.getUserId(),r.getUserId(),t.getName());
+        return rivalryStatsService.findByUserAndRivalAndTournament(u.getUserId(),r.getUserId(),t.getTournamentId());
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/users", method = RequestMethod.GET)

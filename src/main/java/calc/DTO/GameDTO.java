@@ -2,6 +2,7 @@ package calc.DTO;
 
 import calc.entity.Outcome;
 import calc.entity.Tournament;
+import calc.exception.APIException;
 
 import javax.persistence.*;
 import java.util.Date;

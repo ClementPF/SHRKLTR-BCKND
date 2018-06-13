@@ -2,6 +2,8 @@ package calc.entity;
 
 import javax.persistence.*;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Created by clementperez on 9/13/16.
@@ -85,6 +87,10 @@ public class Game {
 
     public List<Outcome> getOutcomes() {
         return outcomes;
+    }
+
+    public List<Outcome> getOutcomesForResult(Outcome.Result result) {
+        return outcomes.stream().filter(o -> o.getResults() == result).collect(Collectors.toList());
     }
 
     public void setOutcomes(List<Outcome> outcomes) {

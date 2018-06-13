@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import calc.entity.Tournament;
+import calc.entity.User;
 import calc.exception.APIException;
 import calc.security.Secured;
 import calc.service.*;
@@ -119,7 +120,7 @@ public class UserController {
         String title = challenger.getFirstName() + " is challenging you.";
         String body = challenge.getMessage();
 
-        return userService.pushNotificationForUser(challengee,title,body,null);
+        return userService.pushNotificationForUser(challengee.getUsername(),title,body,null);
     }
 /*
     @RequestMapping(value = "/user/{userId}/games", method = RequestMethod.GET)
@@ -139,5 +140,18 @@ public class UserController {
         m = m.stream().sorted(Comparator.comparing(GameDTO::getDate).reversed()).collect(Collectors.toList());
 
         return m;
+    }
+
+
+    @RequestMapping(value = "/push/all", method = RequestMethod.POST)
+    public ResponseEntity pushAll(@RequestParam(value="title") String title, @RequestParam(value="message") String message ) {
+
+        if(userService.whoIsLoggedIn().getUserId() == 1){
+            throw new APIException(UserController.class,"",HttpStatus.UNAUTHORIZED);
+        }
+
+        userService.findAll().forEach(user -> userService.pushNotificationForUser(user.getUsername(),title,message,null));
+
+        return new ResponseEntity(HttpStatus.OK);
     }
 }

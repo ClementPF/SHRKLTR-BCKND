@@ -2,10 +2,7 @@ package calc.service;
 
 import calc.DTO.*;
 import calc.ELO.EloRating;
-import calc.entity.Game;
-import calc.entity.Outcome;
-import calc.entity.Tournament;
-import calc.entity.User;
+import calc.entity.*;
 import calc.exception.APIException;
 import calc.repository.GameRepository;
 import calc.repository.StatsRepository;
@@ -63,7 +60,10 @@ public class GameService {
 
         UserDTO w = userService.findByUserName(outcomes.get(winnerOutcomeIndex).getUserName());
         UserDTO l = userService.findByUserName(outcomes.get(looserOutcomeIndex).getUserName());
-        UserDTO u = userService.whoIsLoggedIn();
+
+        if(w == null || l == null){
+            throw new APIException(this.getClass(), "User " + outcomes.get(0).getUserName() + " OR " + outcomes.get(1).getUserName()  + " doesn't exist ", HttpStatus.NOT_FOUND);
+        }
 
         StatsDTO winnerStats = statsService.findByUserNameAndTournament(w.getUsername(),tournament.getName());
         StatsDTO loserStats = statsService.findByUserNameAndTournament(l.getUsername(),tournament.getName());
@@ -137,27 +137,7 @@ public class GameService {
 
     public GameDTO save(GameDTO game){
 
-        int winnerOutcomeIndex = game.getOutcomes().get(0).isWin() ? 0 : 1;
-        int looserOutcomeIndex = game.getOutcomes().get(1).isWin() ? 0 : 1;
-        Boolean isTie = game.getOutcomes().get(0).isTie();
-
-        UserDTO w = userService.findByUserName(game.getOutcomes().get(winnerOutcomeIndex).getUserName());
-        UserDTO l = userService.findByUserName(game.getOutcomes().get(looserOutcomeIndex).getUserName());
-        UserDTO u = userService.whoIsLoggedIn();
-
-        TournamentDTO tournament = tournamentService.findByName(game.getTournament().getName());
-
-        if(game.getOutcomes().size() != 2){
-            throw new APIException(this.getClass(), game.getTournament().getName() + " Only two outcomes accepted " + game.getOutcomes().size() + " were provided", HttpStatus.BAD_REQUEST);
-        }else if(winnerOutcomeIndex == looserOutcomeIndex){
-            throw new APIException(this.getClass(), tournament.getName() + " Outcomes invalid - incompatible results", HttpStatus.BAD_REQUEST);
-        }else if(l.getUserId() != u.getUserId()){
-            throw new APIException(this.getClass(), tournament.getName() + " Only the looser can enter a game", HttpStatus.UNAUTHORIZED);
-        }else if(w.getUserId() == l.getUserId()){
-            throw new APIException(this.getClass(), tournament.getName() + " Same username for both outcomes", HttpStatus.BAD_REQUEST);
-        }else if(isTie){
-            throw new APIException(this.getClass(), tournament.getName() + " Tie is not supported", HttpStatus.BAD_REQUEST);
-        }
+        this.validateGame(game);
 
         Game g = null;
 
@@ -178,9 +158,71 @@ public class GameService {
 
         GameDTO gameDTO =  convertToDto(gameRepository.save(g));
 
-        userService.pushNotificationForUser(w,"Well done Champ !","You just got " + value  + " points from " + l.getUsername(), gameDTO);
+        try{
+            List<Outcome> winnerOutcomes = g.getOutcomes().stream().filter(o -> o.getScoreValue() > 0).collect(Collectors.toList());
+            List<Outcome> looserOutcomes = g.getOutcomes().stream().filter(o -> o.getScoreValue() < 0).collect(Collectors.toList());
+
+            String looserUserNames = "";
+            for (Outcome outcome : looserOutcomes) {
+                looserUserNames = outcome.getUser().getUserName() + " " + looserUserNames;
+            }
+
+            for (Outcome outcome : winnerOutcomes) {
+                userService.pushNotificationForUser(outcome.getUser().getUserName(),"Well done Champ !","You just got " + value  + " points from " + looserUserNames, gameDTO);
+            }
+
+            }catch (APIException e){
+            // do nothing and return 200
+        }
 
         return gameDTO;
+    }
+
+    protected void validateGame(GameDTO game) throws APIException{
+        if(game.getOutcomes().size() != 2){
+            throw new APIException(this.getClass(), game.getTournament().getName() + " Only two outcomes accepted " + game.getOutcomes().size() + " were provided", HttpStatus.BAD_REQUEST);
+        }
+
+        TournamentDTO tournament = tournamentService.findByName(game.getTournament().getName());
+        OutcomeDTO outcome_0 = game.getOutcomes().get(0);
+        OutcomeDTO outcome_1 = game.getOutcomes().get(1);
+        UserDTO user_0 = userService.findByUserName(game.getOutcomes().get(0).getUserName());
+        UserDTO user_1 = userService.findByUserName(game.getOutcomes().get(1).getUserName());
+
+        if(tournament == null){
+            throw new APIException(this.getClass(), "Tournament " + game.getTournament().getName() + " doesn't exist ", HttpStatus.NOT_FOUND);
+        }if(user_0 == null || user_1 == null){
+            throw new APIException(this.getClass(), "User " + outcome_0.getUserName() + " OR " + outcome_1.getUserName()  + " doesn't exist ", HttpStatus.NOT_FOUND);
+        }
+        if(outcome_0.isWin() && outcome_1.isWin()
+                || outcome_0.isLose() && outcome_1.isLose()
+                || outcome_0.isLose() && !outcome_1.isWin()
+                || outcome_0.isWin() && !outcome_1.isLose()){ //TODO double check this logic
+            throw new APIException(this.getClass(), tournament.getName() + " Outcomes invalid - incompatible results", HttpStatus.BAD_REQUEST);
+        }else if (user_0.getUserId() == user_1.getUserId()){
+            throw new APIException(this.getClass(), tournament.getName() + " Same username for both outcomes", HttpStatus.BAD_REQUEST);
+        }
+
+        UserDTO w = outcome_0.isWin() ? user_0 : user_1;
+        UserDTO l = outcome_1.isWin() ? user_0 : user_1;
+
+        // for ties, the looser is the one with the highest score
+        if(game.getOutcomes().get(0).isTie() && game.getOutcomes().get(1).isTie()){
+            StatsDTO stats_0 = statsService.findByUserAndTournament(user_0.getUserId(), tournament.getTournamentId());
+            StatsDTO stats_1 = statsService.findByUserAndTournament(user_1.getUserId(), tournament.getTournamentId());
+
+            double score_0 = stats_0 == null ? 1000 : stats_0.getScore();
+            double score_1 = stats_1 == null ? 1000 : stats_1.getScore();
+
+            w = score_0 <= score_1 ? user_0 : user_1;
+            l = score_0 <= score_1 ? user_1 : user_0;
+        }
+
+        UserDTO u = userService.whoIsLoggedIn();
+
+        if(l.getUserId() != u.getUserId()){
+            throw new APIException(this.getClass(), tournament.getName() + " Only the one loosing points can enter a game", HttpStatus.UNAUTHORIZED);
+        }
     }
 
     protected Game convertToEntity(GameDTO gameDto) throws ParseException {

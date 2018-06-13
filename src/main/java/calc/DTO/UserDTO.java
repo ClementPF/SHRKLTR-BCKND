@@ -17,6 +17,8 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private String username;
+    private String pictureUrl;
+    private String locale;
     private List<StatsDTO> stats;
 
     public UserDTO() {
@@ -66,5 +68,21 @@ public class UserDTO {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 }

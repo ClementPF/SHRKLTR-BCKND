@@ -14,7 +14,6 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.Payload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,6 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.text.Normalizer;
-import java.util.Collections;
 import java.util.Date;
 
 /**
@@ -98,6 +96,8 @@ public class AuthService {
             User user = userRepository.findByExternalId(userInfo.getId());
             if (user == null) {
                 createUserFromExternalProvider(userInfo);
+            }else{
+                updateFromExternalProvider(user, userInfo);
             }
 
             return createTokenPair(userInfo);
@@ -139,13 +139,12 @@ public class AuthService {
             userInfo.setEmail(payload.getEmail());
             userInfo.setName(name);
             userInfo.setProvider(tokenRequest.getTokenProvider());
+            userInfo.setPictureUrl((String) payload.get("picture"));
+            userInfo.setLocale((String) payload.get("locale"));
 
             boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
-            String pictureUrl = (String) payload.get("picture");
-            String locale = (String) payload.get("locale");
             String familyName = (String) payload.get("family_name");
             String givenName = (String) payload.get("given_name");
-
 
             System.out.println("User ID: " + userId);
             System.out.println("User name: " + name);
@@ -155,6 +154,8 @@ public class AuthService {
             User user = userRepository.findByExternalId(userInfo.getId());
             if (user == null) {
                 createUserFromExternalProvider(userInfo);
+            }else{
+                updateFromExternalProvider(user,userInfo);
             }
 
             return new TokenDTO(createToken(userInfo),createTokenRefresh(userInfo));
@@ -270,17 +271,37 @@ public class AuthService {
         User user = new User(username);
         int indexOfLastSpace = userInfo.getName().lastIndexOf(" ");
         if (indexOfLastSpace > 0) {
-            user.setEmail(userInfo.getEmail());
             user.setLast(userInfo.getName().substring(indexOfLastSpace + 1));
             user.setFirst(userInfo.getName().substring(0, indexOfLastSpace));
-            user.setExternalIdProvider(userInfo.getProvider());
-            user.setExternalId(userInfo.getId());
         } else {
             user.setFirst(userInfo.getName());
-            user.setEmail(userInfo.getEmail());
         }
+
+        user.setEmail(userInfo.getEmail());
+        user.setExternalIdProvider(userInfo.getProvider());
+        user.setExternalId(userInfo.getId());
+        user.setProfilePictureUrl(userInfo.getPictureUrl());
+        user.setLocale(userInfo.getLocale());
 
         return userRepository.save(user);
     }
 
+    private User updateFromExternalProvider(User user, ProviderUserInfoDTO userInfo) {
+
+        int indexOfLastSpace = userInfo.getName().lastIndexOf(" ");
+        if (indexOfLastSpace > 0) {
+            user.setLast(userInfo.getName().substring(indexOfLastSpace + 1));
+            user.setFirst(userInfo.getName().substring(0, indexOfLastSpace));
+        } else {
+            user.setFirst(userInfo.getName());
+        }
+
+        user.setEmail(userInfo.getEmail());
+        user.setExternalIdProvider(userInfo.getProvider());
+        user.setExternalId(userInfo.getId());
+        user.setProfilePictureUrl(userInfo.getPictureUrl());
+        user.setLocale(userInfo.getLocale());
+
+        return userRepository.save(user);
+    }
 }

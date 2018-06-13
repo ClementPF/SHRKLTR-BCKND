@@ -166,6 +166,8 @@ public class UserService{
         userDTO.setLastName(user.getLast());
         userDTO.setFirstName(user.getFirst());
         userDTO.setUsername(user.getUserName());
+        userDTO.setPictureUrl(user.getProfilePictureUrl());
+        userDTO.setLocale(user.getLocale());
 
         if (user.getUserId() != null)
             userDTO.setStats(new ArrayList<StatsDTO>(Arrays.asList(statsService.convertToDto(user.getStats(tournament)))));
@@ -182,6 +184,8 @@ public class UserService{
         userDTO.setLastName(user.getLast());
         userDTO.setFirstName(user.getFirst());
         userDTO.setUsername(user.getUserName());
+        userDTO.setPictureUrl(user.getProfilePictureUrl());
+        userDTO.setLocale(user.getLocale());
 
         return userDTO;
     }
@@ -201,12 +205,11 @@ public class UserService{
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    public ResponseEntity pushNotificationForUser(UserDTO user, String title ,String message, Object obj){
+    public ResponseEntity pushNotificationForUser(String username, String title ,String message, Object obj){
 
-        User u = userRepository.findByUserId(user.getUserId());
-
+        User u = userRepository.findByUserName(username);
         if(u == null || u.getPushId().equals(null)){
-            throw new APIException(UserService.class, user.getUsername() + " doesn't accept challenges or doesn't have push notifications turned on.", HttpStatus.BAD_REQUEST);
+            throw new APIException(UserService.class, u.getUserName() + " doesn't accept challenges or doesn't have push notifications turned on.", HttpStatus.BAD_REQUEST);
         }
 
         HttpHeaders headers = new HttpHeaders();

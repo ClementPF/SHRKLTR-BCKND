@@ -21,9 +21,11 @@ public class User {
     private String externalIdProvider;
 //    @Column(nullable = false)
     private String password;
+    private String profilePictureUrl;
 //    @Column(unique = true, nullable = false)
     private String email;
     private String pushId;
+    private String locale;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Stats> stats;
@@ -133,5 +135,45 @@ public class User {
     public String getPushId() { return pushId; }
 
     public void setPushId(String pushId) { this.pushId = pushId; }
+
+    public List<RivalryStats> getRivalry_stats() {
+        return rivalry_stats;
+    }
+
+    public void setRivalry_stats(List<RivalryStats> rivalry_stats) {
+        this.rivalry_stats = rivalry_stats;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
 }
 

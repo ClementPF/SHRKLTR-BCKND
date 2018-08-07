@@ -65,7 +65,7 @@ public class UserController {
         return userService.save(user);
     }
 
-    @RequestMapping(value = "/user/{userName}", method = RequestMethod.PUT)
+    //@RequestMapping(value = "/user/{userName}", method = RequestMethod.PUT)
     public UserDTO updateUser(@PathVariable(value="userName") String username, @RequestBody UserDTO user) {
         UserDTO p = userService.findByUserName(username);
         p.setFirstName(user.getFirstName());

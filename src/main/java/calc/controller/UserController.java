@@ -2,10 +2,7 @@ package calc.controller;
 
 import calc.DTO.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import calc.entity.Tournament;
@@ -144,13 +141,13 @@ public class UserController {
 
 
     @RequestMapping(value = "/push/all", method = RequestMethod.POST)
-    public ResponseEntity pushAll(@RequestParam(value="title") String title, @RequestParam(value="message") String message ) {
+    public ResponseEntity pushAll(@RequestBody Map message ) {
 
-        if(userService.whoIsLoggedIn().getUserId() == 1){
+        if(userService.whoIsLoggedIn().getUserId() != 1){
             throw new APIException(UserController.class,"",HttpStatus.UNAUTHORIZED);
         }
 
-        userService.findAll().forEach(user -> userService.pushNotificationForUser(user.getUsername(),title,message,null));
+        userService.pushAll((String) message.get("title"), (String) message.get("message"));
 
         return new ResponseEntity(HttpStatus.OK);
     }

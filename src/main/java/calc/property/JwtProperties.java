@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class JwtProperties {
     private String secret;
     private String iss;
-    private int tokenExpirationMinutes;
-    private int tokenRefreshExpirationMinutes;
+    private Long tokenExpirationMinutes;
+    private Long tokenRefreshExpirationMinutes;
 
     public String getSecret() {
         return secret;
@@ -31,19 +31,19 @@ public class JwtProperties {
         this.iss = iss;
     }
 
-    public int getTokenExpirationMinutes() {
+    public Long getTokenExpirationMinutes() {
         return tokenExpirationMinutes;
     }
 
-    public void setTokenExpirationMinutes(int tokenExpirationMinutes) {
+    public void setTokenExpirationMinutes(Long tokenExpirationMinutes) {
         this.tokenExpirationMinutes = tokenExpirationMinutes;
     }
 
-    public int getTokenRefreshExpirationMinutes() {
+    public Long getTokenRefreshExpirationMinutes() {
         return tokenRefreshExpirationMinutes;
     }
 
-    public void setTokenRefreshExpirationMinutes(int tokenRefreshExpirationMinutes) {
+    public void setTokenRefreshExpirationMinutes(Long tokenRefreshExpirationMinutes) {
         this.tokenRefreshExpirationMinutes = tokenRefreshExpirationMinutes;
     }
 }

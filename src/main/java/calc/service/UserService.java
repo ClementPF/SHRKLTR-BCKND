@@ -1,6 +1,7 @@
 package calc.service;
 
 import calc.DTO.*;
+import calc.controller.UserController;
 import calc.entity.Stats;
 import calc.entity.Tournament;
 import calc.entity.User;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Created by clementperez on 9/20/16.
@@ -261,5 +263,19 @@ public class UserService{
         }
 
         return response;
+    }
+
+    public void pushAll(String title, String message) {
+
+        if(whoIsLoggedIn().getUserId() != 1){
+            throw new APIException(UserService.class,"",HttpStatus.UNAUTHORIZED);
+        }
+
+
+        StreamSupport.stream(userRepository.findAll().spliterator(), false)
+                .filter(u -> u.getPushId() != null)
+                .forEach(user ->
+                        pushNotificationForUser(user.getUserName(), title, message, null)
+        );
     }
 }

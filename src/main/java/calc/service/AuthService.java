@@ -58,8 +58,8 @@ public class AuthService {
     @Autowired
     private ObjectMapper objectMapper;
     
-    private long tokenRefreshExpirationMillis; //1y
-    private long tokenExpirationMillis;
+    private Long tokenRefreshExpirationMillis; //1y
+    private Long tokenExpirationMillis;
     private RestTemplate restTemplate;
 
     @PostConstruct
@@ -191,8 +191,8 @@ public class AuthService {
             }
         } catch (JWTVerificationException ve) {
             logger.warn("JWToken refresh verification failed: {}", ve.getMessage());
+            throw new APIException(HttpStatus.UNAUTHORIZED, ve.getMessage());
         }
-        return null;
     }
 
     private TokenDTO createTokenPair(ProviderUserInfoDTO userInfo) {

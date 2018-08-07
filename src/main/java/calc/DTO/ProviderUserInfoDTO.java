@@ -57,7 +57,7 @@ public class ProviderUserInfoDTO {
     }
 
     public String getPictureUrl() {
-        return (String) ((Map) picture.get("data")).get("url");
+        return pictureUrl;
     }
 
     public void setPictureUrl(String picture) {

@@ -34,6 +34,9 @@ public class RivalryStats {
     @ManyToOne
     @JoinColumn(name="rivalId", nullable = false)
     private User rival;
+    @OneToOne
+    @JoinColumn(name="statsId", nullable = false)
+    private Stats stats;
 
     private double score;
     private double bestScore;
@@ -69,8 +72,15 @@ public class RivalryStats {
 
     public void setScore(double score) {
         this.score = score;
-        setBestScore(Math.max(this.score,this.bestScore));
-        setWorstScore(Math.min(this.score, this.worstScore));
+        if(this.score > this.bestScore)
+            setBestScore(this.score);
+        if(this.score < this.worstScore)
+            setWorstScore(this.score);
+
+        if(this.score > this.stats.getBestRivalry().getScore())
+            stats.setBestRivalry(this);
+        if(this.score < this.stats.getWorstRivalry().getScore())
+            stats.setWorstRivalry(this);
     }
 
     public int getGameCount() {
@@ -220,6 +230,14 @@ public class RivalryStats {
 
     public void setRival(User user) {
         this.rival = user;
+    }
+
+    public Stats getStats() {
+        return stats;
+    }
+
+    public void setStats(Stats stats) {
+        this.stats = stats;
     }
 }
 

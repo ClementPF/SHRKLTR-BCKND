@@ -36,6 +36,13 @@ public class Stats {
     private int longuestLoseStreak;
     private int longuestTieStreak;
 
+    @OneToOne
+    @JoinColumn(name="bestRivalryId", nullable = false)
+    private RivalryStats bestRivalry;
+    @OneToOne
+    @JoinColumn(name="worstRivalryId", nullable = false)
+    private RivalryStats worstRivalry;
+
     public Stats() {
         super();
     }
@@ -197,5 +204,21 @@ public class Stats {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public RivalryStats getBestRivalry() {
+        return bestRivalry;
+    }
+
+    public void setBestRivalry(RivalryStats bestRivalry) {
+        this.bestRivalry = bestRivalry;
+    }
+
+    public RivalryStats getWorstRivalry() {
+        return worstRivalry;
+    }
+
+    public void setWorstRivalry(RivalryStats worstRivalry) {
+        this.worstRivalry = worstRivalry;
     }
 }

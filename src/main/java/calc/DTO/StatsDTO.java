@@ -13,6 +13,8 @@ public class StatsDTO extends BaseStatsDTO{
     private Long statsId;
     private UserDTO user;
     private TournamentDTO tournament;
+    private RivalryStatsDTO bestRivalry;
+    private RivalryStatsDTO worstRivalry;
 
     public StatsDTO() {
         super();
@@ -157,4 +159,20 @@ public class StatsDTO extends BaseStatsDTO{
     public int getLonguestLoseStreak() { return longuestLoseStreak;}
 
     public void setLonguestLoseStreak(int longuestLoseStreak) { this.longuestLoseStreak = longuestLoseStreak; }
+
+    public RivalryStatsDTO getBestRivalry() {
+        return bestRivalry;
+    }
+
+    public void setBestRivalry(RivalryStatsDTO bestRivalry) {
+        this.bestRivalry = bestRivalry;
+    }
+
+    public RivalryStatsDTO getWorstRivalry() {
+        return worstRivalry;
+    }
+
+    public void setWorstRivalry(RivalryStatsDTO worstRivalry) {
+        this.worstRivalry = worstRivalry;
+    }
 }

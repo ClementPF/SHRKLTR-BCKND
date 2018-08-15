@@ -56,11 +56,12 @@ public class RivalryStats {
         super();
     }
 
-    public RivalryStats(User owner, User rival, Tournament tournament) {
+    public RivalryStats(User owner, User rival, Tournament tournament, Stats userStats) {
         super();
         this.tournament = tournament;
         this.user = owner;
         this.rival = rival;
+        this.stats = userStats;
         setScore(0);
         setBestScore(0);
         setWorstScore(0);
@@ -77,10 +78,16 @@ public class RivalryStats {
         if(this.score < this.worstScore)
             setWorstScore(this.score);
 
-        if(this.score > this.stats.getBestRivalry().getScore())
-            stats.setBestRivalry(this);
-        if(this.score < this.stats.getWorstRivalry().getScore())
-            stats.setWorstRivalry(this);
+        RivalryStats brs = this.stats.getBestRivalry();
+        RivalryStats wrs = this.stats.getWorstRivalry();
+
+        if(brs == null // can be null if no games were won
+                || ( this.score > 0 && this.score > brs.getScore())){
+            this.stats.setBestRivalry(this);
+        }if(wrs == null // can be null if no games were lost
+                || (this.score < 0 && this.score < wrs.getScore())){
+            this.stats.setWorstRivalry(this);
+        }
     }
 
     public int getGameCount() {

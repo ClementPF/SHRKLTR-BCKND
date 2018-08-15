@@ -33,6 +33,8 @@ public class StatsService {
     @Autowired
     private UserService userService;
     @Autowired
+    private RivalryStatsService rivalryStatsService;
+    @Autowired
     private ModelMapper modelMapper;
 
     public List<StatsDTO> findByTournament(TournamentDTO tournament){
@@ -160,6 +162,9 @@ public class StatsService {
         statsDTO.setWorstScore(stats.getWorstScore());
         statsDTO.setUser(userService.convertToDto(stats.getUser()));
         statsDTO.setTournament(tournamentService.convertToDto(stats.getTournament()));
+        statsDTO.setTournament(tournamentService.convertToDto(stats.getTournament()));
+        statsDTO.setBestRivalry(rivalryStatsService.convertToDto(stats.getBestRivalry()));
+        statsDTO.setWorstRivalry(rivalryStatsService.convertToDto(stats.getWorstRivalry()));
 
         return statsDTO;
     }

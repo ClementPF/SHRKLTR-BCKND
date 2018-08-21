@@ -1,5 +1,8 @@
 package calc.entity;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import javax.persistence.*;
 
 /**
@@ -37,10 +40,12 @@ public class Stats {
     private int longuestTieStreak;
 
     @OneToOne
-    @JoinColumn(name="bestRivalryId", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JoinColumn(name="bestRivalryId", nullable = true)
     private RivalryStats bestRivalry;
     @OneToOne
-    @JoinColumn(name="worstRivalryId", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JoinColumn(name="worstRivalryId", nullable = true)
     private RivalryStats worstRivalry;
 
     public Stats() {

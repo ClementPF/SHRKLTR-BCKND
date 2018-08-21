@@ -171,9 +171,6 @@ public class UserService{
         userDTO.setPictureUrl(user.getProfilePictureUrl());
         userDTO.setLocale(user.getLocale());
 
-        if (user.getUserId() != null)
-            userDTO.setStats(new ArrayList<StatsDTO>(Arrays.asList(statsService.convertToDto(user.getStats(tournament)))));
-
         return userDTO;
     }
 

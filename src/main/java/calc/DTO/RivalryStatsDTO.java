@@ -9,7 +9,7 @@ public class RivalryStatsDTO extends BaseStatsDTO{
     private Long rivalryStatsId;
     private UserDTO user;
     private UserDTO rival;
-    private StatsDTO stats;
+    //private StatsDTO stats;
     private TournamentDTO tournament;
     private double score;
     private int position;
@@ -162,12 +162,12 @@ public class RivalryStatsDTO extends BaseStatsDTO{
 
     public void setTournament(TournamentDTO tournament) { this.tournament = tournament;
     }
-
+/* prevents infinite nesting
     public StatsDTO getStats() {
         return stats;
     }
 
     public void setStats(StatsDTO stats) {
         this.stats = stats;
-    }
+    }*/
 }

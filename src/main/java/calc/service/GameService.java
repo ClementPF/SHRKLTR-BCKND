@@ -52,17 +52,17 @@ public class GameService {
 
     public GameDTO addGame(TournamentDTO tournament, List<OutcomeDTO> outcomes) {
 
-        System.out.print("outcome username : " +outcomes.get(0).getUserName() + " " + outcomes.get(1).getUserName() + "\n");
+        System.out.print("outcome username : " +outcomes.get(0).getUser().getUsername() + " " + outcomes.get(1).getUser().getUsername() + "\n");
 
         int winnerOutcomeIndex = outcomes.get(0).isWin() ? 0 : 1;
         int looserOutcomeIndex = outcomes.get(1).isWin() ? 0 : 1;
         Boolean isTie = outcomes.get(0).isTie();
 
-        UserDTO w = userService.findByUserName(outcomes.get(winnerOutcomeIndex).getUserName());
-        UserDTO l = userService.findByUserName(outcomes.get(looserOutcomeIndex).getUserName());
+        UserDTO w = userService.findByUserName(outcomes.get(winnerOutcomeIndex).getUser().getUsername());
+        UserDTO l = userService.findByUserName(outcomes.get(looserOutcomeIndex).getUser().getUsername());
 
         if(w == null || l == null){
-            throw new APIException(this.getClass(), "User " + outcomes.get(0).getUserName() + " OR " + outcomes.get(1).getUserName()  + " doesn't exist ", HttpStatus.NOT_FOUND);
+            throw new APIException(this.getClass(), "User " + outcomes.get(0).getUser().getUsername() + " OR " + outcomes.get(1).getUser().getUsername()  + " doesn't exist ", HttpStatus.NOT_FOUND);
         }
 
         StatsDTO winnerStats = statsService.findByUserNameAndTournament(w.getUsername(),tournament.getName());
@@ -186,13 +186,13 @@ public class GameService {
         TournamentDTO tournament = tournamentService.findByName(game.getTournament().getName());
         OutcomeDTO outcome_0 = game.getOutcomes().get(0);
         OutcomeDTO outcome_1 = game.getOutcomes().get(1);
-        UserDTO user_0 = userService.findByUserName(game.getOutcomes().get(0).getUserName());
-        UserDTO user_1 = userService.findByUserName(game.getOutcomes().get(1).getUserName());
+        UserDTO user_0 = userService.findByUserName(game.getOutcomes().get(0).getUser().getUsername());
+        UserDTO user_1 = userService.findByUserName(game.getOutcomes().get(1).getUser().getUsername());
 
         if(tournament == null){
             throw new APIException(this.getClass(), "Tournament " + game.getTournament().getName() + " doesn't exist ", HttpStatus.NOT_FOUND);
         }if(user_0 == null || user_1 == null){
-            throw new APIException(this.getClass(), "User " + outcome_0.getUserName() + " OR " + outcome_1.getUserName()  + " doesn't exist ", HttpStatus.NOT_FOUND);
+            throw new APIException(this.getClass(), "User " + outcome_0.getUser().getUsername() + " OR " + outcome_1.getUser().getUsername()  + " doesn't exist ", HttpStatus.NOT_FOUND);
         }
         if(outcome_0.isWin() && outcome_1.isWin()
                 || outcome_0.isLose() && outcome_1.isLose()

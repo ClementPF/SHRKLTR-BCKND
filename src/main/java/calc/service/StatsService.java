@@ -163,8 +163,10 @@ public class StatsService {
         statsDTO.setUser(userService.convertToDto(stats.getUser()));
         statsDTO.setTournament(tournamentService.convertToDto(stats.getTournament()));
         statsDTO.setTournament(tournamentService.convertToDto(stats.getTournament()));
-        statsDTO.setBestRivalry(rivalryStatsService.convertToDto(stats.getBestRivalry()));
-        statsDTO.setWorstRivalry(rivalryStatsService.convertToDto(stats.getWorstRivalry()));
+        if(stats.getBestRivalry() != null)
+            statsDTO.setBestRivalry(rivalryStatsService.convertToDto(stats.getBestRivalry()));
+        if(stats.getWorstRivalry() != null)
+            statsDTO.setWorstRivalry(rivalryStatsService.convertToDto(stats.getWorstRivalry()));
 
         return statsDTO;
     }

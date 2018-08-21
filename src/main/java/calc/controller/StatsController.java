@@ -18,8 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 @RestController
@@ -30,6 +29,10 @@ public class StatsController {
     private GameRepository gameRepository;
     @Autowired
     private StatsService statsService;
+    @Autowired
+    private StatsRepository statsRepository;
+    @Autowired
+    private RivalryStatsRepository rivalryStatsRepository;
     @Autowired
     private RivalryStatsService rivalryStatsService;
 
@@ -42,4 +45,43 @@ public class StatsController {
     public RivalryStatsDTO rivalryStats(@RequestParam(value="userName") String username,@RequestParam(value="rivalName") String rivalname,@RequestParam(value="tournamentName") String tournamentName) {
         return rivalryStatsService.findByUserNameAndRivalNameAndTournament(username, rivalname, tournamentName);
     }
+
+/*
+    @RequestMapping(value ="/upgraderivalry", method = RequestMethod.GET)
+    public void rivalryStatsUpdate(@RequestParam(value="userName") String username,@RequestParam(value="rivalName") String rivalname,@RequestParam(value="tournamentName") String tournamentName) {
+
+        Iterator<Stats> it = statsRepository.findAll().iterator();
+
+        for (Stats s : statsRepository.findAll()) {
+            List<RivalryStats> rss = rivalryStatsRepository.findByUserUserIdAndTournamentTournamentId(s.getUser().getUserId(),s.getTournament().getTournamentId());
+            if(rss.isEmpty()) continue;
+            RivalryStats bestRs = rss.stream()
+                    .max(Comparator.comparing(RivalryStats::getScore))
+                    .orElseThrow(NoSuchElementException::new);
+
+            RivalryStats worstRs = rss.stream()
+                    .min(Comparator.comparing(RivalryStats::getScore))
+                    .orElseThrow(NoSuchElementException::new);
+
+            System.out.print(bestRs.getUser().getUserName() + " " + bestRs.getScore() + " " + bestRs.getRival().getUserName());
+            System.out.print(worstRs.getUser().getUserName() + " " + worstRs.getScore() + " " + worstRs.getRival().getUserName());
+
+            if(bestRs.getRivalryStatsId() == 120){
+                System.out.print(bestRs.getTournament().getName() + " " +bestRs.getUser().getUserName());
+            }if(worstRs.getRivalryStatsId() == 120){
+                System.out.print(worstRs.getTournament().getName() + " " +worstRs.getUser().getUserName());
+            }
+            if(bestRs.getScore() > 0)
+                s.setBestRivalry(bestRs);
+            else{
+                s.setBestRivalry(null);
+            }
+            if(worstRs.getScore() < 0)
+                s.setWorstRivalry(worstRs);
+            else{
+                s.setWorstRivalry(null);
+            }
+            statsRepository.save(s);
+        }
+    }*/
 }

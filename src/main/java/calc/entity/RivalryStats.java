@@ -77,17 +77,6 @@ public class RivalryStats {
             setBestScore(this.score);
         if(this.score < this.worstScore)
             setWorstScore(this.score);
-
-        RivalryStats brs = this.stats.getBestRivalry();
-        RivalryStats wrs = this.stats.getWorstRivalry();
-
-        if(brs == null // can be null if no games were won
-                || ( this.score > 0 && this.score > brs.getScore())){
-            this.stats.setBestRivalry(this);
-        }if(wrs == null // can be null if no games were lost
-                || (this.score < 0 && this.score < wrs.getScore())){
-            this.stats.setWorstRivalry(this);
-        }
     }
 
     public int getGameCount() {

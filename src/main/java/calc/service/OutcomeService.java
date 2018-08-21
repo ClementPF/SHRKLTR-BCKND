@@ -25,6 +25,8 @@ public class OutcomeService {
     @Autowired
     private GameService gameService;
     @Autowired
+    private UserService userService;
+    @Autowired
     private GameRepository gameRepository;
     @Autowired
     private UserRepository userRepository;
@@ -52,7 +54,7 @@ public class OutcomeService {
                 outcomeDto.getScoreValue(),
                 outcomeDto.getResult(),
                 outcomeDto.getGameId() == null ? null : gameRepository.findOne(outcomeDto.getGameId()), //might no be created yet
-                userRepository.findByUserName(outcomeDto.getUserName()));
+                userService.convertToEntity(outcomeDto.getUser()));
 
         return outcome;
     }
@@ -67,7 +69,7 @@ public class OutcomeService {
         outcomeDTO.setScoreValue(outcome.getScoreValue());
         outcomeDTO.setResult(outcome.getResults());
         outcomeDTO.setGameId(outcome.getGame().getGameId());
-        outcomeDTO.setUserName(outcome.getUser().getUserName());
+        outcomeDTO.setUser(userService.convertToDto(outcome.getUser()));
 
         return outcomeDTO;
     }

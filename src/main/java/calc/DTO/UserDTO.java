@@ -19,7 +19,7 @@ public class UserDTO {
     private String username;
     private String pictureUrl;
     private String locale;
-    private List<StatsDTO> stats;
+    //private List<StatsDTO> stats;
 
     public UserDTO() {
         super();
@@ -27,16 +27,17 @@ public class UserDTO {
 
     public UserDTO(String username) {
         this.username = username;
-        this.stats = new ArrayList<StatsDTO>();
+        //this.stats = new ArrayList<StatsDTO>();
     }
 
+    /*
     public List<StatsDTO> getStats() {
         return stats;
     }
 
     public void setStats(List<StatsDTO> stats) {
         this.stats = stats;
-    }
+    }*/
 
     public Long getUserId() {
         return userId;

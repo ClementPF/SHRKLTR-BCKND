@@ -15,26 +15,26 @@ public class OutcomeDTO {
     private Long outcomeId;
     private double scoreValue;
     private Outcome.Result result;
-    private String userName;
+    private UserDTO user;
     private Long gameId;
 
     public OutcomeDTO() {
         super();
     }
 
-    public OutcomeDTO(String username, Outcome.Result result, double score) {
+    public OutcomeDTO(UserDTO user, Outcome.Result result, double score) {
         super();
-        this.userName = username;
+        this.user = user;
         this.result = result;
         this.scoreValue = score;
     }
 
-    public String getUserName() {
-        return userName;
+    public UserDTO getUser() {
+        return user;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUser(UserDTO user) {
+        this.user = user;
     }
 
     public Long getOutcomeId() {

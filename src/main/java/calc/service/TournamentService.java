@@ -152,6 +152,9 @@ public class TournamentService {
         //TODO might make more sense to be in POST /game ??
 
         TournamentDTO tournament =  tournamentService.findByName(tournamentName);
+        for(OutcomeDTO o : game.getOutcomes()){
+            o.setUser(userService.findByUserName(o.getUser().getUsername()));
+        }
         List<OutcomeDTO> outcomes = game.getOutcomes();
 
         return gameService.addGame(tournament, outcomes);

@@ -147,12 +147,19 @@ public class GameService {
             e.printStackTrace();
         }
 
+        List<RivalryStats> listRs = new ArrayList<RivalryStats>();
+
+        listRs.add(rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(0),g.getOutcomes().get(1)));
+        listRs.add(rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(1),g.getOutcomes().get(0)));
+
         for (Outcome outcome : g.getOutcomes()) {
             statsService.recalculateAfterOutcome(outcome);
         }
 
-        rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(0),g.getOutcomes().get(1));
-        rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(1),g.getOutcomes().get(0));
+        for (RivalryStats rs : listRs) {
+            statsService.recalculateBestRivalry(rs);
+            statsService.recalculateWorstRivalry(rs);
+        }
 
         int value = (int) Math.abs(g.getOutcomes().get(0).getScoreValue());
 

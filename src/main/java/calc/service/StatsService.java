@@ -4,6 +4,7 @@ import calc.DTO.StatsDTO;
 import calc.DTO.TournamentDTO;
 import calc.DTO.UserDTO;
 import calc.entity.*;
+import calc.repository.RivalryStatsRepository;
 import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +36,8 @@ public class StatsService {
     private UserService userService;
     @Autowired
     private RivalryStatsService rivalryStatsService;
+    @Autowired
+    private RivalryStatsRepository rivalryStatsRepository;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -89,7 +93,7 @@ public class StatsService {
         return stats;
     }
 
-    public void recalculateAfterOutcome(Outcome outcome){
+    public Stats recalculateAfterOutcome(Outcome outcome){
         Stats stats = statsRepository.findByUserUserIdAndTournamentTournamentId(outcome.getUser().getUserId(), outcome.getGame().getTournament().getTournamentId());
 
         if(stats == null){
@@ -112,7 +116,65 @@ public class StatsService {
             default:
                 break;
         }
-        statsRepository.save(stats);
+        return statsRepository.save(stats);
+    }
+
+    public Stats recalculateBestRivalry(RivalryStats rivalryStats){
+
+
+        Double score = rivalryStats.getScore();
+        Stats s = rivalryStats.getStats();
+        RivalryStats bestRs = s.getBestRivalry();
+        RivalryStats newBestRs = s.getBestRivalry();
+
+        if(bestRs == null ) {// can be null if no games were won
+            newBestRs = rivalryStats;
+        }else if( score > 0 && score > bestRs.getScore()){
+            newBestRs = rivalryStats;
+        }else if(bestRs.getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
+            List<RivalryStats> rss = rivalryStatsRepository.findByStatsId(s.getStatsId());
+
+            newBestRs = rss.stream()
+                    .max(Comparator.comparing(RivalryStats::getScore))
+                    .filter(rs -> rs.getScore() > 0)
+                    .orElse(null);
+        }
+
+        if(bestRs != newBestRs){
+            s.setBestRivalry(newBestRs);
+            s = statsRepository.save(s);
+        }
+
+        return s;
+    }
+
+    public Stats recalculateWorstRivalry(RivalryStats rivalryStats){
+        Double score = rivalryStats.getScore();
+        Stats s = rivalryStats.getStats();
+        RivalryStats worstRs = s.getWorstRivalry();
+        RivalryStats newWorstRs = s.getWorstRivalry();
+
+        if(worstRs == null) {
+            newWorstRs = rivalryStats;
+        }
+        else if( score < 0 && score < worstRs.getScore()){
+            newWorstRs = rivalryStats;
+        }else if(s.getWorstRivalry().getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
+            // need to find next newWorstRivalry
+            List<RivalryStats> rss = rivalryStatsRepository.findByStatsId(s.getStatsId());
+
+            newWorstRs = rss.stream()
+                    .min(Comparator.comparing(RivalryStats::getScore))
+                    .filter(rs -> rs.getScore() < 0)
+                    .orElse(null);
+        }
+
+        if(worstRs != newWorstRs){
+            s.setWorstRivalry(newWorstRs);
+            s = statsRepository.save(s);
+        }
+
+        return s;
     }
 
     public Stats convertToEntity(StatsDTO statsDto) throws ParseException {

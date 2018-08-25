@@ -9,6 +9,7 @@ import javax.persistence.*;
 @NamedQueries({
         @NamedQuery(name = "RivalryStats.findByUserId", query = "SELECT s FROM RivalryStats s WHERE s.user.userId = ?1"),
         @NamedQuery(name = "RivalryStats.findByRivalId", query = "SELECT s FROM RivalryStats s WHERE s.rival.userId = ?1"),
+        @NamedQuery(name = "RivalryStats.findByStatsId", query = "SELECT s FROM RivalryStats s WHERE s.stats.statsId = ?1"),
         @NamedQuery(name = "RivalryStats.findByUserAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.user.userId = ?1 AND s.tournament.name = ?2"),
         @NamedQuery(name = "RivalryStats.findByRivalAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.rival.userId = ?1 AND s.tournament.name = ?2"),
         @NamedQuery(name = "RivalryStats.findByUserUserIdAndTournament", query = "SELECT s FROM RivalryStats s WHERE s.user.userId = ?1 AND s.tournament.name = ?2"),

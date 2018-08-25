@@ -133,7 +133,7 @@ public class RivalryStatsService {
         return rivalryStats;
     }
 
-    public void recalculateAfterOutcome(Outcome outcome1, Outcome outcome2){
+    public RivalryStats recalculateAfterOutcome(Outcome outcome1, Outcome outcome2){
         RivalryStats rivalryStats = rivalryStatsRepository.findByUserUserIdAndRivalUserIdAndTournamentTournamentId(
                 outcome1.getUser().getUserId(),
                 outcome2.getUser().getUserId(),
@@ -141,48 +141,10 @@ public class RivalryStatsService {
 
         if(rivalryStats == null){
             rivalryStats = new RivalryStats(outcome1.getUser(),outcome2.getUser(),outcome1.getGame().getTournament(), outcome1.getUser().getStats(outcome1.getGame().getTournament()));
+            rivalryStats = rivalryStatsRepository.save(rivalryStats);
         }
 
         rivalryStats.setScore(rivalryStats.getScore() + outcome1.getScoreValue());
-
-        // recalculate worst and best rivalry
-        double score = rivalryStats.getScore();
-        Stats s = rivalryStats.getStats();
-        RivalryStats bestRs = s.getBestRivalry();
-        RivalryStats worstRs = s.getWorstRivalry();
-
-        if(bestRs == null // can be null if no games were won
-                || ( score > 0 && score > bestRs.getScore())){
-            s.setBestRivalry(rivalryStats);
-        }else if(bestRs.getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
-            // need to find next bestRivalry
-            List<RivalryStats> rss = rivalryStatsRepository.findByUserUserIdAndTournamentTournamentId(s.getUser().getUserId(),s.getTournament().getTournamentId());
-
-            RivalryStats newBestRs = rss.stream()
-                    .max(Comparator.comparing(RivalryStats::getScore))
-                    .filter(rs -> rs.getScore() > 0)
-                    .orElse(null);
-
-            s.setBestRivalry(newBestRs);
-            statsRepository.save(s);
-        }
-
-        if(worstRs == null // can be null if no games were won
-                || ( score < 0 && score < worstRs.getScore())){
-            s.setWorstRivalry(rivalryStats);
-        }else if(s.getWorstRivalry().getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
-            // need to find next newWorstRivalry
-            List<RivalryStats> rss = rivalryStatsRepository.findByUserUserIdAndTournamentTournamentId(s.getUser().getUserId(),s.getTournament().getTournamentId());
-
-            RivalryStats newWorstRs = rss.stream()
-                    .min(Comparator.comparing(RivalryStats::getScore))
-                    .filter(rs -> rs.getScore() < 0)
-                    .orElse(null);
-
-            s.setBestRivalry(newWorstRs);
-            statsRepository.save(s);
-        }
-
 
         switch (outcome1.getResults()){
             case WIN:
@@ -197,7 +159,8 @@ public class RivalryStatsService {
             default:
                 break;
         }
-        rivalryStatsRepository.save(rivalryStats);
+
+        return rivalryStatsRepository.save(rivalryStats);
     }
 
     public RivalryStats convertToEntity(RivalryStatsDTO rivalryStats) throws ParseException {

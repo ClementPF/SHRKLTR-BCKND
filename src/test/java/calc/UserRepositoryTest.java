@@ -1,50 +1,37 @@
-package calc.repository;
+package calc;
 
 import calc.DTO.UserDTO;
-import calc.config.Application;
 import calc.entity.User;
+import calc.repository.UserRepository;
 import calc.service.UserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.assertj.core.api.Assertions.*;
 /**
  * Created by clementperez on 11/05/18.
  */
 
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-/*
-@SpringBootTest(classes = {Application.class})
+
+/*@SpringBootTest
 //@PropertySource(value = {"classpath:application.properties", "${api.config.location}"}, ignoreResourceNotFound = true)
 @TestExecutionListeners(inheritListeners = false, listeners = {
         DependencyInjectionTestExecutionListener.class,
         DirtiesContextTestExecutionListener.class
 })
-@RunWith(SpringRunner.class)
+@RunWith(SpringRunner.class)*/
 public class UserRepositoryTest {
 
     @Autowired
@@ -53,36 +40,57 @@ public class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Before
+    List<User> allUsers ;
+
+    //@Before
     public void setUp() {
-        User john = new User("john");
-        john.setUserId(11L);
 
-        User bob = new User("bob");
-        User alex = new User("alex");
+        allUsers = new ArrayList<>();
 
-        List<User> allUsers = Arrays.asList(john, bob, alex);
+        allUsers.add(userRepository.save(makeRandomUser()));
+        allUsers.add(userRepository.save(makeRandomUser()));
+        allUsers.add(userRepository.save(makeRandomUser()));
+        allUsers.add(userRepository.save(makeRandomUser()));
+        allUsers.add(userRepository.save(makeRandomUser()));
+
 
         //assertThat(userRepository.findByUserName(john.getUserName())).is(john);
-        assertThat(true);
-        assertThat(false);
-        //Mockito.when(userRepository.findByUserName(john.getUserName())).thenReturn(john);
-        //Mockito.when(userRepository.findByUserName(alex.getUserName())).thenReturn(alex);
-        //Mockito.when(userRepository.findByUserName("wrong_name")).thenReturn(null);
-        //Mockito.when(userRepository.findByUserId(john.getUserId()).orElse(null)).thenReturn(john);
-        //Mockito.when(userRepository.findAll()).thenReturn(allUsers);
+/*        Mockito.when(userRepository.findByUserName(john.getUserName())).thenReturn(john);
+        Mockito.when(userRepository.findByUserName(alex.getUserName())).thenReturn(alex);
+        Mockito.when(userRepository.findByUserName("wrong_name")).thenReturn(null);
+       // Mockito.when(userRepository.findByUserId(john.getUserId()).orElse(null)).thenReturn(john);
+        Mockito.when(userRepository.findAll()).thenReturn(allUsers);
         //Mockito.when(userRepository.findByUserId(-99L).orElse(null)).thenReturn(null);
+        */
     }
 
-    @Test
+    //@Test
+    public void compareModelMapperVsDTO() {
+        String name = "alex";
+
+        User u = makeRandomUser();
+
+        UserDTO u1 = userService.convertToDto(u);
+        UserDTO u2 = userService.modelMapperDTO(u);
+
+        assertThat(u1.getUserId()).isEqualTo(u2.getUserId());
+        assertThat(u1.getUsername()).isEqualTo(u2.getUsername());
+        assertThat(u1.getFirstName()).isEqualTo(u2.getFirstName());
+        assertThat(u1.getLastName()).isEqualTo(u2.getLastName());
+        assertThat(u1.getLocale()).isEqualTo(u2.getLocale());
+        assertThat(u1.getPictureUrl()).isEqualTo(u2.getPictureUrl());
+    }
+
+    //@Test
     public void whenValidUserName_thenUserShouldBeFound() {
         String name = "alex";
+        List<UserDTO> founds = userService.findAll();
         UserDTO found = userService.findByUserName(name);
 
         assertThat(found.getUsername()).isEqualTo(name);
     }
 
-    @Test
+    //@Test
     public void whenInValidName_thenUserShouldNotBeFound() {
         UserDTO fromDb = userService.findByUserName("wrong_name");
         assertThat(fromDb).isNull();
@@ -90,7 +98,7 @@ public class UserRepositoryTest {
         verifyFindByUserNameIsCalledOnce("wrong_name");
     }
 
-    @Test
+    //@Test
     public void whenValidName_thenUserShouldExist() {
         boolean doesUserExist = userService.exists("john");
         assertThat(doesUserExist).isEqualTo(true);
@@ -98,7 +106,7 @@ public class UserRepositoryTest {
         verifyFindByUserNameIsCalledOnce("john");
     }
 
-    @Test
+    //@Test
     public void whenNonExistingName_thenUserShouldNotExist() {
         boolean doesUserExist = userService.exists("some_name");
         assertThat(doesUserExist).isEqualTo(false);
@@ -106,7 +114,7 @@ public class UserRepositoryTest {
         verifyFindByUserNameIsCalledOnce("some_name");
     }
 
-    @Test
+    //@Test
     public void whenValidId_thenUserShouldBeFound() {
         UserDTO fromDb = userService.findByUserId(11L);
         assertThat(fromDb.getUsername()).isEqualTo("john");
@@ -114,14 +122,14 @@ public class UserRepositoryTest {
         verifyFindByUserIdIsCalledOnce();
     }
 
-    @Test
+    //@Test
     public void whenInValidId_thenUserShouldNotBeFound() {
         UserDTO fromDb = userService.findByExternalId(-99L + "");
         verifyFindByUserIdIsCalledOnce();
         assertThat(fromDb).isNull();
     }
 
-    @Test
+    //@Test
     public void given3Users_whengetAll_thenReturn3Records() {
         UserDTO alex = new UserDTO("alex");
         UserDTO john = new UserDTO("john");
@@ -129,7 +137,7 @@ public class UserRepositoryTest {
 
         List<UserDTO> allUsers = userService.findAll();
         verifyFindAllUsersIsCalledOnce();
-        //assertThat(allUsers).hasSize(3).extracting(UserDTO::getUserName).contains(alex.getUsername(), john.getUsername(), bob.getUsername());
+        //assertThat(allUsers).hasSize(3).extracting(UserDTO::getUserName).contains(alex.getUserName(), john.getUserName(), bob.getUserName());
     }
 
     private void verifyFindByUserNameIsCalledOnce(String name) {
@@ -146,4 +154,22 @@ public class UserRepositoryTest {
         Mockito.verify(userRepository, VerificationModeFactory.times(1)).findAll();
         Mockito.reset(userRepository);
     }
-}*/
+
+    private User makeRandomUser(){
+
+        User u = new User();
+
+        u.setUserId(new Random().nextLong());
+        u.setUserName(UUID.randomUUID().toString());
+        u.setProfilePictureUrl(UUID.randomUUID().toString());
+        u.setLocale(UUID.randomUUID().toString());
+        u.setEmail(UUID.randomUUID().toString());
+        u.setExternalId(UUID.randomUUID().toString());
+        u.setExternalIdProvider(UUID.randomUUID().toString());
+        u.setPassword(UUID.randomUUID().toString());
+        u.setPushId(UUID.randomUUID().toString());
+        u.setLastName(UUID.randomUUID().toString());
+
+        return u;
+    }
+}

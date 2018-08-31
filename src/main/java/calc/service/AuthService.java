@@ -268,18 +268,17 @@ public class AuthService {
             System.out.print("username reached 999 for " + username);
         }
 
-        User user = new User(username);
+        User user = new User(username, userInfo.getId());
         int indexOfLastSpace = userInfo.getName().lastIndexOf(" ");
         if (indexOfLastSpace > 0) {
-            user.setLast(userInfo.getName().substring(indexOfLastSpace + 1));
-            user.setFirst(userInfo.getName().substring(0, indexOfLastSpace));
+            user.setLastName(userInfo.getName().substring(indexOfLastSpace + 1));
+            user.setFirstName(userInfo.getName().substring(0, indexOfLastSpace));
         } else {
-            user.setFirst(userInfo.getName());
+            user.setFirstName(userInfo.getName());
         }
 
         user.setEmail(userInfo.getEmail());
         user.setExternalIdProvider(userInfo.getProvider());
-        user.setExternalId(userInfo.getId());
         user.setProfilePictureUrl(userInfo.getPictureUrl());
         user.setLocale(userInfo.getLocale());
 
@@ -290,10 +289,10 @@ public class AuthService {
 
         int indexOfLastSpace = userInfo.getName().lastIndexOf(" ");
         if (indexOfLastSpace > 0) {
-            user.setLast(userInfo.getName().substring(indexOfLastSpace + 1));
-            user.setFirst(userInfo.getName().substring(0, indexOfLastSpace));
+            user.setLastName(userInfo.getName().substring(indexOfLastSpace + 1));
+            user.setFirstName(userInfo.getName().substring(0, indexOfLastSpace));
         } else {
-            user.setFirst(userInfo.getName());
+            user.setFirstName(userInfo.getName());
         }
 
         user.setEmail(userInfo.getEmail());

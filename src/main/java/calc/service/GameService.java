@@ -17,6 +17,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -147,40 +148,26 @@ public class GameService {
             e.printStackTrace();
         }
 
+        // save the game then propagate the best/worst changes
+        GameDTO gameDTO =  convertToDto(gameRepository.save(g));
+
+        // add the game results to the stats
+
         List<RivalryStats> listRs = new ArrayList<RivalryStats>();
 
-        listRs.add(rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(0),g.getOutcomes().get(1)));
-        listRs.add(rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(1),g.getOutcomes().get(0)));
+        Stats s0 = statsService.recalculateAfterOutcome(g.getOutcomes().get(0));
+        Stats s1 = statsService.recalculateAfterOutcome(g.getOutcomes().get(1));
 
-        for (Outcome outcome : g.getOutcomes()) {
-            statsService.recalculateAfterOutcome(outcome);
-        }
+        // add the game results to the rivalrystats
+        listRs.add(rivalryStatsService.recalculateAfterOutcome(s0, g.getOutcomes().get(0), g.getOutcomes().get(1)));
+        listRs.add(rivalryStatsService.recalculateAfterOutcome(s1, g.getOutcomes().get(1),g.getOutcomes().get(0)));
 
         for (RivalryStats rs : listRs) {
             statsService.recalculateBestRivalry(rs);
             statsService.recalculateWorstRivalry(rs);
         }
 
-        int value = (int) Math.abs(g.getOutcomes().get(0).getScoreValue());
-
-        GameDTO gameDTO =  convertToDto(gameRepository.save(g));
-
-        try{
-            List<Outcome> winnerOutcomes = g.getOutcomes().stream().filter(o -> o.getScoreValue() > 0).collect(Collectors.toList());
-            List<Outcome> looserOutcomes = g.getOutcomes().stream().filter(o -> o.getScoreValue() < 0).collect(Collectors.toList());
-
-            String looserUserNames = "";
-            for (Outcome outcome : looserOutcomes) {
-                looserUserNames = outcome.getUser().getUserName() + " " + looserUserNames;
-            }
-
-            for (Outcome outcome : winnerOutcomes) {
-                userService.pushNotificationForUser(outcome.getUser().getUserName(),"Well done Champ !","You just got " + value  + " points from " + looserUserNames, gameDTO);
-            }
-
-            }catch (APIException e){
-            // do nothing and return 200
-        }
+        sendPushNotificationPostGame(gameDTO);
 
         return gameDTO;
     }
@@ -229,6 +216,27 @@ public class GameService {
 
         if(l.getUserId() != u.getUserId()){
             throw new APIException(this.getClass(), tournament.getName() + " Only the one loosing points can enter a game", HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    private void sendPushNotificationPostGame(GameDTO g){
+        int value = (int) Math.abs(g.getOutcomes().get(0).getScoreValue());
+
+        try{
+            List<OutcomeDTO> winnerOutcomes = g.getOutcomes().stream().filter(o -> o.getScoreValue() > 0).collect(Collectors.toList());
+            List<OutcomeDTO> looserOutcomes = g.getOutcomes().stream().filter(o -> o.getScoreValue() < 0).collect(Collectors.toList());
+
+            String looserUserNames = "";
+            for (OutcomeDTO outcome : looserOutcomes) {
+                looserUserNames = outcome.getUser().getUsername() + " " + looserUserNames;
+            }
+
+            for (OutcomeDTO outcome : winnerOutcomes) {
+                userService.pushNotificationForUser(outcome.getUser().getUsername(),"Well done Champ !","You just got " + value  + " points from " + looserUserNames, g);
+            }
+
+        }catch (APIException e){
+            // do nothing and return 200
         }
     }
 

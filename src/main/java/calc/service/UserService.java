@@ -1,7 +1,6 @@
 package calc.service;
 
 import calc.DTO.*;
-import calc.controller.UserController;
 import calc.entity.Stats;
 import calc.entity.Tournament;
 import calc.entity.User;
@@ -11,7 +10,6 @@ import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.*;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +19,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
@@ -79,17 +74,21 @@ public class UserService{
         return convertToDto(userRepository.findOne(id));
     }
 
-    public UserDTO save(UserDTO user){
-        try {
-            return convertToDto(userRepository.save(convertToEntity(user)));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return null;
+    /*
+        This save method is not meant for creating new user from DTO.
+     */
+    public UserDTO update(UserDTO user){
+        User loggedIn = whoIsLoggedInEntity();
+
+        loggedIn.setFirstName(user.getFirstName());
+        loggedIn.setLastName(user.getLastName());
+        loggedIn.setLocale(user.getLocale());
+        loggedIn.setProfilePictureUrl(user.getPictureUrl());
+
+        return convertToDto(userRepository.save(loggedIn));
     }
 
     public UserDTO whoIsLoggedIn(){
-
         ProviderUserInfoDTO userInfo = (ProviderUserInfoDTO) request.getAttribute("user_info");
         return findByExternalId(userInfo.getId());
     }
@@ -99,11 +98,6 @@ public class UserService{
         return userRepository.findByExternalId(userInfo.getId());
     }
 
-    public List<UserDTO> findByLastName(String lastName){
-        return userRepository.findByLastName(lastName).stream()
-                .map(u -> convertToDto(u)).collect(Collectors.toList());
-    }
-    
     public UserDTO findByUserName(String username){
         return convertToDto(userRepository.findByUserName(username));
     }
@@ -145,9 +139,8 @@ public class UserService{
 
         User user = new User(userDto.getUsername());
         user.setUserId(userDto.getUserId());
-        user.setFirst(userDto.getFirstName());
-        user.setLast(userDto.getLastName());
-        user.setFirst(userDto.getFirstName());
+        user.setFirstName(userDto.getFirstName());
+        user.setLastName(userDto.getLastName());
 
         if (userDto.getUserId() != null) {
             User u = userRepository.findOne(userDto.getUserId());
@@ -156,17 +149,17 @@ public class UserService{
             user.setStats(statsRepository.findByUserId(userDto.getUserId()));
             user.setOutcomes(outcomeRepository.findByUserId(userDto.getUserId()));
         }
+
         return user;
     }
 
     protected UserDTO convertToDto(User user, Tournament tournament) {
-        //UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+       /* UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        */
         UserDTO userDTO = new UserDTO();
-
         userDTO.setUserId(user.getUserId());
-        userDTO.setFirstName(user.getFirst());
-        userDTO.setLastName(user.getLast());
-        userDTO.setFirstName(user.getFirst());
+        userDTO.setFirstName(user.getFirstName());
+        userDTO.setLastName(user.getLastName());
         userDTO.setUsername(user.getUserName());
         userDTO.setPictureUrl(user.getProfilePictureUrl());
         userDTO.setLocale(user.getLocale());
@@ -174,18 +167,23 @@ public class UserService{
         return userDTO;
     }
 
-    protected UserDTO convertToDto(User user) {
-    //UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-        UserDTO userDTO = new UserDTO();
+    public UserDTO convertToDto(User user) {
+      /*  UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+*/
 
+        UserDTO userDTO = new UserDTO();
         userDTO.setUserId(user.getUserId());
-        userDTO.setFirstName(user.getFirst());
-        userDTO.setLastName(user.getLast());
-        userDTO.setFirstName(user.getFirst());
+        userDTO.setLastName(user.getLastName());
+        userDTO.setFirstName(user.getFirstName());
         userDTO.setUsername(user.getUserName());
         userDTO.setPictureUrl(user.getProfilePictureUrl());
         userDTO.setLocale(user.getLocale());
 
+        return userDTO;
+    }
+
+    public UserDTO modelMapperDTO(User user){
+        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
         return userDTO;
     }
 

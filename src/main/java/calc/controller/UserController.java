@@ -58,21 +58,10 @@ public class UserController {
         ProviderUserInfoDTO userInfo = (ProviderUserInfoDTO)request.getAttribute("user_info");
         return userService.findByExternalId(userInfo.getId());
     }
-    
-    //TODO probably need to send a bad request or something
-    @RequestMapping(value = "/user", method = RequestMethod.POST)
-    public UserDTO createUser(@RequestBody UserDTO user) {
-        return userService.save(user);
-    }
 
-    //@RequestMapping(value = "/user/{userName}", method = RequestMethod.PUT)
-    public UserDTO updateUser(@PathVariable(value="userName") String username, @RequestBody UserDTO user) {
-        UserDTO p = userService.findByUserName(username);
-        p.setFirstName(user.getFirstName());
-        p.setLastName(user.getLastName());
-        p.setUsername(user.getUsername());
-
-        return userService.save(p);
+    @RequestMapping(value = "/user", method = RequestMethod.PUT)
+    public UserDTO updateUser(@RequestBody UserDTO user) {
+        return userService.update(user);
     }
 
     @RequestMapping(value = "/user/{userName}/stats", method = RequestMethod.GET)

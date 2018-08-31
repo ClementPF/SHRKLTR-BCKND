@@ -41,8 +41,13 @@ public class StatsController {
         return statsService.findByUserNameAndTournament(username, tournamentName);
     }
 
+    @RequestMapping(value ="/rivalries", method = RequestMethod.GET)
+    public List<RivalryStatsDTO> rivalryStatsForUserAndTournament(@RequestParam(value="userName") String username, @RequestParam(value="tournamentName") String tournamentName) {
+        return rivalryStatsService.findByUserNameAndTournament(username, tournamentName);
+    }
+
     @RequestMapping(value ="/rivalry", method = RequestMethod.GET)
-    public RivalryStatsDTO rivalryStats(@RequestParam(value="userName") String username,@RequestParam(value="rivalName") String rivalname,@RequestParam(value="tournamentName") String tournamentName) {
+    public RivalryStatsDTO rivalryStatsForUserAndRivalAndTournament(@RequestParam(value="userName") String username,@RequestParam(value="rivalName") String rivalname,@RequestParam(value="tournamentName") String tournamentName) {
         return rivalryStatsService.findByUserNameAndRivalNameAndTournament(username, rivalname, tournamentName);
     }
 

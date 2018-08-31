@@ -1,26 +1,5 @@
 package calc.service;
 
-import calc.DTO.*;
-import calc.config.Application;
-import calc.entity.*;
-import calc.repository.GameRepository;
-import calc.repository.SportRepository;
-import calc.repository.TournamentRepository;
-import calc.repository.UserRepository;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.*;
-
 /**
  * Created by clementperez on 03/06/18.
  */

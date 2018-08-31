@@ -43,11 +43,17 @@ public class User {
         this.stats = new ArrayList<Stats>();
     }
 
-    public User(String userName, String email) {
+    public User(String userName, String externalId) {
+        this.userName = userName;
+        this.externalId = externalId;
+        this.stats = new ArrayList<Stats>();
+    }
+
+    /*public User(String userName, String email) {
         this.userName = userName;
         this.email = email;
         this.stats = new ArrayList<Stats>();
-    }
+    }*/
 
     @Override
     public String toString() {
@@ -60,20 +66,8 @@ public class User {
         return userId;
     }
 
-    public String getFirst() { return firstName; }
-
-    public String getLast() { return lastName; }
-
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public void setFirst(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public void setLast(String lastName) {
-        this.lastName = lastName;
     }
 
     public String getUserName() {

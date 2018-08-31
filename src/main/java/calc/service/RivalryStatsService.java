@@ -133,14 +133,18 @@ public class RivalryStatsService {
         return rivalryStats;
     }
 
-    public RivalryStats recalculateAfterOutcome(Outcome outcome1, Outcome outcome2){
+    public RivalryStats recalculateAfterOutcome(Stats stats, Outcome outcome1, Outcome outcome2){
         RivalryStats rivalryStats = rivalryStatsRepository.findByUserUserIdAndRivalUserIdAndTournamentTournamentId(
                 outcome1.getUser().getUserId(),
                 outcome2.getUser().getUserId(),
                 outcome1.getGame().getTournament().getTournamentId());
 
         if(rivalryStats == null){
-            rivalryStats = new RivalryStats(outcome1.getUser(),outcome2.getUser(),outcome1.getGame().getTournament(), outcome1.getUser().getStats(outcome1.getGame().getTournament()));
+            rivalryStats = new RivalryStats(
+                    outcome1.getUser(),
+                    outcome2.getUser(),
+                    outcome1.getGame().getTournament(),
+                    stats);
             rivalryStats = rivalryStatsRepository.save(rivalryStats);
         }
 

@@ -170,7 +170,6 @@ public class UserService{
     public UserDTO convertToDto(User user) {
       /*  UserDTO userDTO = modelMapper.map(user, UserDTO.class);
 */
-
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(user.getUserId());
         userDTO.setLastName(user.getLastName());
@@ -229,8 +228,12 @@ public class UserService{
                 e.printStackTrace();
             }
 
+            String sound = "default";
+
             map.put("data",  "{" +
                     "\"title\" : \"" + title + "\"," +
+                    "\"sound\" : \"" + sound + "\"," +
+                    "\"badge\" : " + 1 + "," +
                     "\"message\" : \"" + message + "\"," +
                     "\"payload\" : " + jsonStr +
                     "}");

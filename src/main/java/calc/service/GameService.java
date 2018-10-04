@@ -138,7 +138,11 @@ public class GameService {
 
     public GameDTO save(GameDTO game){
 
-        this.validateGame(game);
+        TournamentDTO tournament = tournamentService.findByName(game.getTournament().getName());
+        UserDTO user_0 = userService.findByUserName(game.getOutcomes().get(0).getUser().getUsername());
+        UserDTO user_1 = userService.findByUserName(game.getOutcomes().get(1).getUser().getUsername());
+
+        this.validateGame(user_0, user_1, userService.whoIsLoggedIn(), tournament, game);
 
         Game g = null;
 
@@ -172,16 +176,13 @@ public class GameService {
         return gameDTO;
     }
 
-    protected void validateGame(GameDTO game) throws APIException{
+    protected void validateGame(UserDTO user_0, UserDTO user_1, UserDTO loggedIn, TournamentDTO tournament, GameDTO game) throws APIException{
         if(game.getOutcomes().size() != 2){
             throw new APIException(this.getClass(), game.getTournament().getName() + " Only two outcomes accepted " + game.getOutcomes().size() + " were provided", HttpStatus.BAD_REQUEST);
         }
 
-        TournamentDTO tournament = tournamentService.findByName(game.getTournament().getName());
         OutcomeDTO outcome_0 = game.getOutcomes().get(0);
         OutcomeDTO outcome_1 = game.getOutcomes().get(1);
-        UserDTO user_0 = userService.findByUserName(game.getOutcomes().get(0).getUser().getUsername());
-        UserDTO user_1 = userService.findByUserName(game.getOutcomes().get(1).getUser().getUsername());
 
         if(tournament == null){
             throw new APIException(this.getClass(), "Tournament " + game.getTournament().getName() + " doesn't exist ", HttpStatus.NOT_FOUND);
@@ -212,11 +213,10 @@ public class GameService {
             l = score_0 <= score_1 ? user_1 : user_0;
         }
 
-        UserDTO u = userService.whoIsLoggedIn();
-
-        if(l.getUserId() != u.getUserId()){
+        if(l.getUserId() != loggedIn.getUserId()){
             throw new APIException(this.getClass(), tournament.getName() + " Only the one loosing points can enter a game", HttpStatus.UNAUTHORIZED);
         }
+
     }
 
     private void sendPushNotificationPostGame(GameDTO g){

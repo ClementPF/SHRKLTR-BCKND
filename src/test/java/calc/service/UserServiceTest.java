@@ -152,7 +152,7 @@ public class UserServiceTest {
     public void testPushAll() {
     }
 
-    private UserDTO makeRandomUserDTO(){
+    public UserDTO makeRandomUserDTO(){
 
         UserDTO u = new UserDTO();
 
@@ -166,7 +166,7 @@ public class UserServiceTest {
         return u;
     }
 
-    private User makeRandomUser(){
+    public User makeRandomUser(){
 
         User u = new User();
 

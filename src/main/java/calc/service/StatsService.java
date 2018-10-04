@@ -125,9 +125,9 @@ public class StatsService {
         Double score = rivalryStats.getScore();
         Stats s = rivalryStats.getStats();
         RivalryStats bestRs = s.getBestRivalry();
-        RivalryStats newBestRs = s.getBestRivalry();
+        RivalryStats newBestRs = null;
 
-        if(bestRs == null ) {// can be null if no games were won
+        if(bestRs == null && score > 0) {// can be null if no games were won
             newBestRs = rivalryStats;
         }else if( score > 0 && score > bestRs.getScore()){
             newBestRs = rivalryStats;
@@ -152,9 +152,9 @@ public class StatsService {
         Double score = rivalryStats.getScore();
         Stats s = rivalryStats.getStats();
         RivalryStats worstRs = s.getWorstRivalry();
-        RivalryStats newWorstRs = s.getWorstRivalry();
+        RivalryStats newWorstRs = null;
 
-        if(worstRs == null) {
+        if(worstRs == null && score < 0) {
             newWorstRs = rivalryStats;
         }
         else if( score < 0 && score < worstRs.getScore()){

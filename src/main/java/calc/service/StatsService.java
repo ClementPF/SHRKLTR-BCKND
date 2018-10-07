@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.sound.midi.SysexMessage;
 import java.text.ParseException;
 import java.util.Comparator;
 import java.util.List;
@@ -98,7 +99,6 @@ public class StatsService {
 
         if(stats == null){
             stats = new Stats(outcome.getUser(),outcome.getGame().getTournament());
-            statsRepository.save(stats);
         }
 
         stats.setScore(stats.getScore() + outcome.getScoreValue());
@@ -116,22 +116,19 @@ public class StatsService {
             default:
                 break;
         }
-        return statsRepository.save(stats);
+        return stats;
     }
 
     public Stats recalculateBestRivalry(RivalryStats rivalryStats){
 
-
         Double score = rivalryStats.getScore();
         Stats s = rivalryStats.getStats();
         RivalryStats bestRs = s.getBestRivalry();
-        RivalryStats newBestRs = null;
+        RivalryStats newBestRs = s.getBestRivalry();
 
-        if(bestRs == null && score > 0) {// can be null if no games were won
+        if(score > 0 && (bestRs == null || score > bestRs.getScore())) {// can be null if no games were won
             newBestRs = rivalryStats;
-        }else if( score > 0 && score > bestRs.getScore()){
-            newBestRs = rivalryStats;
-        }else if(bestRs.getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
+        }else if(bestRs != null && bestRs.getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
             List<RivalryStats> rss = rivalryStatsRepository.findByStatsId(s.getStatsId());
 
             newBestRs = rss.stream()
@@ -142,7 +139,6 @@ public class StatsService {
 
         if(bestRs != newBestRs){
             s.setBestRivalry(newBestRs);
-            s = statsRepository.save(s);
         }
 
         return s;
@@ -152,14 +148,11 @@ public class StatsService {
         Double score = rivalryStats.getScore();
         Stats s = rivalryStats.getStats();
         RivalryStats worstRs = s.getWorstRivalry();
-        RivalryStats newWorstRs = null;
+        RivalryStats newWorstRs = s.getWorstRivalry();
 
-        if(worstRs == null && score < 0) {
+        if(score < 0 && (worstRs == null || score < worstRs.getScore())) {
             newWorstRs = rivalryStats;
-        }
-        else if( score < 0 && score < worstRs.getScore()){
-            newWorstRs = rivalryStats;
-        }else if(s.getWorstRivalry().getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
+        }else if(worstRs != null && worstRs.getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
             // need to find next newWorstRivalry
             List<RivalryStats> rss = rivalryStatsRepository.findByStatsId(s.getStatsId());
 
@@ -171,7 +164,6 @@ public class StatsService {
 
         if(worstRs != newWorstRs){
             s.setWorstRivalry(newWorstRs);
-            s = statsRepository.save(s);
         }
 
         return s;
@@ -196,9 +188,11 @@ public class StatsService {
         stats.setLonguestTieStreak(statsDto.getLonguestTieStreak());
         stats.setBestScore(statsDto.getBestScore());
         stats.setWorstScore(statsDto.getWorstScore());
-        if(statsDto.getStatsId() != null) {
-            stats.setTournament(statsRepository.findOne(statsDto.getStatsId()).getTournament());
-            stats.setUser(statsRepository.findOne(statsDto.getStatsId()).getUser());
+        if(statsDto.getTournament() != null && statsDto.getTournament().getTournamentId() != null) {
+            stats.setTournament(tournamentRepository.findOne(statsDto.getTournament().getTournamentId()));
+        }
+        if(statsDto.getUser() != null && statsDto.getUser().getUserId() != null){
+            stats.setUser(userRepository.findOne(statsDto.getUser().getUserId()));
         }
 
         return stats;

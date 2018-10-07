@@ -166,7 +166,7 @@ public class GameServiceTest {
         gameDTO.getOutcomes().get(0).setResult(Outcome.Result.WIN);
         gameDTO.getOutcomes().get(1).setResult(Outcome.Result.WIN);
 
-        gameService.validateGame(winner,looser,looser,tournamentDTO,gameDTO);
+        gameService.validateGame(winner, looser, looser, tournamentDTO, gameDTO);
     }
 
     @Test
@@ -182,20 +182,27 @@ public class GameServiceTest {
     }
 
     public GameDTO makeRandomGameDTO(UserDTO winnerDTO, UserDTO looserDTO, TournamentDTO tournamentDTO) {
-        double score = new Random().nextDouble();
-        OutcomeDTO o1 = new OutcomeDTO(winnerDTO, Outcome.Result.WIN,score);
-        OutcomeDTO o2 = new OutcomeDTO(looserDTO, Outcome.Result.LOSS,-score);
+        double score = new Random().nextDouble()*10;
 
         ArrayList<OutcomeDTO> outcomes = new ArrayList<OutcomeDTO>();
-        outcomes.add(o1);
-        outcomes.add(o2);
+        outcomes.add(new OutcomeDTO(winnerDTO, Outcome.Result.WIN,score));
+        outcomes.add(new OutcomeDTO(looserDTO, Outcome.Result.LOSS,-score));
 
         GameDTO game = new GameDTO(tournamentDTO,outcomes);
         return game;
     }
 
-    public Game makeRandomGame() {
+    public Game makeRandomGame(User winner, User looser, Tournament tournament) {
+        double score = new Random().nextDouble()*10;
+        Game g = new Game(tournament);
+        g.setGameId(new Random().nextLong());
 
-        return new Game();
+        ArrayList<Outcome> outcomes = new ArrayList<Outcome>();
+        outcomes.add(new Outcome(score, Outcome.Result.WIN,g,winner));
+        outcomes.add(new Outcome(-score, Outcome.Result.LOSS,g,looser));
+
+        g.setOutcomes(outcomes);
+
+        return g;
     }
 }

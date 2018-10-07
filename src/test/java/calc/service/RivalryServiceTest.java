@@ -1,10 +1,31 @@
 package calc.service;
 
+import calc.Application;
+import calc.DTO.RivalryStatsDTO;
+import calc.entity.*;
+import calc.repository.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * Created by clementperez on 03/06/18.
  */
 
-/*
+
 @SpringBootTest(classes = {Application.class})
 //@PropertySource(value = {"classpath:application.properties", "${api.config.location}"}, ignoreResourceNotFound = true)
 @TestExecutionListeners(inheritListeners = false, listeners = {
@@ -29,27 +50,30 @@ public class RivalryServiceTest {
     private UserRepository userRepository;
     @Autowired
     private SportRepository sportRepository;
+    @Autowired
+    private StatsRepository statsRepository;
 
     @Autowired
     private TournamentRepository tournamentRepository;
+
+    UserServiceTest userServiceTest;
+    GameServiceTest gameServiceTest;
+    StatsServiceTest statsServiceTest;
 
     User user1;
     User user2;
     Sport sport1;
     Tournament tournament1;
 
-   // @Before
+    @Before
     public void setUp() {
-        User john = new User(UUID.randomUUID().toString());
-        john.setUserId(11L);
-        john.setExternalId(UUID.randomUUID().toString());
 
-        User alex = new User(UUID.randomUUID().toString());
-        alex.setUserId(12L);
-        alex.setExternalId(UUID.randomUUID().toString());
+        userServiceTest = new UserServiceTest();
+        gameServiceTest = new GameServiceTest();
+        statsServiceTest = new StatsServiceTest();
 
-        user1 = userRepository.save(john);
-        user2 = userRepository.save(alex);
+        user1 = userRepository.save(userServiceTest.makeRandomUser());
+        user2 = userRepository.save(userServiceTest.makeRandomUser());
 
         Sport pingpong = new Sport(UUID.randomUUID().toString());
         sport1 = sportRepository.save(pingpong);
@@ -60,65 +84,72 @@ public class RivalryServiceTest {
 
 
 
-    //@Test
-    public void whenValidGame_thenRivalryStatsShouldBeFOund() {
+    @Test
+    public void whenValidGame_thenRivalryStatsShouldBeFound() {
 
-        User john = userRepository.findByUserName(user1.getUserName());
-        User alex = userRepository.findByUserName(user2.getUserName());
-        double value = 10.10;
+        Game g = gameServiceTest.makeRandomGame(user1,user2,tournament1);
 
-        Tournament pingpongTournament = tournamentRepository.findByName(tournament1.getName());
+        gameRepository.save(g);
 
-        Game game = new Game(pingpongTournament);
-        game.setGameId(10L);
+        Stats s1 = statsServiceTest.makeRandomStats(user1,tournament1);
+        Stats s2 = statsServiceTest.makeRandomStats(user2,tournament1);
 
-        Outcome winnerOutcome = new Outcome(value, Outcome.Result.WIN,game,john);
-        Outcome looserOutcome = new Outcome(value, Outcome.Result.LOSS,game,alex);
+        RivalryStats rs = rivalryStatsService.recalculateAfterOutcome(s1,g.getOutcomes().get(0),g.getOutcomes().get(1));
+        rivalryStatsService.recalculateAfterOutcome(s2,g.getOutcomes().get(1),g.getOutcomes().get(0));
 
-        List<Outcome> outcomeDTOs = Arrays.asList(winnerOutcome,looserOutcome);
-
-        Game g = new Game(pingpongTournament,outcomeDTOs);
-
-        rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(0),g.getOutcomes().get(1));
-        rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(1),g.getOutcomes().get(0));
-
-        RivalryStatsDTO rivalryStats = rivalryStatsService.findByUserAndRivalAndTournament(john.getUserId(),alex.getUserId(),pingpongTournament.getTournamentId());
-
-        assertThat(rivalryStats.getScore()).isEqualTo(value);
+        assertThat(rs.getScore()).isEqualTo(g.getOutcomes().get(0).getScoreValue());
     }
 
-    //@Test
+    @Test
     public void whenValidGames_thenRivalryStatsShouldBeValid() {
+        double totalScore = 0;
 
-        User john = userRepository.findByUserName(user1.getUserName());
-        User alex = userRepository.findByUserName(user2.getUserName());
-        double value = 10.10;
+        int rdm = new Random().nextInt(100);
 
-        int rdm = new Random().nextInt(10);
+        Stats s1 = statsServiceTest.makeRandomStats(user1,tournament1);
+        Stats s2 = statsServiceTest.makeRandomStats(user2,tournament1);
+        statsRepository.save(s1);
+        statsRepository.save(s2);
 
-        Tournament pingpongTournament = tournamentRepository.findByName(tournament1.getName());
-
-        Game game = new Game(pingpongTournament);
-        game.setGameId(10L);
-
-        Outcome winnerOutcome = new Outcome(value, Outcome.Result.WIN,game,john);
-        Outcome looserOutcome = new Outcome(-value, Outcome.Result.LOSS,game,alex);
-
-        List<Outcome> outcomeDTOs = Arrays.asList(winnerOutcome,looserOutcome);
-
-        Game g = new Game(pingpongTournament,outcomeDTOs);
+        RivalryStats rs1 = null;
+        RivalryStats rs2 = null;
 
         for(int i = 0; i < rdm; i++){
-            rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(0),g.getOutcomes().get(1));
-            rivalryStatsService.recalculateAfterOutcome(g.getOutcomes().get(1),g.getOutcomes().get(0));
+            Boolean b = new Random().nextBoolean();
+            Game g = gameServiceTest.makeRandomGame(b ? user1 : user2, !b ? user1 : user2,tournament1);
+            gameRepository.save(g);
+            totalScore = totalScore + g.getOutcomes().get(b?1:0).getScoreValue();
+            rs1 = rivalryStatsService.recalculateAfterOutcome(s1,g.getOutcomes().get(b?1:0),g.getOutcomes().get(!b?1:0));
+            rivalryStatsService.save(rs1);
+            rs2 = rivalryStatsService.recalculateAfterOutcome(s2,g.getOutcomes().get(b?0:1),g.getOutcomes().get(b?0:1));
+            rivalryStatsService.save(rs2);
         }
 
-        RivalryStatsDTO rivalryStats = rivalryStatsService.findByUserAndRivalAndTournament(john.getUserId(),alex.getUserId(),pingpongTournament.getTournamentId());
+        assertThat(rs1.getScore()).isEqualTo(totalScore);
+        assertThat(rs1.getGameCount()).isEqualTo(rdm);
+        assertThat(rs1.getScore()).isEqualTo(-rs2.getScore());
+    }
 
-        assertThat(rivalryStats.getScore()).isEqualTo(value*rdm);
-        assertThat(rivalryStats.getGameCount()).isEqualTo(rdm);
-        assertThat(rivalryStats.getWinCount()).isEqualTo(rdm);
-        assertThat(rivalryStats.getLonguestWinStreak()).isEqualTo(rdm);
+    public RivalryStats makeRandomRivalryStats(User user, User rival, Tournament tournament, Stats stats){
+        RivalryStats rivalryStats = new RivalryStats(user, rival,tournament,stats);
+
+        rivalryStats.setScore(new Random().nextDouble()*20);
+        rivalryStats.setBestScore(Math.max(new Random().nextDouble(), rivalryStats.getScore()));
+        rivalryStats.setWorstScore(Math.min(new Random().nextDouble(), rivalryStats.getScore()));
+
+        rivalryStats.setLoseCount(Math.abs(new Random().nextInt()));
+        rivalryStats.setTieCount(Math.abs(new Random().nextInt()));
+        rivalryStats.setWinCount(Math.abs(new Random().nextInt()));
+        rivalryStats.setGameCount(rivalryStats.getLoseCount() + rivalryStats.getWinCount() + rivalryStats.getLoseCount());
+
+        rivalryStats.setWinStreak(new Random().nextInt(rivalryStats.getWinCount()));
+        rivalryStats.setLoseStreak(new Random().nextInt(rivalryStats.getLoseCount()));
+        rivalryStats.setTieStreak(new Random().nextInt(rivalryStats.getTieCount()));
+
+        rivalryStats.setLonguestWinStreak(new Random().nextInt(rivalryStats.getWinCount()));
+        rivalryStats.setLonguestLoseStreak(new Random().nextInt(rivalryStats.getLoseCount()));
+        rivalryStats.setLonguestTieStreak(new Random().nextInt(rivalryStats.getTieCount()));
+
+        return rivalryStats;
     }
 }
-*/

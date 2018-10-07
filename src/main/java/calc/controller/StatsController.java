@@ -3,14 +3,14 @@ package calc.controller;
 import calc.DTO.RivalryStatsDTO;
 import calc.DTO.StatsDTO;
 import calc.entity.Game;
+import calc.entity.Outcome;
 import calc.entity.RivalryStats;
 import calc.entity.Stats;
-import calc.repository.GameRepository;
-import calc.repository.RivalryStatsRepository;
-import calc.repository.StatsRepository;
+import calc.repository.*;
 import calc.security.Secured;
 import calc.service.RivalryStatsService;
 import calc.service.StatsService;
+import calc.service.TournamentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +27,10 @@ public class StatsController {
 
     @Autowired
     private GameRepository gameRepository;
+    @Autowired
+    private OutcomeRepository outcomeRepository;
+    @Autowired
+    private TournamentRepository tournamentRepository;
     @Autowired
     private StatsService statsService;
     @Autowired
@@ -51,13 +55,13 @@ public class StatsController {
         return rivalryStatsService.findByUserNameAndRivalNameAndTournament(username, rivalname, tournamentName);
     }
 
-/*
+
     @RequestMapping(value ="/upgraderivalry", method = RequestMethod.GET)
     public void rivalryStatsUpdate(@RequestParam(value="userName") String username,@RequestParam(value="rivalName") String rivalname,@RequestParam(value="tournamentName") String tournamentName) {
 
         Iterator<Stats> it = statsRepository.findAll().iterator();
 
-        for (Stats s : statsRepository.findAll()) {
+        for (Stats s : statsRepository.findByTournament(tournamentRepository.findByName(""))) {
             List<RivalryStats> rss = rivalryStatsRepository.findByUserUserIdAndTournamentTournamentId(s.getUser().getUserId(),s.getTournament().getTournamentId());
             if(rss.isEmpty()) continue;
             RivalryStats bestRs = rss.stream()
@@ -71,11 +75,6 @@ public class StatsController {
             System.out.print(bestRs.getUser().getUserName() + " " + bestRs.getScore() + " " + bestRs.getRival().getUserName());
             System.out.print(worstRs.getUser().getUserName() + " " + worstRs.getScore() + " " + worstRs.getRival().getUserName());
 
-            if(bestRs.getRivalryStatsId() == 120){
-                System.out.print(bestRs.getTournament().getName() + " " +bestRs.getUser().getUserName());
-            }if(worstRs.getRivalryStatsId() == 120){
-                System.out.print(worstRs.getTournament().getName() + " " +worstRs.getUser().getUserName());
-            }
             if(bestRs.getScore() > 0)
                 s.setBestRivalry(bestRs);
             else{
@@ -88,5 +87,16 @@ public class StatsController {
             }
             statsRepository.save(s);
         }
-    }*/
+    }
+
+    @RequestMapping(value ="/recalculateStats", method = RequestMethod.GET)
+    public void recalcStatsForTournament(@RequestParam(value="userName") String username,@RequestParam(value="rivalName") String rivalname,@RequestParam(value="tournamentName") String tournamentName) {
+        for (Stats s : statsRepository.findByTournament(tournamentRepository.findByName(tournamentName))) {
+            for (Game game : gameRepository.findByUserIdByTournamentName(s.getUser().getUserId(),s.getTournament().getName())){
+                List<Outcome> outcomes = outcomeRepository.findByGameId(game.getGameId());
+
+
+            }
+        }
+    }
 }

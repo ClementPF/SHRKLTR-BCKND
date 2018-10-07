@@ -157,18 +157,25 @@ public class GameService {
 
         // add the game results to the stats
 
-        List<RivalryStats> listRs = new ArrayList<RivalryStats>();
-
         Stats s0 = statsService.recalculateAfterOutcome(g.getOutcomes().get(0));
         Stats s1 = statsService.recalculateAfterOutcome(g.getOutcomes().get(1));
 
+        s0 = statsRepository.save(s0);
+        s1 = statsRepository.save(s1);
+
         // add the game results to the rivalrystats
-        listRs.add(rivalryStatsService.recalculateAfterOutcome(s0, g.getOutcomes().get(0), g.getOutcomes().get(1)));
-        listRs.add(rivalryStatsService.recalculateAfterOutcome(s1, g.getOutcomes().get(1),g.getOutcomes().get(0)));
+
+        RivalryStats rs0 = rivalryStatsService.recalculateAfterOutcome(s0, g.getOutcomes().get(0), g.getOutcomes().get(1));
+        RivalryStats rs1 = rivalryStatsService.recalculateAfterOutcome(s1, g.getOutcomes().get(1),g.getOutcomes().get(0));
+
+        List<RivalryStats> listRs = new ArrayList<RivalryStats>();
+        listRs.add(rs0);
+        listRs.add(rs1);
 
         for (RivalryStats rs : listRs) {
-            statsService.recalculateBestRivalry(rs);
-            statsService.recalculateWorstRivalry(rs);
+            rivalryStatsService.save(rs);
+            statsRepository.save(statsService.recalculateBestRivalry(rs));
+            statsRepository.save(statsService.recalculateWorstRivalry(rs));
         }
 
         sendPushNotificationPostGame(gameDTO);

@@ -71,6 +71,10 @@ public class RivalryStatsService {
         return null;
     }
 
+    public RivalryStats save(RivalryStats stats){
+        return rivalryStatsRepository.save(stats);
+    }
+
     public List<RivalryStatsDTO> findByUserAndTournament(Long userId, Long tournamentId){
 
         List<RivalryStats> rs = rivalryStatsRepository.findByUserUserIdAndTournamentTournamentId(userId, tournamentId);
@@ -145,7 +149,6 @@ public class RivalryStatsService {
                     outcome2.getUser(),
                     outcome1.getGame().getTournament(),
                     stats);
-            rivalryStats = rivalryStatsRepository.save(rivalryStats);
         }
 
         rivalryStats.setScore(rivalryStats.getScore() + outcome1.getScoreValue());
@@ -164,7 +167,7 @@ public class RivalryStatsService {
                 break;
         }
 
-        return rivalryStatsRepository.save(rivalryStats);
+        return rivalryStats;
     }
 
     public RivalryStats convertToEntity(RivalryStatsDTO rivalryStats) throws ParseException {

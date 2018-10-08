@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,7 +50,15 @@ public class TournamentService {
     }
 
     public List<TournamentDTO> findAll(){
-       return tournamentRepository.findAll().stream().map(t -> convertToDto(t)).collect(Collectors.toList());
+
+       List<Tournament> tournaments = tournamentRepository.findAll();
+
+        Collections.sort(
+                tournaments,
+                (t1, t2) -> t2.getGames().size()
+                        - t1.getGames().size());
+
+       return tournaments.stream().map(t -> convertToDto(t)).collect(Collectors.toList());
     }
 
     public List<TournamentDTO> findBySportId(Long sportId){

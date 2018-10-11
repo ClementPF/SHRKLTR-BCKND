@@ -74,6 +74,8 @@ public class GameService {
                 loserStats == null ? 1000 : loserStats.getScore(),
                 isTie ? "=" : "+");
 
+        //pointValue = 2 * pointValue;
+
         outcomes.get(winnerOutcomeIndex).setScoreValue(pointValue);
         outcomes.get(looserOutcomeIndex).setScoreValue(-pointValue);
 

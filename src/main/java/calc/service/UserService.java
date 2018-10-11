@@ -216,6 +216,7 @@ public class UserService{
         map.put("to", u.getPushId());
         map.put("title", title);
         map.put("body", message);
+        map.put("sound","default");
 
         ObjectMapper mapperObj = new ObjectMapper();
 
@@ -228,12 +229,8 @@ public class UserService{
                 e.printStackTrace();
             }
 
-            String sound = "default";
-
             map.put("data",  "{" +
                     "\"title\" : \"" + title + "\"," +
-                    "\"sound\" : \"" + sound + "\"," +
-                    "\"badge\" : " + 1 + "," +
                     "\"message\" : \"" + message + "\"," +
                     "\"payload\" : " + jsonStr +
                     "}");

@@ -52,7 +52,7 @@ public class Application extends WebMvcConfigurerAdapter {
     private UserRepository userRepository;
     @Autowired
     private CrudRepository<Tournament,Long> repoTournament;
-    @Autowired
+    //@Autowired
     private CrudRepository<Game,Long> repoGame;
     @Autowired
     private CrudRepository<Outcome,Long> repoOutcome;

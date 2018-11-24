@@ -1,6 +1,7 @@
 package calc.service;
 
 import calc.DTO.RivalryStatsDTO;
+import calc.DTO.StatsDTO;
 import calc.DTO.TournamentDTO;
 import calc.DTO.UserDTO;
 import calc.entity.*;
@@ -41,6 +42,7 @@ public class RivalryStatsService {
     private UserService userService;
     @Autowired
     private ModelMapper modelMapper;
+
 
     public List<RivalryStatsDTO> findByTournament(TournamentDTO tournament){
         return rivalryStatsRepository.findByTournament(tournamentRepository.findOne(tournament.getTournamentId())).stream()
@@ -83,9 +85,9 @@ public class RivalryStatsService {
                 .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
 
-    public List<RivalryStatsDTO> findByRivalAndTournament(Long userId, String tournamentName){
+    public List<RivalryStatsDTO> findByRivalAndTournament(Long userId, Long tournamentId){
 
-        List<RivalryStats> rs = rivalryStatsRepository.findByRivalUserIdAndTournamentTournamentId(userId, tournamentName);
+        List<RivalryStats> rs = rivalryStatsRepository.findByRivalUserIdAndTournamentTournamentId(userId, tournamentId);
 
         return rs.stream()
                 .map(s -> convertToDto(s)).collect(Collectors.toList());
@@ -112,6 +114,13 @@ public class RivalryStatsService {
         return stats == null ? null : convertToDto(stats);
     }
 
+    public RivalryStatsDTO findByStatsAndRival(Long statsId,Long rivalId){
+
+        RivalryStats stats = rivalryStatsRepository.findByStatsStatsIdAndRivalUserId(statsId, rivalId);
+
+        return stats == null ? null : convertToDto(stats);
+    }
+
     public RivalryStatsDTO findByUserNameAndRivalNameAndTournament(String username,String rivalName, String tournamentName){
 
         RivalryStats stats = rivalryStatsRepository.findByUserUserNameAndRivalUserNameAndTournamentName(username, rivalName, tournamentName);
@@ -119,22 +128,25 @@ public class RivalryStatsService {
         return stats == null ? null : convertToDto(stats);
     }
 
-    public RivalryStatsDTO findByUserAndRivalAndTournamentCreateIfNone(UserDTO user,UserDTO rival, TournamentDTO tournament){
+    public RivalryStatsDTO findByStatsAndRivalCreateIfNone(StatsDTO userStats, UserDTO rival){
 
-        RivalryStatsDTO rivalryStats = findByUserAndRivalAndTournament(user.getUserId(),rival.getUserId(),tournament.getTournamentId());
+        RivalryStatsDTO rivalryStats = findByUserAndRivalAndTournament(userStats.getUser().getUserId(), rival.getUserId(), userStats.getTournament().getTournamentId());
 
-        User u = userRepository.findOne(user.getUserId());
-        User r = userRepository.findOne(rival.getUserId());
-        Tournament t = tournamentRepository.findOne(tournament.getTournamentId());
-        Stats s = statsRepository.findByUserUserIdAndTournamentTournamentId(user.getUserId(),tournament.getTournamentId());
-
-        if(rivalryStats == null) {
-            RivalryStats rs = new RivalryStats(u,r,t,s);
-            rivalryStatsRepository.save(rs);
-            return convertToDto(rs);
+        if(rivalryStats != null){
+            return rivalryStats;
         }
 
-        return rivalryStats;
+        User u = null;
+        Stats s = null;
+        try {
+            u = userService.convertToEntity(userStats.getUser());
+            s = statsService.convertToEntity(userStats);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        User r = userRepository.findOne(rival.getUserId());
+
+        return convertToDto(rivalryStatsRepository.save(new RivalryStats(u,r,s)));
     }
 
     public RivalryStats recalculateAfterOutcome(Stats stats, Outcome outcome1, Outcome outcome2){
@@ -147,7 +159,6 @@ public class RivalryStatsService {
             rivalryStats = new RivalryStats(
                     outcome1.getUser(),
                     outcome2.getUser(),
-                    outcome1.getGame().getTournament(),
                     stats);
         }
 

@@ -57,9 +57,9 @@ public class RivalryStats {
         super();
     }
 
-    public RivalryStats(User owner, User rival, Tournament tournament, Stats userStats) {
+    public RivalryStats(User owner, User rival, Stats userStats) {
         super();
-        this.tournament = tournament;
+        this.tournament = userStats.getTournament();
         this.user = owner;
         this.rival = rival;
         this.stats = userStats;

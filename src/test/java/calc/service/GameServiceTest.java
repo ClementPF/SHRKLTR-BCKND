@@ -1,12 +1,11 @@
 package calc.service;
 
 import calc.DTO.*;
-import calc.entity.Game;
-import calc.entity.Outcome;
-import calc.entity.Tournament;
-import calc.entity.User;
+import calc.entity.*;
 import calc.exception.APIException;
 import calc.repository.GameRepository;
+import calc.repository.SportRepository;
+import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,6 +13,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
@@ -46,12 +47,18 @@ public class GameServiceTest {
     private TournamentService tournamentService;
 
     @Autowired
+    private SportRepository sportRepository;
+    @Autowired
     private GameRepository gameRepository;
+    @Autowired
+    private TournamentRepository tournamentRepository;
 
     UserServiceTest userServiceTest;
     TournamentServiceTest tournamentServiceTest;
 
     List<GameDTO> allGames ;
+    User u1;
+    User u2;
 
     @Before
     public void setUp() {
@@ -62,20 +69,10 @@ public class GameServiceTest {
         UserDTO userDTO = userServiceTest.makeRandomUserDTO();
         TournamentDTO tournamentDTO = tournamentServiceTest.makeRandomTournamentDTO(sportDTO,userDTO);
 
-        //User u = userServiceTest.makeRandomUser();
-        //UserDTO u1 = userRepository.save(u);
-        UserDTO u1 = userServiceTest.makeRandomUserDTO();
+        User u = userServiceTest.makeRandomUser();
+        u1 = userRepository.save(userServiceTest.makeRandomUser());
+        u2 = userRepository.save(userServiceTest.makeRandomUser());
         UserDTO u2 = userServiceTest.makeRandomUserDTO();
-
-        double score = new Random().nextDouble();
-        OutcomeDTO o1 = new OutcomeDTO(u1, Outcome.Result.WIN,score);
-        OutcomeDTO o2 = new OutcomeDTO(u2, Outcome.Result.LOSS,-score);
-
-        ArrayList<OutcomeDTO> outcomes = new ArrayList<OutcomeDTO>();
-        outcomes.add(o1);
-        outcomes.add(o2);
-
-        GameDTO game = new GameDTO(tournamentDTO,outcomes);
 
         //allGames.add(gameService.save(game));
     }
@@ -89,26 +86,156 @@ public class GameServiceTest {
 
     @Test
     public void addGame() {
-        
+
     }
 
     @Test
     public void findByTournament(){
-        
+
     }
 
     @Test
     public void findByTournamentName(){
-        
+
+        Sport sport = sportRepository.save(new SportServiceTest().makeRandomSport());
+        Tournament tournament = tournamentRepository.save(tournamentServiceTest.makeRandomTournament(sport,u1));
+
+        int size = 30;
+        for(int i = 0; i < size; i++){
+            gameRepository.save(makeRandomGame(u1,u2,tournament));
+        }
+
+
+        List<Game> games3 = gameRepository.findByOutcomesUserUserId(u1.getUserId(), null);
+        assertThat(games3).isNotNull();
+        List<Game> games = gameRepository.findByTournamentName(tournament.getName(),null);
+//        List<GameDTO> games2 = gameService.findByTournamentName(tournament.getName());
+
+        assertThat(games).isNotNull();
+        // assertThat(games2.size()).isEqualTo(30);
+        assertThat(games.size()).isEqualTo(30);
+        assertThat(games).hasSize(30);
     }
 
     @Test
-    public void findByUserByTournament(){
-        
+    public void findByOutcomeUserUserIdByTournamentTournamentId(){
+        Sport sport = sportRepository.save(new SportServiceTest().makeRandomSport());
+        User u = userRepository.save(userServiceTest.makeRandomUser());
+        Tournament tournament = tournamentRepository.save(tournamentServiceTest.makeRandomTournament(sport,u));
+
+        int size = 5;
+        for(int i = 0; i < size; i++){
+            gameRepository.save(makeRandomGame(u,u2,tournament));
+        }
+
+        List<Game> games = gameRepository.findByOutcomesUserUserIdAndTournamentTournamentId(u.getUserId(), tournament.getTournamentId(), null);
+        assertThat(games).isNotNull();
+        assertThat(games).hasSize(size);
+    }
+
+
+    @Test
+    public void findByOutcomeUserUserIdByTournamentTournamentId2(){
+        Sport sport = sportRepository.save(new SportServiceTest().makeRandomSport());
+        User u = userRepository.save(userServiceTest.makeRandomUser());
+        Tournament tournament = tournamentRepository.save(tournamentServiceTest.makeRandomTournament(sport,u));
+
+
+        int halfSize = 15;
+        int size = halfSize*2;
+        for(int i = 0; i < size; i++){
+            gameRepository.save(makeRandomGame(u,u2,tournament));
+        }
+
+        List<Game> games = gameRepository.findByOutcomesUserUserIdAndTournamentTournamentId(u.getUserId(), tournament.getTournamentId(), new PageRequest(0, halfSize));
+        assertThat(games).isNotNull();
+        assertThat(games).hasSize(halfSize);
+        games.addAll(gameRepository.findByOutcomesUserUserIdAndTournamentTournamentId(u.getUserId(), tournament.getTournamentId(), new PageRequest(1, halfSize)));
+        assertThat(games).isNotNull();
+        assertThat(games).hasSize(size);
     }
 
     @Test
-    public void findByUser() {
+    public void perf(){
+        Sport sport = sportRepository.save(new SportServiceTest().makeRandomSport());
+        User u = userRepository.save(userServiceTest.makeRandomUser());
+        Tournament tournament = tournamentRepository.save(tournamentServiceTest.makeRandomTournament(sport,u));
+
+
+        int halfSize = 5000;
+        int size = halfSize*2;
+        for(int i = 0; i < size; i++){
+            gameRepository.save(makeRandomGame(u,u2,tournament));
+        }
+
+        long time = System.currentTimeMillis();
+
+        Pageable p = new PageRequest(0,100);
+        gameRepository.findByOutcomesUserUserIdAndTournamentTournamentId(u.getUserId(), tournament.getTournamentId(), p);
+
+        time = System.currentTimeMillis() - time;
+        System.out.print("TIME FOR a page " + time + "\n");
+
+        time = System.currentTimeMillis();
+        List<Game> games= gameRepository.findByOutcomesUserUserIdAndTournamentTournamentId(u.getUserId(), tournament.getTournamentId(), null);
+
+        time = System.currentTimeMillis() - time;
+        System.out.print("TIME FOR a full fetch " + time + " ms for " + games.size() +  "\n");
+
+        time = System.currentTimeMillis();
+        Integer gameCount = gameRepository.countByTournament(tournament);
+
+        time = System.currentTimeMillis() - time;
+        System.out.print("TIME TO count all " + time + " ms for " + gameCount + "\n");
+    }
+
+    @Test
+    public void findByUserUsernameByTournamentTournamentName(){
+        Sport sport = sportRepository.save(new SportServiceTest().makeRandomSport());
+        User u = userRepository.save(userServiceTest.makeRandomUser());
+        Tournament tournament = tournamentRepository.save(tournamentServiceTest.makeRandomTournament(sport,u));
+
+        int size = 5;
+        for(int i = 0; i < size; i++){
+            gameRepository.save(makeRandomGame(u,u2,tournament));
+        }
+
+        List<Game> games = gameRepository.findByOutcomesUserUserNameAndTournamentName(u.getUserName(), tournament.getName(), null);
+        assertThat(games).isNotNull();
+        assertThat(games).hasSize(size);
+    }
+
+
+    @Test
+    public void findByOutcomeUser() {
+        Sport sport = sportRepository.save(new SportServiceTest().makeRandomSport());
+        User u = userRepository.save(userServiceTest.makeRandomUser());
+        Tournament tournament = tournamentRepository.save(tournamentServiceTest.makeRandomTournament(sport,u));
+
+        int size = 5;
+        for(int i = 0; i < size; i++){
+            gameRepository.save(makeRandomGame(u,u2,tournament));
+        }
+
+        List<Game> games = gameRepository.findByOutcomesUser(u, null);
+        assertThat(games).isNotNull();
+        assertThat(games).hasSize(size);
+    }
+
+    @Test
+    public void findByOutcomeUserUserName() {
+        Sport sport = sportRepository.save(new SportServiceTest().makeRandomSport());
+        User u = userRepository.save(userServiceTest.makeRandomUser());
+        Tournament tournament = tournamentRepository.save(tournamentServiceTest.makeRandomTournament(sport,u));
+
+        int size = 5;
+        for(int i = 0; i < size; i++){
+            gameRepository.save(makeRandomGame(u,u2,tournament));
+        }
+
+        List<Game> games = gameRepository.findByOutcomesUserUserName(u.getUserName(), null);
+        assertThat(games).isNotNull();
+        assertThat(games).hasSize(size);
     }
 
     @Test

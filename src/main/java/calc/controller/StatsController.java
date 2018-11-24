@@ -10,9 +10,7 @@ import calc.repository.*;
 import calc.security.Secured;
 import calc.service.RivalryStatsService;
 import calc.service.StatsService;
-import calc.service.TournamentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -92,7 +90,7 @@ public class StatsController {
     @RequestMapping(value ="/recalculateStats", method = RequestMethod.GET)
     public void recalcStatsForTournament(@RequestParam(value="userName") String username,@RequestParam(value="rivalName") String rivalname,@RequestParam(value="tournamentName") String tournamentName) {
         for (Stats s : statsRepository.findByTournament(tournamentRepository.findByName(tournamentName))) {
-            for (Game game : gameRepository.findByUserIdByTournamentName(s.getUser().getUserId(),s.getTournament().getName())){
+            for (Game game : gameRepository.findByOutcomesUserUserIdAndTournamentTournamentId(s.getUser().getUserId(), s.getTournament().getTournamentId(), null)){
                 List<Outcome> outcomes = outcomeRepository.findByGameId(game.getGameId());
 
 

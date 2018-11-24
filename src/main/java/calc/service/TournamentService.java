@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +46,11 @@ public class TournamentService {
 
     public List<TournamentDTO> findBySport(SportDTO sport){
         return this.findBySportId(sport.getSportId());
+    }
+
+    public TournamentDTO findOne(Long id){
+        Tournament t = tournamentRepository.findOne(id);
+        return convertToDto(t);
     }
 
     public List<TournamentDTO> findAll(){
@@ -180,7 +184,7 @@ public class TournamentService {
                 userService.convertToEntity(tournamentDto.getOwner()));
         tournament.setTournamentId(tournamentDto.getTournamentId());
         tournament.setIsOver(tournamentDto.getIsOver());
-        tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName()));
+        tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName(),null));
 
         return tournament;
     }

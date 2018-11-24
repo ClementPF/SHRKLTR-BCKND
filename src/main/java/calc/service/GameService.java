@@ -10,14 +10,15 @@ import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +47,16 @@ public class GameService {
     private StatsRepository statsRepository;
     @Autowired
     private ModelMapper modelMapper;
+
+    private Pageable createPageRequest(Optional<Integer> page, Optional<Integer> pageSize) {
+        Integer DEFAULT_PAGE = 0;
+        Integer DEFAULT_PAGE_SIZE = 30;
+
+        Integer index = page.isPresent() ? page.get() : DEFAULT_PAGE;
+        Integer size = pageSize.isPresent() ? pageSize.get() : DEFAULT_PAGE_SIZE;
+
+        return new PageRequest(index, size);
+    }
 
     public GameDTO findOne(Long gameId){
         return convertToDto(gameRepository.findOne(gameId));
@@ -89,53 +100,52 @@ public class GameService {
             throw new APIException(Tournament.class,tournament.getName(),HttpStatus.NOT_FOUND);
         }
 
-        return findByTournamentName(tournament.getName());
+        return findByTournamentName(tournament.getName(),null);
     }
 
-    public List<GameDTO> findByTournamentName(String tournamentName){
+    public List<GameDTO> findByTournamentName(String tournamentName,Pageable page){
         if(tournamentService.findByName(tournamentName) == null){
             throw new APIException(Tournament.class,tournamentName,HttpStatus.NOT_FOUND);
         }
-        return gameRepository.findByTournamentName(tournamentName).stream()
+        return gameRepository.findByTournamentNameOrderByDateDesc(tournamentName, page).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
-    public List<GameDTO> findByUserByTournament(Long userId, String tournamentName){
-        if(tournamentService.findByName(tournamentName) == null){
-            throw new APIException(Tournament.class,tournamentName,HttpStatus.NOT_FOUND);
+    public List<GameDTO> findByUserIdByTournamentId(Long userId, Long tournamentId, Pageable page){
+        if(tournamentService.findOne(tournamentId) == null){
+            throw new APIException(Tournament.class,tournamentId+"",HttpStatus.NOT_FOUND);
         }
         if(userService.findOne(userId) == null){
             throw new APIException(User.class,userId+"",HttpStatus.NOT_FOUND);
         }
-        return gameRepository.findByUserIdByTournamentName(userId, tournamentName).stream()
+        return gameRepository.findByOutcomesUserUserIdAndTournamentTournamentId(userId, tournamentId, page).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
-    public List<GameDTO> findByUserByTournament(String username, String tournamentName){
+    public List<GameDTO> findByUserByTournament(String username, String tournamentName, Pageable page){
         if(tournamentService.findByName(tournamentName) == null){
             throw new APIException(Tournament.class,tournamentName,HttpStatus.NOT_FOUND);
         }
         if(userService.findByUserName(username) == null){
             throw new APIException(User.class,username+"",HttpStatus.NOT_FOUND);
         }
-        return gameRepository.findByUserNameByTournamentName(username, tournamentName).stream()
+        return gameRepository.findByOutcomesUserUserNameAndTournamentName(username, tournamentName, page).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
-    public List<GameDTO> findByUser(Long userId) {
+    public List<GameDTO> findByUserId(Long userId, Pageable page) {
         if(userService.findOne(userId) == null){
             throw new APIException(User.class,userId+"",HttpStatus.NOT_FOUND);
         }
-        return gameRepository.findByUserId(userId).stream()
+        return gameRepository.findByOutcomesUserUserId(userId, page).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
-    public List<GameDTO> findByUser(String username) {
+    public List<GameDTO> findByUsername(String username, Pageable page) {
         if(userService.findByUserName(username) == null){
             throw new APIException(User.class,username+"",HttpStatus.NOT_FOUND);
         }
-        return gameRepository.findByUserName(username).stream()
-                .map(m -> convertToDto(m)).collect(Collectors.toList());
+        return gameRepository.findByOutcomesUserUserNameOrderByDateDesc(username, page).stream().map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
     public GameDTO save(GameDTO game){

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
  */
 
 @Entity
+/*
 @NamedQueries({
         @NamedQuery(name = "Game.findByTournamentName", query = "SELECT m FROM Game m WHERE m.tournament.name = ?1"),
         @NamedQuery(name = "Game.findByUserId",
@@ -20,15 +21,16 @@ import java.util.stream.Collectors;
                 query = "SELECT m FROM Game m " +
                         "INNER JOIN m.outcomes o " +
                         "WHERE o.user.userName = ?1"),
-        @NamedQuery(name = "Game.findByUserIdByTournamentName",
+        @NamedQuery(name = "Game.findByOutcomeUserUserIdByTournamentTournamentName",
                 query = "SELECT m FROM Game m " +
                         "INNER JOIN m.outcomes o " +
                         "WHERE o.user.userId = ?1 AND m.tournament.name=?2" ),
-        @NamedQuery(name = "Game.findByUserNameByTournamentName",
+        @NamedQuery(name = "Game.findByOutcomeUserUserNameAndByTournamentName",
         query = "SELECT m FROM Game m " +
                 "INNER JOIN m.outcomes o " +
                 "WHERE o.user.userName = ?1 AND m.tournament.name=?2" )
 })
+*/
 public class Game {
 
     @Id
@@ -40,7 +42,7 @@ public class Game {
     @JoinColumn(name = "tournamentId")
     private Tournament tournament;
 
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Outcome> outcomes;
 
     public Game() {}

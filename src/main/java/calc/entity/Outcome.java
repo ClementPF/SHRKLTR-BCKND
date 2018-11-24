@@ -21,10 +21,10 @@ public class Outcome {
     private double scoreValue;
     @Column(nullable = false)
     private Result result;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "gameId")
     private Game game;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userId")
     private User user;
 

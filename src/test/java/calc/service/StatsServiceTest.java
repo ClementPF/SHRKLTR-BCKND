@@ -260,7 +260,7 @@ public class StatsServiceTest {
         stats.setBestRivalry(null);
         //statsRepository.save(stats);
 
-        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,tournament,stats);
+        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,stats);
         rivalryStats.setScore(Math.abs(rivalryStats.getScore()));
 
         statsService.recalculateBestRivalry(rivalryStats);
@@ -275,7 +275,7 @@ public class StatsServiceTest {
         stats.setBestRivalry(null);
         //statsRepository.save(stats);
 
-        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,tournament,stats);
+        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,stats);
         rivalryStats.setScore(-Math.abs(rivalryStats.getScore()));
 
         statsService.recalculateBestRivalry(rivalryStats);
@@ -289,11 +289,11 @@ public class StatsServiceTest {
         Stats stats = makeRandomStats(u1,tournament);
         stats.setBestRivalry(null);
 
-        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,tournament,stats);
+        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,stats);
         rivalryStats.setScore(Math.abs(rivalryStats.getScore()));
         stats.setBestRivalry(rivalryStats);
 
-        RivalryStats betterRivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u3,tournament,stats);
+        RivalryStats betterRivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u3,stats);
         betterRivalryStats.setScore(Math.abs(rivalryStats.getScore()) + 1);
 
         statsService.recalculateBestRivalry(betterRivalryStats);
@@ -307,11 +307,11 @@ public class StatsServiceTest {
         Stats stats = makeRandomStats(u1,tournament);
         stats.setWorstRivalry(null);
 
-        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,tournament,stats);
+        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,stats);
         rivalryStats.setScore(-Math.abs(rivalryStats.getScore()));
         stats.setBestRivalry(rivalryStats);
 
-        RivalryStats worseRivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u3,tournament,stats);
+        RivalryStats worseRivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u3,stats);
         worseRivalryStats.setScore(-Math.abs(rivalryStats.getScore()) - 1);
 
         statsService.recalculateWorstRivalry(worseRivalryStats);
@@ -325,7 +325,7 @@ public class StatsServiceTest {
         Stats stats = makeRandomStats(u1,tournament);
         stats.setBestRivalry(null);
 
-        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,tournament,stats);
+        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,stats);
         rivalryStats.setScore(Math.abs(rivalryStats.getScore()));
         stats.setBestRivalry(rivalryStats);
 
@@ -343,7 +343,7 @@ public class StatsServiceTest {
         Stats stats = makeRandomStats(u1,tournament);
         stats.setBestRivalry(null);
 
-        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,tournament,stats);
+        RivalryStats rivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u2,stats);
         rivalryStats.setScore(-Math.abs(rivalryStats.getScore()));
         stats.setBestRivalry(rivalryStats);
 
@@ -359,14 +359,14 @@ public class StatsServiceTest {
 
         // this test relies on the DB being populated to find the new best rivalry for the stats
 
-        RivalryStats bestRivalry = rivalryServiceTest.makeRandomRivalryStats(u1,u2,tournament,s1);
+        RivalryStats bestRivalry = rivalryServiceTest.makeRandomRivalryStats(u1,u2,s1);
         bestRivalry.setScore(20);
         rivalryStatsRepository.save(bestRivalry);
 
         s1.setBestRivalry(bestRivalry);
         statsRepository.save(s1);
 
-        RivalryStats secondBestRivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u3,tournament,s1);
+        RivalryStats secondBestRivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u3,s1);
         secondBestRivalryStats.setScore(19);
         rivalryStatsRepository.save(secondBestRivalryStats);
 
@@ -383,14 +383,14 @@ public class StatsServiceTest {
 
         // this test relies on the DB being populated to find the new best rivalry for the stats
 
-        RivalryStats worstRivalry = rivalryServiceTest.makeRandomRivalryStats(u1,u2,tournament,s1);
+        RivalryStats worstRivalry = rivalryServiceTest.makeRandomRivalryStats(u1,u2,s1);
         worstRivalry.setScore(-20);
         rivalryStatsRepository.save(worstRivalry);
 
         s1.setWorstRivalry(worstRivalry);
         statsRepository.save(s1);
 
-        RivalryStats secondWorstRivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u3,tournament,s1);
+        RivalryStats secondWorstRivalryStats = rivalryServiceTest.makeRandomRivalryStats(u1,u3,s1);
         secondWorstRivalryStats.setScore(-19);
         rivalryStatsRepository.save(secondWorstRivalryStats);
 

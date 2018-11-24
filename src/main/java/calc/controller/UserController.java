@@ -14,6 +14,8 @@ import calc.service.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -115,15 +117,21 @@ public class UserController {
     }*/
 
     @RequestMapping(value = "/user/{userName}/games", method = RequestMethod.GET)
-    public List<GameDTO> userGamesForTournament(@PathVariable(value="userName") String username, @RequestParam(value="tournamentName", required = false) String tournamentName) {
+    public List<GameDTO> userGamesForTournament(@PathVariable(value="userName") String username,
+                                                @RequestParam(value="tournamentName", required = false) String tournamentName,
+                                                @RequestParam("page") Optional<Integer> page,
+                                                @RequestParam("page_size") Optional<Integer> pageSize) {
         List<GameDTO> m = new ArrayList<>();
 
-        if(tournamentName != null){
-            m = gameService.findByUserByTournament(username,tournamentName);
-        }else
-            m = gameService.findByUser(username);
+        Pageable pageable = null;
+        if(page.isPresent() && pageSize.isPresent()){
+            pageable = new PageRequest(page.get(),pageSize.get());
+        }
 
-        m = m.stream().sorted(Comparator.comparing(GameDTO::getDate).reversed()).collect(Collectors.toList());
+        if(tournamentName != null){
+            m = gameService.findByUserByTournament(username,tournamentName, pageable);
+        }else
+            m = gameService.findByUsername(username, pageable);
 
         return m;
     }

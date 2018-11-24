@@ -8,13 +8,12 @@ import calc.security.Secured;
 import calc.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Description;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -108,16 +107,21 @@ public class TournamentController {
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/games", method = RequestMethod.GET)
-    public List<GameDTO> gamesForTournament(@PathVariable(value="tournamentName") String name) {
+    public List<GameDTO> gamesForTournament(@PathVariable(value="tournamentName") String name,
+                                            @RequestParam("page") Optional<Integer> page,
+                                            @RequestParam("page_size") Optional<Integer> pageSize) {
 
         TournamentDTO t = tournamentService.findByName(name);
         if(t == null){
             throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
         }
 
-        List<GameDTO> games = gameService.findByTournamentName(name);
-        games = games.stream().sorted(Comparator.comparing(GameDTO::getDate).reversed()).collect(Collectors.toList());
+        Pageable pageable = null;
+        if(page.isPresent() && pageSize.isPresent()){
+            pageable = new PageRequest(page.get(),pageSize.get());
+        }
 
+        List<GameDTO> games = gameService.findByTournamentName(name,pageable);
         return games;
     }
 

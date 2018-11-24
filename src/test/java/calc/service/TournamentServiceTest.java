@@ -114,11 +114,9 @@ public class TournamentServiceTest {
         }
     }
 
-    //@Test(expected = APIException.class)
+    @Test(expected = APIException.class)
     public void findBySportId_notFound(){
-        User owner = userRepository.save(userServiceTest.makeRandomUser());
-        Sport sport = sportRepository.save(sportServiceTest.makeRandomSport());
-        List<TournamentDTO> tournamentDTOs = tournamentService.findBySportId(sport.getSportId());
+        List<TournamentDTO> tournamentDTOs = tournamentService.findBySportId(new Random().nextLong());
     }
 
     @Test
@@ -139,10 +137,9 @@ public class TournamentServiceTest {
         assertThat(tournaments.size()).isEqualTo(tournaments.size());
     }
 
-    //@Test(expected = APIException.class)
+    @Test(expected = APIException.class)
     public void findByUserName_notFound() {
-        User user = userRepository.save(userServiceTest.makeRandomUser());
-        List<TournamentDTO> tournaments = tournamentService.findByUserName(user.getUserName());
+        List<TournamentDTO> tournaments = tournamentService.findByUserName(UUID.randomUUID().toString());
     }
 
     //@Test  need to sort out whosloggedin
@@ -243,6 +240,8 @@ public class TournamentServiceTest {
     public void convertToDto() {
 
     }
+
+
 
     public TournamentDTO makeRandomTournamentDTO(SportDTO sport, UserDTO owner){
 

@@ -55,6 +55,7 @@ public class OutcomeService {
                 outcomeDto.getResult(),
                 outcomeDto.getGameId() == null ? null : gameRepository.findOne(outcomeDto.getGameId()), //might no be created yet
                 userService.convertToEntity(outcomeDto.getUser()));
+        outcome.setOutcomeId(outcomeDto.getOutcomeId());
 
         return outcome;
     }

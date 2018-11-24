@@ -54,13 +54,13 @@ public class UserRepositoryTest {
         allUsers.add(userRepository.save(makeRandomUser()));
 
 
-        //assertThat(userRepository.findByUserName(john.getUserName())).is(john);
-/*        Mockito.when(userRepository.findByUserName(john.getUserName())).thenReturn(john);
-        Mockito.when(userRepository.findByUserName(alex.getUserName())).thenReturn(alex);
-        Mockito.when(userRepository.findByUserName("wrong_name")).thenReturn(null);
-       // Mockito.when(userRepository.findByUserId(john.getUserId()).orElse(null)).thenReturn(john);
+        //assertThat(userRepository.findByOutcomesUserUserName(john.getUserName())).is(john);
+/*        Mockito.when(userRepository.findByOutcomesUserUserName(john.getUserName())).thenReturn(john);
+        Mockito.when(userRepository.findByOutcomesUserUserName(alex.getUserName())).thenReturn(alex);
+        Mockito.when(userRepository.findByOutcomesUserUserName("wrong_name")).thenReturn(null);
+       // Mockito.when(userRepository.findByOutcomeUserUserId(john.getUserId()).orElse(null)).thenReturn(john);
         Mockito.when(userRepository.findAll()).thenReturn(allUsers);
-        //Mockito.when(userRepository.findByUserId(-99L).orElse(null)).thenReturn(null);
+        //Mockito.when(userRepository.findByOutcomeUserUserId(-99L).orElse(null)).thenReturn(null);
         */
     }
 

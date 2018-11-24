@@ -22,8 +22,9 @@ public interface RivalryStatsRepository extends CrudRepository<RivalryStats, Lon
     public List<RivalryStats> findByUserUserIdAndTournamentTournamentId(@Param("userId") Long userId, @Param("tournamentId") Long tournamentId);
     public List<RivalryStats> findByUserUserNameAndTournamentName(@Param("username") String username, @Param("tournamentName") String tournamentId);
     public List<RivalryStats> findByStatsId(@Param("statsId") Long statsId);
-    public List<RivalryStats> findByRivalUserIdAndTournamentTournamentId(@Param("rivalUserId") Long userId, @Param("tournamentName") String tournamentId);
-    public List<RivalryStats> findByRivalUserNameAndTournamentName(@Param("rivalUsername") String username, @Param("tournamentName") String tournamentId);
+    public List<RivalryStats> findByRivalUserIdAndTournamentTournamentId(@Param("rivalUserId") Long userId, @Param("tournamentId") Long tournamentId);
+    public List<RivalryStats> findByRivalUserNameAndTournamentName(@Param("rivalUsername") String username, @Param("tournamentName") String tournamentName);
     public RivalryStats findByUserUserIdAndRivalUserIdAndTournamentTournamentId(@Param("userId") Long userId, @Param("rivalUserId") Long rivalUserId, @Param("tournamentId") Long tournamentId);
-    public RivalryStats findByUserUserNameAndRivalUserNameAndTournamentName(@Param("userName") String username, @Param("rivalUsername") String rivalUsername, @Param("tournamentName") String tournamentId);
+    public RivalryStats findByUserUserNameAndRivalUserNameAndTournamentName(@Param("userName") String username, @Param("rivalUsername") String rivalUsername, @Param("tournamentName") String tournamentName);
+    public RivalryStats findByStatsStatsIdAndRivalUserId(@Param("statsId") Long statsId, @Param("rivalUserId") Long rivalUserId);
 }

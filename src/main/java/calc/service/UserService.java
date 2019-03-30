@@ -204,7 +204,7 @@ public class UserService{
     public ResponseEntity pushNotificationForUser(String username, String title ,String message, Object obj){
 
         User u = userRepository.findByUserName(username);
-        if(u == null || u.getPushId().equals(null)){
+        if(u == null || u.getPushId() == null){
             throw new APIException(UserService.class, u.getUserName() + " doesn't accept challenges or doesn't have push notifications turned on.", HttpStatus.BAD_REQUEST);
         }
 

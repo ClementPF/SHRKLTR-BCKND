@@ -85,4 +85,14 @@ public class Outcome {
          Result(int i) {
         }
     };
+
+    public boolean isWin(){
+        return this.result == Result.WIN;
+    }
+    public boolean isLoss(){
+        return this.result == Result.LOSS;
+    }
+    public boolean isTie(){
+        return this.result == Result.TIE;
+    }
 }

@@ -53,7 +53,10 @@ public class GoogleTokenVerifier {
                 "975514203843-jriblf35irfbh0e8e49ojeq2q4egtc98.apps.googleusercontent.com", //getIosClientId
                 "975514203843-4bkrrov84hiepp4a6r8ngci9j1o8lnhk.apps.googleusercontent.com", //getAndroidClientId
                 "975514203843-4iitkt007snetchd63d8v6e96vu7qnle.apps.googleusercontent.com",
-                "975514203843-kqho0mtodfj50penbqrt1voq9hs34j57.apps.googleusercontent.com"//getIosStandaloneClientId
+                "975514203843-kqho0mtodfj50penbqrt1voq9hs34j57.apps.googleusercontent.com",//getIosStandaloneClientId
+                "975514203843-28qehmdnj49oefjubbg99o1n68ahj3f7.apps.googleusercontent.com", //firebase
+                "975514203843-kqho0mtodfj50penbqrt1voq9hs34j57.apps.googleusercontent.com", //firebase
+                "975514203843-orbnpufagngsecqdg13hkm8rloleakre.apps.googleusercontent.com" //firebase
                );
 
         final GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.

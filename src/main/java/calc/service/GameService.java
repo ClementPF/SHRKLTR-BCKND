@@ -16,10 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /**
  * Created by clementperez on 9/20/16.
@@ -62,7 +61,55 @@ public class GameService {
         return convertToDto(gameRepository.findOne(gameId));
     }
 
-    public GameDTO addGame(TournamentDTO tournament, List<OutcomeDTO> outcomes) {
+    public GameDTO addGame(TournamentDTO tournament, List<OutcomeDTO> outcomesWithoutScore) {
+
+        System.out.print("outcome username : " +outcomesWithoutScore.get(0).getUser().getUsername() + " " + outcomesWithoutScore.get(1).getUser().getUsername() + "\n");
+
+        List<OutcomeDTO> outcomesWithScore = outcomeService.setOutcomesValueForTournament(outcomesWithoutScore, tournament);
+
+        /*
+        double winnerSumScore = 0;
+        double looserSumScore = 0;
+        double tieSumScore = 0;
+
+        for(OutcomeDTO o : outcomes){
+            StatsDTO stats = statsService.findByUserNameAndTournament(o.getUser().getUsername(),tournament.getName());
+            double score = stats != null ? stats.getScore() : 1000;
+            if(o.isWin()){
+                winnerSumScore += score;
+            }else if(o.isLose()){
+                looserSumScore += score;
+            }else if(o.isTie()){
+                tieSumScore += score;
+            }
+        }
+
+        long winnersCount = outcomes.stream().filter(OutcomeDTO::isWin).count();
+        long losersCount = outcomes.stream().filter(OutcomeDTO::isLose).count();
+
+        double winnerMeanValue = winnerSumScore / winnersCount;//winnerStats.stream().flatMapToDouble(stats -> DoubleStream.of(stats.getScore())).average().getAsDouble();
+        double looserMeanValue = looserSumScore / losersCount;//loserStats.stream().flatMapToDouble(stats -> DoubleStream.of(stats.getScore())).average().getAsDouble();
+        //double tieMeanValue = tieSumScore / tiers.size();//tieStats.stream().flatMapToDouble(stats -> DoubleStream.of(stats.getScore())).average().getAsDouble();
+
+        double pointValue = EloRating.calculatePointValue(
+                winnerMeanValue,
+                looserMeanValue,
+                "+");
+
+        for(OutcomeDTO o : outcomes){
+            if(o.isWin()){
+                o.setScoreValue(pointValue);
+            }else if(o.isLose()){
+                o.setScoreValue(-pointValue);
+            }
+        }*/
+
+        GameDTO game = new GameDTO(tournament,outcomesWithScore);
+
+        return save(game);
+    }
+
+    public GameDTO addGameLega(TournamentDTO tournament, List<OutcomeDTO> outcomes) {
 
         System.out.print("outcome username : " +outcomes.get(0).getUser().getUsername() + " " + outcomes.get(1).getUser().getUsername() + "\n");
 
@@ -100,7 +147,7 @@ public class GameService {
             throw new APIException(Tournament.class,tournament.getName(),HttpStatus.NOT_FOUND);
         }
 
-        return findByTournamentName(tournament.getName(),null);
+        return findByTournamentName(tournament.getName(), null);
     }
 
     public List<GameDTO> findByTournamentName(String tournamentName,Pageable page){
@@ -148,13 +195,20 @@ public class GameService {
         return gameRepository.findByOutcomesUserUserNameOrderByDateDesc(username, page).stream().map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
+    protected GameDTO saveTest(UserDTO loggedInUser ,GameDTO game){
+        return this.save(loggedInUser,game);
+    }
+
     public GameDTO save(GameDTO game){
+        GameDTO gameDTO = this.save(userService.whoIsLoggedIn(),game);
 
-        TournamentDTO tournament = tournamentService.findByName(game.getTournament().getName());
-        UserDTO user_0 = userService.findByUserName(game.getOutcomes().get(0).getUser().getUsername());
-        UserDTO user_1 = userService.findByUserName(game.getOutcomes().get(1).getUser().getUsername());
+        sendPushNotificationPostGame(gameDTO);
+        return gameDTO;
+    }
 
-        this.validateGame(user_0, user_1, userService.whoIsLoggedIn(), tournament, game);
+    private GameDTO save(UserDTO loggedInUser ,GameDTO game){
+
+        this.validateGame(loggedInUser, game);
 
         Game g = null;
 
@@ -168,29 +222,9 @@ public class GameService {
         GameDTO gameDTO =  convertToDto(gameRepository.save(g));
 
         // add the game results to the stats
-
-        Stats s0 = statsService.recalculateAfterOutcome(g.getOutcomes().get(0));
-        Stats s1 = statsService.recalculateAfterOutcome(g.getOutcomes().get(1));
-
-        s0 = statsRepository.save(s0);
-        s1 = statsRepository.save(s1);
-
-        // add the game results to the rivalrystats
-
-        RivalryStats rs0 = rivalryStatsService.recalculateAfterOutcome(s0, g.getOutcomes().get(0), g.getOutcomes().get(1));
-        RivalryStats rs1 = rivalryStatsService.recalculateAfterOutcome(s1, g.getOutcomes().get(1),g.getOutcomes().get(0));
-
-        List<RivalryStats> listRs = new ArrayList<RivalryStats>();
-        listRs.add(rs0);
-        listRs.add(rs1);
-
-        for (RivalryStats rs : listRs) {
-            rivalryStatsService.save(rs);
-            statsRepository.save(statsService.recalculateBestRivalry(rs));
-            statsRepository.save(statsService.recalculateWorstRivalry(rs));
-        }
-
-        sendPushNotificationPostGame(gameDTO);
+        statsService.recalculateAfterGame(g);
+        // add the game results to the rivalry stats
+        rivalryStatsService.recalculateAfterGame(g);
 
         return gameDTO;
     }
@@ -236,6 +270,52 @@ public class GameService {
             throw new APIException(this.getClass(), tournament.getName() + " Only the one loosing points can enter a game", HttpStatus.UNAUTHORIZED);
         }
 
+    }
+
+    /**
+     * This function validates every objects of the game and make sure that the object makes sense
+     * If this function doesn't throw, it is safe to save the game.
+     *
+     * @param loggedIn          The logged in user
+     * @param game              The game to validate
+     * @throws APIException
+     */
+    protected void validateGame(UserDTO loggedIn, GameDTO game) throws APIException{
+
+        if(game == null){
+            throw new APIException(this.getClass(), "Game not provided ", HttpStatus.BAD_REQUEST);
+        }else if(game.getOutcomes() == null){
+            throw new APIException(this.getClass(), "Outcomes not provided ", HttpStatus.BAD_REQUEST);
+        }else if(game.getTournament() == null){
+            throw new APIException(this.getClass(), "Tournament not provided ", HttpStatus.BAD_REQUEST);
+        }else if(tournamentService.findByName(game.getTournament().getName()) == null){
+            throw new APIException(this.getClass(), "Tournament " + game.getTournament().getName() + " doesn't exist ", HttpStatus.NOT_FOUND);
+        }
+
+        long winnersCount = game.getOutcomes().stream().filter(o -> o.getResult() == Outcome.Result.WIN).count();
+        long loosersCount = game.getOutcomes().stream().filter(o -> o.getResult() == Outcome.Result.LOSS).count();
+        long tiersCount = game.getOutcomes().stream().filter(o -> o.getResult() == Outcome.Result.TIE).count();
+
+        if(winnersCount != loosersCount){
+            throw new APIException(this.getClass(), game.getTournament().getName() + " wrong number of outcomes provided " + game.getOutcomes().size() + " were provided", HttpStatus.BAD_REQUEST);
+        }else if(tiersCount > 0 && tiersCount != game.getOutcomes().size()){
+            throw new APIException(this.getClass(), game.getTournament().getName() + " Incompatible numbers of Ties", HttpStatus.BAD_REQUEST);
+        }
+
+        HashSet<Long> playerIds = new HashSet<>();
+        for(OutcomeDTO o : game.getOutcomes()){
+            UserDTO user = o.getUser();
+            if(user == null){
+                throw new APIException(this.getClass(), "User not provided for outcome", HttpStatus.BAD_REQUEST);
+            }else if(!playerIds.add(o.getUser().getUserId())){
+                throw new APIException(this.getClass(), "Multiple outcomes with same user " + o.getUser().getUsername() + "  ", HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        if(!game.getOutcomes().stream().filter(OutcomeDTO::isLose)
+                .filter(o -> o.getUser().getUserId().equals(loggedIn.getUserId())).findFirst().isPresent()){
+            throw new APIException(this.getClass(), game.getTournament().getName() + " Only the team loosing points can enter a game", HttpStatus.UNAUTHORIZED);
+        }
     }
 
     private void sendPushNotificationPostGame(GameDTO g){

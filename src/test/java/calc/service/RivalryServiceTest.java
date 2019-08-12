@@ -1,13 +1,14 @@
 package calc.service;
 
 import calc.Application;
-import calc.DTO.RivalryStatsDTO;
+import calc.DTO.*;
 import calc.entity.*;
-import calc.exception.APIException;
 import calc.repository.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestExecutionListeners;
@@ -16,6 +17,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -36,6 +38,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 public class RivalryServiceTest {
 
+
+    private static final Logger LOG = LoggerFactory.getLogger(RivalryServiceTest.class);
+
     @Autowired
     private RivalryStatsService rivalryStatsService;
     @Autowired
@@ -54,6 +59,8 @@ public class RivalryServiceTest {
     @Autowired
     private StatsRepository statsRepository;
     @Autowired
+    private RivalryStatsRepository rivalryStatsRepository;
+    @Autowired
     private StatsService statsService;
 
     @Autowired
@@ -65,6 +72,8 @@ public class RivalryServiceTest {
 
     User user1;
     User user2;
+    User user3;
+    User user4;
     Stats stats1;
     Stats stats2;
     Sport sport1;
@@ -83,6 +92,8 @@ public class RivalryServiceTest {
 
         user1 = userRepository.save(userServiceTest.makeRandomUser());
         user2 = userRepository.save(userServiceTest.makeRandomUser());
+        user3 = userRepository.save(userServiceTest.makeRandomUser());
+        user4 = userRepository.save(userServiceTest.makeRandomUser());
 
         Sport pingpong = new Sport(UUID.randomUUID().toString());
         sport1 = sportRepository.save(pingpong);
@@ -306,15 +317,18 @@ public class RivalryServiceTest {
         Tournament tournament = tournamentRepository.save(new Tournament(UUID.randomUUID().toString(),sport1,user1));
         Game g = gameServiceTest.makeRandomGame(user1,user2,tournament);
 
-        gameRepository.save(g);
-
         Stats s1 = statsServiceTest.makeRandomStats(user1,tournament);
         Stats s2 = statsServiceTest.makeRandomStats(user2,tournament);
+        statsRepository.save(s1);
+        statsRepository.save(s2);
 
-        RivalryStats rs = rivalryStatsService.recalculateAfterOutcome(s1,g.getOutcomes().get(0),g.getOutcomes().get(1));
-        rivalryStatsService.recalculateAfterOutcome(s2,g.getOutcomes().get(1),g.getOutcomes().get(0));
+        gameService.saveTest(userService.convertToDto(user2),gameService.convertToDto(g));
 
-        assertThat(rs.getScore()).isEqualTo(g.getOutcomes().get(0).getScoreValue());
+        RivalryStatsDTO rs1 = rivalryStatsService.findByUserAndRivalAndTournament(user1.getUserId(),user2.getUserId(),tournament.getTournamentId());
+        RivalryStatsDTO rs2 = rivalryStatsService.findByUserAndRivalAndTournament(user2.getUserId(),user1.getUserId(),tournament.getTournamentId());
+
+        assertThat(rs1).isNotNull();
+        assertThat(rs2).isNotNull();
     }
 
     @Test
@@ -323,31 +337,164 @@ public class RivalryServiceTest {
 
         Tournament tournament = tournamentRepository.save(new Tournament(UUID.randomUUID().toString(),sport1,user1));
 
-        int rdm = new Random().nextInt(100);
+        int gameCount = 1 + new Random().nextInt(50);
 
         Stats s1 = statsServiceTest.makeRandomStats(user1,tournament);
         Stats s2 = statsServiceTest.makeRandomStats(user2,tournament);
         statsRepository.save(s1);
         statsRepository.save(s2);
 
-        RivalryStats rs1 = null;
+        List<RivalryStats> rivalryStatsList = null;
         RivalryStats rs2 = null;
 
-        for(int i = 0; i < rdm; i++){
+        for(int i = 0; i < gameCount; i++){
             Boolean b = new Random().nextBoolean();
             Game g = gameServiceTest.makeRandomGame(b ? user1 : user2, !b ? user1 : user2,tournament);
             gameRepository.save(g);
             totalScore = totalScore + g.getOutcomes().get(b?1:0).getScoreValue();
-            rs1 = rivalryStatsService.recalculateAfterOutcome(s1,g.getOutcomes().get(b?1:0),g.getOutcomes().get(!b?1:0));
-            rivalryStatsService.save(rs1);
-            rs2 = rivalryStatsService.recalculateAfterOutcome(s2,g.getOutcomes().get(b?0:1),g.getOutcomes().get(b?0:1));
-            rivalryStatsService.save(rs2);
+            rivalryStatsList = rivalryStatsService.recalculateAfterGame(g);
         }
 
-        assertThat(rs1.getScore()).isEqualTo(totalScore);
-        assertThat(rs1.getGameCount()).isEqualTo(rdm);
-        assertThat(rs1.getScore()).isEqualTo(-rs2.getScore());
+        RivalryStats userRivalryStats = rivalryStatsList.get(0);
+        assertThat(Math.abs(userRivalryStats.getScore())).isEqualTo(Math.abs(totalScore));
+        assertThat(userRivalryStats.getGameCount()).isEqualTo(gameCount);
+        RivalryStats rivalRivalryStats = rivalryStatsRepository.findByUserUserIdAndRivalUserIdAndTournamentTournamentId(userRivalryStats.getRival().getUserId(),userRivalryStats.getUser().getUserId(),tournament.getTournamentId());
+        assertThat(userRivalryStats.getScore()).isEqualTo(-rivalRivalryStats.getScore());
     }
+
+    @Test
+    public void whenValidGamesNvsN_thenRivalryStatsShouldBeValid() {
+        double teamAScoreSum = 0;
+        double teamBScoreSum = 0;
+
+        Tournament tournament = tournamentRepository.save(new Tournament(UUID.randomUUID().toString(),sport1,user1));
+
+        int gameCount = new Random().nextInt(10) + 1;
+        int teamSize = new Random().nextInt(10) + 1;
+
+        List<UserDTO> teamA = new ArrayList<>();
+        List<UserDTO> teamB = new ArrayList<>();
+        List<StatsDTO> teamAStats = new ArrayList<>();
+        List<StatsDTO> teamBStats = new ArrayList<>();
+
+        for(int i = 0; i < teamSize * 2; i ++){
+            User user = userRepository.save(userServiceTest.makeRandomUser());
+            UserDTO u = userService.convertToDto(user);
+            StatsDTO s = statsService.convertToDto(statsRepository.save(statsServiceTest.makeRandomStats(user, tournament)));
+            if(i%2 == 0){
+                teamA.add(u);
+                teamAStats.add(s);
+            }else{
+                teamB.add(u);
+                teamBStats.add(s);
+            }
+        }
+
+        for(int i = 0; i < gameCount; i++){
+            Boolean b = new Random().nextBoolean();
+            GameDTO g = gameServiceTest.makeRandomGameDTO(b ? teamA : teamB, !b ? teamA : teamB,tournamentService.convertToDto(tournament));
+            //GameDTO g = gameServiceTest.makeRandomGameDTO(b ? teamA : teamB, !b ? teamA : teamB, tournament);
+            UserDTO fakeLoggedInUser = g.getOutcomes().stream().filter(OutcomeDTO::isLose).findFirst().get().getUser();
+            teamAScoreSum = teamAScoreSum + g.getOutcomes().get(b?1:0).getScoreValue();
+            teamBScoreSum = teamBScoreSum + g.getOutcomes().get(b?0:1).getScoreValue();
+            gameService.saveTest(fakeLoggedInUser,g);
+        }
+
+        LOG.debug("teamSize " + teamSize + " gameCount " + gameCount + " teamAScoreSum " + teamAScoreSum + " teamBScoreSum " + teamBScoreSum);
+        for(int i = 0; i < teamSize; i ++){
+            UserDTO userA = teamA.get(i);
+            for(int j = 0; j < teamSize; j++){
+                UserDTO userB = teamB.get(j);
+                LOG.debug(" userA.id " + userA.getUserId() + " userB.id " + userB.getUserId());
+                RivalryStats rs1 = rivalryStatsRepository.findByUserUserNameAndRivalUserNameAndTournamentName(userA.getUsername(),userB.getUsername(),tournament.getName());
+                RivalryStats rs2 = rivalryStatsRepository.findByUserUserNameAndRivalUserNameAndTournamentName(userB.getUsername(),userA.getUsername(),tournament.getName());
+
+                LOG.debug(" rs1.getScore()= " + rs1.getScore());
+                assertThat(rs1.getScore()).isEqualTo(-rs2.getScore());
+                assertThat(rs1.getGameCount()).isEqualTo(rs2.getGameCount());
+                assertThat(rs1.getGameCount()).isEqualTo(gameCount);
+                assertThat(rs1.getScore()).isLessThan(teamAScoreSum); // floating value
+                assertThat(rs2.getScore()).isLessThan(teamBScoreSum); // floating value
+            }
+        }
+    }
+
+    /*
+    *
+    *
+    @Test
+    public void whenValidGamesNvsN_thenRivalryStatsShouldBeValid() {
+        double totalScore = 0;
+
+        Tournament tournament = tournamentRepository.save(new Tournament(UUID.randomUUID().toString(),sport1,user1));
+
+        int gameCount = new Random().nextInt(10);
+        int teamSize = new Random().nextInt(10) + 1;
+
+        List<User> teamA = new ArrayList<>();
+        List<User> teamB = new ArrayList<>();
+        List<Stats> teamAStats = new ArrayList<>();
+        List<Stats> teamBStats = new ArrayList<>();
+
+        for(int i = 0; i < teamSize * 2; i ++){
+            User u = userRepository.save(userServiceTest.makeRandomUser());
+            Stats s = statsRepository.save(statsServiceTest.makeRandomStats(u, tournament));
+            if(i%2 == 0){
+                teamA.add(u);
+                teamAStats.add(s);
+            }else{
+                teamB.add(u);
+                teamBStats.add(s);
+            }
+        }
+
+        for(int i = 0; i < gameCount; i++){
+            Boolean b = new Random().nextBoolean();
+            List<RivalryStats> listRs = new ArrayList<RivalryStats>();
+            Game g = gameServiceTest.makeRandomGame(b ? teamA : teamB, !b ? teamA : teamB,tournament);
+            gameRepository.save(g);
+
+            Outcome outcome = g.getOutcomes().stream().filter(o->o.getUser().getUserId() == teamA.get(0).getUserId()).findFirst().get();
+            totalScore = totalScore + outcome.getScoreValue();
+
+            for(Stats statsA : teamAStats){
+                List<Outcome> teamBOutcomes = g.getOutcomes().stream().filter(o -> o.getResults() == (b ? Outcome.Result.LOSS : Outcome.Result.WIN)).collect(Collectors.toList());
+                Outcome userOutcome = g.getOutcomes().stream().filter(o -> o.getUser().getUserId() == statsA.getUser().getUserId()).findFirst().get();
+                LOG.debug("rivalryStatsService.recalculateAfterTeamOutcomes " + userOutcome.getUser().getUserId() + " " + userOutcome.getResults().name() + " score: " + userOutcome.getScoreValue());
+                List<RivalryStats> lrs = rivalryStatsService.recalculateAfterOutcomes(statsA, userOutcome, teamBOutcomes.toArray(new Outcome[0]));
+                listRs.addAll(lrs);
+            }
+
+            for(Stats statsB : teamBStats){
+                List<Outcome> teamAOutcomes = g.getOutcomes().stream().filter(o -> o.getResults() == (!b ? Outcome.Result.LOSS : Outcome.Result.WIN)).collect(Collectors.toList());
+                Outcome userOutcome = g.getOutcomes().stream().filter(o -> o.getUser().getUserId() == statsB.getUser().getUserId()).findFirst().get();
+                LOG.debug("rivalryStatsService.recalculateAfterTeamOutcomes " + userOutcome.getUser().getUserId() + " " + userOutcome.getResults().name() + " score: " + userOutcome.getScoreValue());
+                List<RivalryStats> lrs = rivalryStatsService.recalculateAfterOutcomes(statsB, userOutcome, teamAOutcomes.toArray(new Outcome[0]));
+                listRs.addAll(lrs);
+            }
+
+            for (RivalryStats rs : listRs) {
+                LOG.debug(listRs.size() + " rivalryStatsService.save " + rs.getRivalryStatsId() + " " + rs.getScore() + " " + rs.getUser().getUserId() + " " + rs.getRival().getUserId() );
+                rivalryStatsService.save(rs);
+                statsRepository.save(statsService.recalculateBestRivalry(rs));
+                statsRepository.save(statsService.recalculateWorstRivalry(rs));
+            }
+        }
+
+        for(int i = 0; i < teamSize; i ++){
+            User userA = teamA.get(i);
+            for(int j = 0; j < teamSize; j++){
+                User userB = teamB.get(j);
+                LOG.debug(" userA.id " + userA.getUserId() + " userB.id " + userB.getUserId());
+                RivalryStats rs1 = rivalryStatsRepository.findByUserUserNameAndRivalUserNameAndTournamentName(userA.getUserName(),userB.getUserName(),tournament.getName());
+                RivalryStats rs2 = rivalryStatsRepository.findByUserUserNameAndRivalUserNameAndTournamentName(userB.getUserName(),userA.getUserName(),tournament.getName());
+                assertThat(rs1.getScore()).isEqualTo(-rs2.getScore());
+                assertThat(rs1.getGameCount()).isEqualTo(rs2.getGameCount());
+                assertThat(rs1.getGameCount()).isEqualTo(gameCount);
+                assertThat(Math.abs(rs1.getScore() - totalScore/teamSize)).isLessThan(0.000000000000010); // floating value
+            }
+        }
+    }*/
 
     public RivalryStats makeRandomRivalryStats(User user, User rival, Stats stats){
         RivalryStats rivalryStats = new RivalryStats(user, rival ,stats);

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.sound.midi.SysexMessage;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -118,6 +119,16 @@ public class StatsService {
         }
         return stats;
     }
+
+
+    public List<Stats> recalculateAfterGame(Game g){
+        List<Stats> stats = new ArrayList<>();
+        for(Outcome outcome : g.getOutcomes()){
+            stats.add(recalculateAfterOutcome(outcome));
+        }
+        return stats;
+    }
+
 
     public Stats recalculateBestRivalry(RivalryStats rivalryStats){
 

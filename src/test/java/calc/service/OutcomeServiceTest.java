@@ -161,7 +161,7 @@ public class OutcomeServiceTest {
         assertThat(outcome.getResults()).isEqualTo(outcome_original.getResults());
         assertThat(outcome.getScoreValue()).isEqualTo(outcome_original.getScoreValue());
         assertThat(outcome.getUser().getUserId()).isEqualTo(outcome_original.getUser().getUserId());
-       assertThat(outcome.getGame().getGameId()).isEqualTo(outcome_original.getGame().getGameId());
+        assertThat(outcome.getGame().getGameId()).isEqualTo(outcome_original.getGame().getGameId());
         assertThat(outcome.getOutcomeId()).isEqualTo(outcome_original.getOutcomeId());
     }
 

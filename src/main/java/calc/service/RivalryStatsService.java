@@ -10,13 +10,17 @@ import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 
@@ -25,6 +29,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RivalryStatsService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RivalryStatsService.class);
 
     @Autowired
     private RivalryStatsRepository rivalryStatsRepository;
@@ -149,13 +155,14 @@ public class RivalryStatsService {
         return convertToDto(rivalryStatsRepository.save(new RivalryStats(u,r,s)));
     }
 
-    public RivalryStats recalculateAfterOutcome(Stats stats, Outcome outcome1, Outcome outcome2){
+    protected RivalryStats recalculateAfterOutcome(Outcome outcome1, Outcome outcome2){
         RivalryStats rivalryStats = rivalryStatsRepository.findByUserUserIdAndRivalUserIdAndTournamentTournamentId(
                 outcome1.getUser().getUserId(),
                 outcome2.getUser().getUserId(),
                 outcome1.getGame().getTournament().getTournamentId());
 
         if(rivalryStats == null){
+            Stats stats = statsRepository.findByUserUserNameAndTournamentName(outcome1.getUser().getUserName(),outcome1.getGame().getTournament().getName());
             rivalryStats = new RivalryStats(
                     outcome1.getUser(),
                     outcome2.getUser(),
@@ -179,6 +186,47 @@ public class RivalryStatsService {
         }
 
         return rivalryStats;
+    }
+
+    protected List<RivalryStats> recalculateAfterOutcomes(Outcome userOutcome, List<Outcome> opponentsOutcome){
+        List<RivalryStats> rivalriesStats = new ArrayList<>();
+        for(Outcome opponentOutcome : opponentsOutcome){
+            rivalriesStats.add(recalculateAfterOutcome(userOutcome, opponentOutcome));
+        }
+        return rivalriesStats;
+    }
+
+    public List<RivalryStats> recalculateAfterGame(Game game){
+        // add the game results to the stats
+
+        List<Outcome> winnersOutcomes = game.getOutcomes().stream().filter(Outcome::isWin).collect(Collectors.toList());
+        List<Outcome> losersOutcomes = game.getOutcomes().stream().filter(Outcome::isLoss).collect(Collectors.toList());
+        List<Outcome> tiersOutcomes = game.getOutcomes().stream().filter(Outcome::isTie).collect(Collectors.toList());
+
+        List<RivalryStats> listRs = new ArrayList<>();
+        for(Outcome winnerOutcomes : winnersOutcomes){
+            long userId = winnerOutcomes.getUser().getUserId();
+            Outcome userOutcome = game.getOutcomes().stream().filter(o -> o.getUser().getUserId().equals(userId)).findFirst().get();
+            listRs.addAll(this.recalculateAfterOutcomes(userOutcome, losersOutcomes));
+        }
+        for(Outcome loserOutcome : losersOutcomes){
+            long userId = loserOutcome.getUser().getUserId();
+            Outcome userOutcome = game.getOutcomes().stream().filter(o -> o.getUser().getUserId().equals(userId)).findFirst().get();
+            listRs.addAll(this.recalculateAfterOutcomes(userOutcome, winnersOutcomes));
+        }
+        for(Outcome tierOutcome : tiersOutcomes){
+            long userId = tierOutcome.getUser().getUserId();
+            Outcome userOutcome = game.getOutcomes().stream().filter(o -> o.getUser().getUserId().equals(userId)).findFirst().get();
+            listRs.addAll(this.recalculateAfterOutcomes(userOutcome, tiersOutcomes));
+        }
+
+        for (RivalryStats rs : listRs) {
+            this.save(rs);
+            statsRepository.save(statsService.recalculateBestRivalry(rs));
+            statsRepository.save(statsService.recalculateWorstRivalry(rs));
+        }
+
+        return listRs;
     }
 
     public RivalryStats convertToEntity(RivalryStatsDTO rivalryStats) throws ParseException {

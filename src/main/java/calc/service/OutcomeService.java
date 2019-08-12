@@ -1,7 +1,12 @@
 package calc.service;
 
+import calc.DTO.GameDTO;
 import calc.DTO.OutcomeDTO;
+import calc.DTO.StatsDTO;
+import calc.DTO.TournamentDTO;
+import calc.ELO.EloRating;
 import calc.entity.Outcome;
+import calc.entity.Tournament;
 import calc.repository.GameRepository;
 import calc.repository.OutcomeRepository;
 import calc.repository.UserRepository;
@@ -31,6 +36,8 @@ public class OutcomeService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private StatsService statsService;
+    @Autowired
     private ModelMapper modelMapper;
 
     public List<OutcomeDTO> findByUserId(Long userId) {
@@ -42,6 +49,46 @@ public class OutcomeService {
         return outcomeRepository.findByGameId(gameId).stream()
                 .map(o -> convertToDto(o)).collect(Collectors.toList());
 
+    }
+
+    public List<OutcomeDTO> setOutcomesValueForTournament(List<OutcomeDTO> outcomeDTOs, TournamentDTO tournamentDTO) {
+        double winnerSumScore = 0;
+        double looserSumScore = 0;
+        double tieSumScore = 0;
+
+        for(OutcomeDTO o : outcomeDTOs){
+            StatsDTO stats = statsService.findByUserNameAndTournament(o.getUser().getUsername(), tournamentDTO.getName());
+            double score = stats != null ? stats.getScore() : 1000;
+            if(o.isWin()){
+                winnerSumScore += score;
+            }else if(o.isLose()){
+                looserSumScore += score;
+            }else if(o.isTie()){
+                tieSumScore += score;
+            }
+        }
+
+        long winnersCount = outcomeDTOs.stream().filter(OutcomeDTO::isWin).count();
+        long losersCount = outcomeDTOs.stream().filter(OutcomeDTO::isLose).count();
+
+        double winnerMeanValue = winnerSumScore / winnersCount;//winnerStats.stream().flatMapToDouble(stats -> DoubleStream.of(stats.getScore())).average().getAsDouble();
+        double looserMeanValue = looserSumScore / losersCount;//loserStats.stream().flatMapToDouble(stats -> DoubleStream.of(stats.getScore())).average().getAsDouble();
+        //double tieMeanValue = tieSumScore / tiers.size();//tieStats.stream().flatMapToDouble(stats -> DoubleStream.of(stats.getScore())).average().getAsDouble();
+
+        double pointValue = EloRating.calculatePointValue(
+                winnerMeanValue,
+                looserMeanValue,
+                "+");
+
+        for(OutcomeDTO o : outcomeDTOs){
+            if(o.isWin()){
+                o.setScoreValue(pointValue);
+            }else if(o.isLose()){
+                o.setScoreValue(-pointValue);
+            }
+        }
+
+        return outcomeDTOs;
     }
 
     protected Outcome convertToEntity(OutcomeDTO outcomeDto) throws ParseException {

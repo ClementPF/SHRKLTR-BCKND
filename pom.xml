@@ -5,7 +5,7 @@
 
     <groupId>com.sharkulator</groupId>
     <artifactId>rest-sharkulator</artifactId>
-    <version>0.0.30</version>
+    <version>0.0.32</version>
     <packaging>war</packaging>
 
     <parent>

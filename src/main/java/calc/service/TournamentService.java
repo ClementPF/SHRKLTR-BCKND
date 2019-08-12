@@ -169,10 +169,17 @@ public class TournamentService {
         for(OutcomeDTO o : game.getOutcomes()){
             o.setUser(userService.findByUserName(o.getUser().getUsername()));
         }
+
         List<OutcomeDTO> outcomes = game.getOutcomes();
+        for(OutcomeDTO o : outcomes){
+            UserDTO user = userService.findByUserName(o.getUser().getUsername());
+            if(user == null){
+                throw new APIException(this.getClass(), "User " + o.getUser().getUsername() + " doesn't exist ", HttpStatus.NOT_FOUND);
+            }
+            o.setUser(user);
+        }
 
         return gameService.addGame(tournament, outcomes);
-
     }
 
     protected Tournament convertToEntity(TournamentDTO tournamentDto) throws ParseException {

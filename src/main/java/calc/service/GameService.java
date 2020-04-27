@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 /**
  * Created by clementperez on 9/20/16.
@@ -176,7 +175,7 @@ public class GameService {
         if(userService.findByUserName(username) == null){
             throw new APIException(User.class,username+"",HttpStatus.NOT_FOUND);
         }
-        return gameRepository.findByOutcomesUserUserNameAndTournamentName(username, tournamentName, page).stream()
+        return gameRepository.findByOutcomesUserUserNameAndTournamentNameOrderByDateDesc(username, tournamentName, page).stream()
                 .map(m -> convertToDto(m)).collect(Collectors.toList());
     }
 
@@ -222,7 +221,7 @@ public class GameService {
         GameDTO gameDTO =  convertToDto(gameRepository.save(g));
 
         // add the game results to the stats
-        statsService.recalculateAfterGame(g);
+        statsRepository.save(statsService.recalculateAfterGame(g));
         // add the game results to the rivalry stats
         rivalryStatsService.recalculateAfterGame(g);
 

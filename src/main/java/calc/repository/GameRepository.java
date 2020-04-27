@@ -36,7 +36,7 @@ public interface GameRepository extends CrudRepository<Game, Long> {
    /* @Query("SELECT g FROM Game g " +
                     "INNER JOIN g.outcomes o " +
                     "WHERE o.user.userName = :userName AND g.tournament.name= :tournamentName")*/
-    public List<Game> findByOutcomesUserUserNameAndTournamentName(@Param("userName") String username, @Param("tournamentName") String tournamentName, Pageable pageable);
+    public List<Game> findByOutcomesUserUserNameAndTournamentNameOrderByDateDesc(@Param("userName") String username, @Param("tournamentName") String tournamentName, Pageable pageable);
 
   /*  @Query("SELECT g FROM Game g " +
             "INNER JOIN g.outcomes o " +
@@ -53,5 +53,5 @@ public interface GameRepository extends CrudRepository<Game, Long> {
     /*@Query("SELECT g FROM Game g " +
             "INNER JOIN g.outcomes o " +
             "WHERE o.user = :user")*/
-    List<Game> findByOutcomesUser(@Param("user")User user, Pageable pageable);
+    List<Game> findByOutcomesUserOrderByDateDesc(@Param("user")User user, Pageable pageable);
 }

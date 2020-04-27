@@ -7,6 +7,7 @@ import calc.property.FacebookProperties;
 import calc.property.GoogleProperties;
 import calc.property.JwtProperties;
 import calc.repository.UserRepository;
+import calc.security.AppleTokenVerifier;
 import calc.security.GoogleTokenVerifier;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -32,6 +33,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.text.Normalizer;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -75,6 +78,8 @@ public class AuthService {
             return getTokenFromFB(tokenRequest);
         }else if(tokenRequest.getTokenProvider().equalsIgnoreCase("google")){
             return getTokenFromGoogle(tokenRequest);
+        }else if(tokenRequest.getTokenProvider().equalsIgnoreCase("apple")){
+            return getTokenFromAppleSignIn(tokenRequest);
         }
         return null;
     }
@@ -125,9 +130,7 @@ public class AuthService {
 
         logger.debug("getTokenFromGoogle: {}", tokenRequest.getProviderAccessToken());
         try {
-
             GoogleIdToken.Payload payload = googleTokenVerifier.verify(tokenRequest.getProviderAccessToken());
-
             ProviderUserInfoDTO userInfo = new ProviderUserInfoDTO();
 
             // Print user identifier
@@ -169,6 +172,34 @@ public class AuthService {
             e.printStackTrace();
             throw new APIException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    protected TokenDTO getTokenFromAppleSignIn(TokenRequestDTO tokenRequest) {
+
+        String username = tokenRequest.getUsername();
+        if(tokenRequest.getUsername() == null){
+            throw new APIException(HttpStatus.BAD_REQUEST, "User name required for Signing in with Apple");
+        }else if(userRepository.findByUserName(username) != null){
+            throw new APIException(HttpStatus.BAD_REQUEST, "Bad Request");
+        }
+
+        AppleTokenVerifier appleTokenVerifier = new AppleTokenVerifier();
+        ProviderUserInfoDTO userInfo = null;
+        try{
+            userInfo = appleTokenVerifier.verify(tokenRequest.getProviderAccessToken());
+        }catch(JWTVerificationException e){
+            throw new APIException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+        userInfo.setProvider(tokenRequest.getTokenProvider());
+        userInfo.setName(tokenRequest.getUsername());
+
+        User user = userRepository.findByExternalId(userInfo.getId());
+        if (user == null) {
+            createUserFromExternalProvider(userInfo);
+        }else{
+            updateFromExternalProvider(user, userInfo);
+        }
+        return new TokenDTO(createToken(userInfo),createTokenRefresh(userInfo));
     }
 
     public TokenDTO refreshToken(TokenDTO tokenRefresh){
@@ -248,8 +279,7 @@ public class AuthService {
         return jwt;
     }
 
-    private User createUserFromExternalProvider(ProviderUserInfoDTO userInfo){
-
+    private String normalizeUsername(ProviderUserInfoDTO userInfo){
         String username = userInfo.getName().toLowerCase().replace(' ', '-');
         username = Normalizer.normalize(username, Normalizer.Form.NFD);
         username = username.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
@@ -263,9 +293,15 @@ public class AuthService {
                 username = username + '-' + suffix;
             }
         }
+        return username;
+    }
 
-        if(suffix == max){
-            System.out.print("username reached 999 for " + username);
+    private User createUserFromExternalProvider(ProviderUserInfoDTO userInfo){
+
+        String username = userInfo.getUsername();
+
+        if(username == null){
+            username = normalizeUsername(userInfo);
         }
 
         User user = new User(username, userInfo.getId());

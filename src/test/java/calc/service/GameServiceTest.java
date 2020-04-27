@@ -131,6 +131,32 @@ public class GameServiceTest {
     }
 
     @Test
+    public void findByUserName(){
+
+        Sport sport = sportRepository.save(new SportServiceTest().makeRandomSport());
+        Tournament tournament = tournamentRepository.save(tournamentServiceTest.makeRandomTournament(sport,u1));
+
+        int size = 30;
+        for(int i = 0; i < size; i++){
+            gameRepository.save(makeRandomGame(u1,u2,tournament));
+        }
+
+
+        List<Game> games3 = gameRepository.findByOutcomesUserUserId(u1.getUserId(), null);
+        assertThat(games3).isNotNull();
+        List<Game> gamesPage0 = gameRepository.findByOutcomesUserUserNameOrderByDateDesc(u1.getUserName(),new PageRequest(0,size/2));
+        List<Game> gamesPage1 = gameRepository.findByOutcomesUserUserNameOrderByDateDesc(u1.getUserName(),new PageRequest(1,size/2));
+    //        List<GameDTO> games2 = gameService.findByTournamentName(tournament.getName());
+
+        assertThat(gamesPage0).isNotNull();
+        assertThat(gamesPage1).isNotNull();
+        assertThat(games3.size()).isEqualTo(30);
+        assertThat(gamesPage0.size()).isEqualTo(15);
+        assertThat(gamesPage1.size()).isEqualTo(15);
+        assertThat(gamesPage0.get(0).getGameId()).isNotEqualTo(gamesPage1.get(0).getGameId());
+    }
+
+    @Test
     public void findByOutcomeUserUserIdByTournamentTournamentId(){
         Sport sport = sportRepository.save(new SportServiceTest().makeRandomSport());
         User u = userRepository.save(userServiceTest.makeRandomUser());
@@ -213,7 +239,7 @@ public class GameServiceTest {
             gameRepository.save(makeRandomGame(u,u2,tournament));
         }
 
-        List<Game> games = gameRepository.findByOutcomesUserUserNameAndTournamentName(u.getUserName(), tournament.getName(), null);
+        List<Game> games = gameRepository.findByOutcomesUserUserNameAndTournamentNameOrderByDateDesc(u.getUserName(), tournament.getName(), null);
         assertThat(games).isNotNull();
         assertThat(games).hasSize(size);
     }
@@ -230,7 +256,7 @@ public class GameServiceTest {
             gameRepository.save(makeRandomGame(u,u2,tournament));
         }
 
-        List<Game> games = gameRepository.findByOutcomesUser(u, null);
+        List<Game> games = gameRepository.findByOutcomesUserOrderByDateDesc(u, null);
         assertThat(games).isNotNull();
         assertThat(games).hasSize(size);
     }

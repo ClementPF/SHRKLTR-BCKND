@@ -9,6 +9,7 @@ import java.util.Map;
 public class ProviderUserInfoDTO {
     private String id;
     private String name;
+    private String username;
     private String email;
     private String provider;
     private String pictureUrl;
@@ -39,6 +40,10 @@ public class ProviderUserInfoDTO {
     public void setName(String name) {
         this.name = name;
     }
+
+    public String getUsername() { return username; }
+
+    public void setUsername(String username) { this.username = username; }
 
     public String getEmail() {
         return email;

@@ -395,8 +395,8 @@ public class RivalryServiceTest {
             GameDTO g = gameServiceTest.makeRandomGameDTO(b ? teamA : teamB, !b ? teamA : teamB,tournamentService.convertToDto(tournament));
             //GameDTO g = gameServiceTest.makeRandomGameDTO(b ? teamA : teamB, !b ? teamA : teamB, tournament);
             UserDTO fakeLoggedInUser = g.getOutcomes().stream().filter(OutcomeDTO::isLose).findFirst().get().getUser();
-            teamAScoreSum = teamAScoreSum + g.getOutcomes().get(b?1:0).getScoreValue();
-            teamBScoreSum = teamBScoreSum + g.getOutcomes().get(b?0:1).getScoreValue();
+            teamAScoreSum = teamAScoreSum + g.getOutcomes().stream().filter(o -> b ? o.isWin() : o.isLose() ).findFirst().get().getScoreValue();
+            teamBScoreSum = teamBScoreSum + g.getOutcomes().stream().filter(o -> b ? o.isLose() : o.isWin() ).findFirst().get().getScoreValue();
             gameService.saveTest(fakeLoggedInUser,g);
         }
 
@@ -413,8 +413,8 @@ public class RivalryServiceTest {
                 assertThat(rs1.getScore()).isEqualTo(-rs2.getScore());
                 assertThat(rs1.getGameCount()).isEqualTo(rs2.getGameCount());
                 assertThat(rs1.getGameCount()).isEqualTo(gameCount);
-                assertThat(rs1.getScore()).isLessThan(teamAScoreSum); // floating value
-                assertThat(rs2.getScore()).isLessThan(teamBScoreSum); // floating value
+                assertThat(rs1.getScore()).isEqualTo(teamAScoreSum); // floating value
+                assertThat(rs2.getScore()).isEqualTo(teamBScoreSum); // floating value
             }
         }
     }

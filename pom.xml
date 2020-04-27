@@ -5,7 +5,7 @@
 
     <groupId>com.sharkulator</groupId>
     <artifactId>rest-sharkulator</artifactId>
-    <version>0.0.32</version>
+    <version>0.0.34</version>
     <packaging>war</packaging>
 
     <parent>
@@ -28,6 +28,11 @@
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
             <version>${java-jwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>jwks-rsa</artifactId>
+            <version>${jwks-rsa.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -96,6 +101,7 @@
         <hikaricp.version>2.6.3</hikaricp.version>
         <mysql.connector.version>5.1.43</mysql.connector.version>
         <java-jwt.version>3.2.0</java-jwt.version>
+        <jwks-rsa.version>0.11.0</jwks-rsa.version>
         <logback.versions>1.2.3</logback.versions>
     </properties>
 

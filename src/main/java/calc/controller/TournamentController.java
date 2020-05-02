@@ -2,18 +2,18 @@ package calc.controller;
 
 import calc.DTO.*;
 import calc.entity.Tournament;
+import calc.entity.User;
 import calc.exception.APIException;
 import calc.security.Secured;
 import calc.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Description;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -29,6 +29,8 @@ public class TournamentController {
     private TournamentService tournamentService;
     @Autowired
     private StatsService statsService;
+    @Autowired
+    private RivalryStatsService rivalryStatsService;
     @Autowired
     private GameService gameService;
     @Autowired
@@ -105,16 +107,21 @@ public class TournamentController {
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/games", method = RequestMethod.GET)
-    public List<GameDTO> gamesForTournament(@PathVariable(value="tournamentName") String name) {
+    public List<GameDTO> gamesForTournament(@PathVariable(value="tournamentName") String name,
+                                            @RequestParam("page") Optional<Integer> page,
+                                            @RequestParam("page_size") Optional<Integer> pageSize) {
 
         TournamentDTO t = tournamentService.findByName(name);
         if(t == null){
             throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
         }
 
-        List<GameDTO> games = gameService.findByTournamentName(name);
-        games = games.stream().sorted(Comparator.comparing(GameDTO::getDate).reversed()).collect(Collectors.toList());
+        Pageable pageable = null;
+        if(page.isPresent() && pageSize.isPresent()){
+            pageable = new PageRequest(page.get(),pageSize.get());
+        }
 
+        List<GameDTO> games = gameService.findByTournamentName(name,pageable);
         return games;
     }
 
@@ -137,6 +144,24 @@ public class TournamentController {
             throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
         }
         return statsService.findByTournament(t);
+    }
+
+    @RequestMapping(value = "/tournament/{tournamentName}/rivalry", method = RequestMethod.GET)
+    public RivalryStatsDTO statsForTournamentBetweenUsers(@PathVariable(value="tournamentName") String name,@RequestParam(value="userName") String userName,@RequestParam(value="rivalName") String rivalName) {
+
+        TournamentDTO t = tournamentService.findByName(name);
+        if(t == null){
+            throw new APIException(Tournament.class,name,HttpStatus.NOT_FOUND);
+        }
+
+        UserDTO u = userService.findByUserName(userName);
+        UserDTO r = userService.findByUserName(rivalName);
+
+        if(u == null || r == null){
+            throw new APIException(User.class,userName + " or " + rivalName,HttpStatus.NOT_FOUND);
+        }
+
+        return rivalryStatsService.findByUserAndRivalAndTournament(u.getUserId(),r.getUserId(),t.getTournamentId());
     }
 
     @RequestMapping(value = "/tournament/{tournamentName}/users", method = RequestMethod.GET)

@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,8 +48,21 @@ public class TournamentService {
         return this.findBySportId(sport.getSportId());
     }
 
+    public TournamentDTO findOne(Long id){
+        Tournament t = tournamentRepository.findOne(id);
+        return convertToDto(t);
+    }
+
     public List<TournamentDTO> findAll(){
-       return tournamentRepository.findAll().stream().map(t -> convertToDto(t)).collect(Collectors.toList());
+
+       List<Tournament> tournaments = tournamentRepository.findAll();
+
+        Collections.sort(
+                tournaments,
+                (t1, t2) -> t2.getGames().size()
+                        - t1.getGames().size());
+
+       return tournaments.stream().map(t -> convertToDto(t)).collect(Collectors.toList());
     }
 
     public List<TournamentDTO> findBySportId(Long sportId){
@@ -152,10 +166,20 @@ public class TournamentService {
         //TODO might make more sense to be in POST /game ??
 
         TournamentDTO tournament =  tournamentService.findByName(tournamentName);
+        for(OutcomeDTO o : game.getOutcomes()){
+            o.setUser(userService.findByUserName(o.getUser().getUsername()));
+        }
+
         List<OutcomeDTO> outcomes = game.getOutcomes();
+        for(OutcomeDTO o : outcomes){
+            UserDTO user = userService.findByUserName(o.getUser().getUsername());
+            if(user == null){
+                throw new APIException(this.getClass(), "User " + o.getUser().getUsername() + " doesn't exist ", HttpStatus.NOT_FOUND);
+            }
+            o.setUser(user);
+        }
 
         return gameService.addGame(tournament, outcomes);
-
     }
 
     protected Tournament convertToEntity(TournamentDTO tournamentDto) throws ParseException {
@@ -167,7 +191,7 @@ public class TournamentService {
                 userService.convertToEntity(tournamentDto.getOwner()));
         tournament.setTournamentId(tournamentDto.getTournamentId());
         tournament.setIsOver(tournamentDto.getIsOver());
-        tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName()));
+        tournament.setGames(gameRepository.findByTournamentName(tournamentDto.getName(),null));
 
         return tournament;
     }

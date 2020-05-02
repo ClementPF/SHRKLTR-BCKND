@@ -2,12 +2,15 @@ package calc.entity;
 
 import javax.persistence.*;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Created by clementperez on 9/13/16.
  */
 
 @Entity
+/*
 @NamedQueries({
         @NamedQuery(name = "Game.findByTournamentName", query = "SELECT m FROM Game m WHERE m.tournament.name = ?1"),
         @NamedQuery(name = "Game.findByUserId",
@@ -18,15 +21,16 @@ import java.util.*;
                 query = "SELECT m FROM Game m " +
                         "INNER JOIN m.outcomes o " +
                         "WHERE o.user.userName = ?1"),
-        @NamedQuery(name = "Game.findByUserIdByTournamentName",
+        @NamedQuery(name = "Game.findByOutcomeUserUserIdByTournamentTournamentName",
                 query = "SELECT m FROM Game m " +
                         "INNER JOIN m.outcomes o " +
                         "WHERE o.user.userId = ?1 AND m.tournament.name=?2" ),
-        @NamedQuery(name = "Game.findByUserNameByTournamentName",
+        @NamedQuery(name = "Game.findByOutcomeUserUserNameAndByTournamentName",
         query = "SELECT m FROM Game m " +
                 "INNER JOIN m.outcomes o " +
                 "WHERE o.user.userName = ?1 AND m.tournament.name=?2" )
 })
+*/
 public class Game {
 
     @Id
@@ -38,10 +42,10 @@ public class Game {
     @JoinColumn(name = "tournamentId")
     private Tournament tournament;
 
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Outcome> outcomes;
 
-    protected Game() {}
+    public Game() {}
 
     public Game(Date date, Tournament tournament) {
         this.date = date;
@@ -85,6 +89,10 @@ public class Game {
 
     public List<Outcome> getOutcomes() {
         return outcomes;
+    }
+
+    public List<Outcome> getOutcomesForResult(Outcome.Result result) {
+        return outcomes.stream().filter(o -> o.getResults() == result).collect(Collectors.toList());
     }
 
     public void setOutcomes(List<Outcome> outcomes) {

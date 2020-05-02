@@ -1,30 +1,12 @@
 package calc.entity;
 
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
-
 import javax.persistence.*;
 
 /**
  * Created by clementperez on 9/13/16.
  */
-@Entity
-@NamedQueries({
-        @NamedQuery(name = "Stats.findByUserId", query = "SELECT s FROM Stats s WHERE s.user.userId = ?1"),
-        @NamedQuery(name = "Stats.findByUserIdAndTournamentId", query = "SELECT s FROM Stats s WHERE s.user.userId = ?1 AND s.tournament.tournamentId = ?2"),
-        @NamedQuery(name = "Stats.findByUsernameAndTournament", query = "SELECT s FROM Stats s WHERE s.user.userName = ?1 AND s.tournament.name = ?2")
-})
-public class Stats {
-    @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private Long statsId;
-    @ManyToOne
-    @JoinColumn(name="tournamentId")
-    private Tournament tournament;
-    @ManyToOne
-    @JoinColumn(name="userId", nullable = false)
-    private User user;
 
+public class BaseStats {
     private double score;
     private double bestScore;
     private double worstScore;
@@ -38,27 +20,6 @@ public class Stats {
     private int longuestWinStreak;
     private int longuestLoseStreak;
     private int longuestTieStreak;
-
-    @OneToOne
-    @NotFound(action = NotFoundAction.IGNORE)
-    @JoinColumn(name="bestRivalryId", nullable = true)
-    private RivalryStats bestRivalry;
-    @OneToOne
-    @NotFound(action = NotFoundAction.IGNORE)
-    @JoinColumn(name="worstRivalryId", nullable = true)
-    private RivalryStats worstRivalry;
-
-    public Stats() {
-        super();
-    }
-
-    public Stats(User user, Tournament tournament) {
-        super();
-
-        this.user = user;
-        this.tournament = tournament;
-        this.setScore(1000);
-    }
 
     public double getScore() {
         return score;
@@ -187,43 +148,4 @@ public class Stats {
 
     public void setLonguestTieStreak(int longuestTieStreak) {this.longuestTieStreak = longuestTieStreak; }
 
-    public Long getStatsId() {
-        return statsId;
-    }
-
-    public void setStatsId(Long statsId) {
-        this.statsId = statsId;
-    }
-
-    public Tournament getTournament() {
-        return tournament;
-    }
-
-    public void setTournament(Tournament tournament) {
-        this.tournament = tournament;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public RivalryStats getBestRivalry() {
-        return bestRivalry;
-    }
-
-    public void setBestRivalry(RivalryStats bestRivalry) {
-        this.bestRivalry = bestRivalry;
-    }
-
-    public RivalryStats getWorstRivalry() {
-        return worstRivalry;
-    }
-
-    public void setWorstRivalry(RivalryStats worstRivalry) {
-        this.worstRivalry = worstRivalry;
-    }
 }

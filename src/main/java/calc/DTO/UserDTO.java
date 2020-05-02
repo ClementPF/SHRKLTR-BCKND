@@ -17,7 +17,9 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private String username;
-    private List<StatsDTO> stats;
+    private String pictureUrl;
+    private String locale;
+    //private List<StatsDTO> stats;
 
     public UserDTO() {
         super();
@@ -25,16 +27,17 @@ public class UserDTO {
 
     public UserDTO(String username) {
         this.username = username;
-        this.stats = new ArrayList<StatsDTO>();
+        //this.stats = new ArrayList<StatsDTO>();
     }
 
+    /*
     public List<StatsDTO> getStats() {
         return stats;
     }
 
     public void setStats(List<StatsDTO> stats) {
         this.stats = stats;
-    }
+    }*/
 
     public Long getUserId() {
         return userId;
@@ -66,5 +69,21 @@ public class UserDTO {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 }

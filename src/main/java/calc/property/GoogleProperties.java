@@ -13,6 +13,8 @@ public class GoogleProperties {
 
     private String iosClientId;
     private String androidClientId;
+    private String iosStandaloneClientId;
+    private String androidStandaloneClientId;
 
     public String getIosClientId() {
         return iosClientId;
@@ -28,5 +30,21 @@ public class GoogleProperties {
 
     public void setAndroidClientId(String androidClientId) {
         this.androidClientId = androidClientId;
+    }
+
+    public String getIosStandaloneClientId() {
+        return iosStandaloneClientId;
+    }
+
+    public void setIosStandaloneClientId(String iosStandaloneClientId) {
+        this.iosStandaloneClientId = iosStandaloneClientId;
+    }
+
+    public String getAndroidStandaloneClientId() {
+        return androidStandaloneClientId;
+    }
+
+    public void setAndroidStandaloneClientId(String androidStandaloneClientId) {
+        this.androidStandaloneClientId = androidStandaloneClientId;
     }
 }

@@ -20,7 +20,7 @@ public class APIException extends RuntimeException {
     }
 
     public APIException(Class resourceClass, String exception, HttpStatus httpStatus) {
-        super(resourceClass.getSimpleName() + " " +  exception + " doesn't exist");
+        super(resourceClass.getSimpleName() + " " +  exception);
         this.httpStatus = httpStatus;
     }
 

@@ -1,15 +1,10 @@
-package calc.config;
+package calc;
 
-import calc.DTO.SportDTO;
-import calc.DTO.TournamentDTO;
-import calc.DTO.UserDTO;
 import calc.entity.*;
 import calc.property.JwtProperties;
 import calc.repository.UserRepository;
 import calc.security.JwtTokenInterceptor;
 import calc.service.GameService;
-import calc.service.SportService;
-import calc.service.TournamentService;
 import calc.service.UserService;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -17,6 +12,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,27 +34,12 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {
-    "calc.controller", 
-    "calc.repository", 
-    "calc.entity", 
-    "calc.rest", 
-    "calc.service", 
-    "calc.property",
-    "calc.security",
-    "calc.exception"
-})
-@EnableJpaRepositories(basePackages = {"calc.repository"})
 @EnableSwagger2
-@EntityScan(basePackages = {"calc.entity"})
 public class Application extends WebMvcConfigurerAdapter {
 
     public static void main(String[] args) { SpringApplication.run(Application.class, args);}
@@ -71,7 +52,7 @@ public class Application extends WebMvcConfigurerAdapter {
     private UserRepository userRepository;
     @Autowired
     private CrudRepository<Tournament,Long> repoTournament;
-    @Autowired
+    //@Autowired
     private CrudRepository<Game,Long> repoGame;
     @Autowired
     private CrudRepository<Outcome,Long> repoOutcome;
@@ -88,7 +69,11 @@ public class Application extends WebMvcConfigurerAdapter {
 
     @Bean
     public ModelMapper modelMapper() {
-        return new ModelMapper();
+
+        ModelMapper mm = new ModelMapper();
+        mm.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.STRICT);
+        return mm;
     }
     
     @Bean

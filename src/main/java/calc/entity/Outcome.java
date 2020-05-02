@@ -21,10 +21,10 @@ public class Outcome {
     private double scoreValue;
     @Column(nullable = false)
     private Result result;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "gameId")
     private Game game;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userId")
     private User user;
 
@@ -85,4 +85,14 @@ public class Outcome {
          Result(int i) {
         }
     };
+
+    public boolean isWin(){
+        return this.result == Result.WIN;
+    }
+    public boolean isLoss(){
+        return this.result == Result.LOSS;
+    }
+    public boolean isTie(){
+        return this.result == Result.TIE;
+    }
 }

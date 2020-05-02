@@ -1,5 +1,7 @@
 package calc.DTO;
 
+import java.util.Map;
+
 /**
  *
  * @author danny
@@ -7,8 +9,12 @@ package calc.DTO;
 public class ProviderUserInfoDTO {
     private String id;
     private String name;
+    private String username;
     private String email;
     private String provider;
+    private String pictureUrl;
+    private Map picture;
+    private String locale;
 
     public ProviderUserInfoDTO() {
     }
@@ -35,6 +41,10 @@ public class ProviderUserInfoDTO {
         this.name = name;
     }
 
+    public String getUsername() { return username; }
+
+    public void setUsername(String username) { this.username = username; }
+
     public String getEmail() {
         return email;
     }
@@ -49,5 +59,34 @@ public class ProviderUserInfoDTO {
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String picture) {
+        this.pictureUrl = picture;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public Map getPicture() {
+        return picture;
+    }
+
+    public void setPicture(Map picture) {
+        this.picture = picture;
+        if(picture != null){
+            Map data = (Map) picture.get("data");
+            if(data != null)
+                pictureUrl = (String) data.get("url");
+        }
     }
 }

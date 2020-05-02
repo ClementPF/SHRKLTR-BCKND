@@ -1,46 +1,16 @@
 package calc.DTO;
 
-import calc.entity.User;
-import calc.entity.Tournament;
-
-import javax.persistence.*;
 
 /**
  * Created by clementperez on 10/2/16.
  */
-public class StatsDTO extends BaseStatsDTO{
+public class RivalryStatsDTO extends BaseStatsDTO{
 
-    private Long statsId;
+    private Long rivalryStatsId;
     private UserDTO user;
+    private UserDTO rival;
+    //private StatsDTO stats;
     private TournamentDTO tournament;
-    private RivalryStatsDTO bestRivalry;
-    private RivalryStatsDTO worstRivalry;
-
-    public StatsDTO() {
-        super();
-    }
-
-    public Long getStatsId() {
-        return statsId;
-    }
-
-    public void setStatsId(Long statsId) {
-        this.statsId = statsId;
-    }
-
-    public UserDTO getUser() {
-        return user;
-    }
-
-    public void setUser(UserDTO user) {
-        this.user = user;
-    }
-
-    public TournamentDTO getTournament() {return tournament; }
-
-    public void setTournament(TournamentDTO tournament) { this.tournament = tournament;
-    }
-
     private double score;
     private int position;
     private int gameCount;
@@ -160,19 +130,44 @@ public class StatsDTO extends BaseStatsDTO{
 
     public void setLonguestLoseStreak(int longuestLoseStreak) { this.longuestLoseStreak = longuestLoseStreak; }
 
-    public RivalryStatsDTO getBestRivalry() {
-        return bestRivalry;
+    public RivalryStatsDTO() {
+        super();
     }
 
-    public void setBestRivalry(RivalryStatsDTO bestRivalry) {
-        this.bestRivalry = bestRivalry;
+    public Long getRivalryStatsId() {
+        return rivalryStatsId;
     }
 
-    public RivalryStatsDTO getWorstRivalry() {
-        return worstRivalry;
+    public void setRivalryStatsId(Long statsId) {
+        this.rivalryStatsId = statsId;
     }
 
-    public void setWorstRivalry(RivalryStatsDTO worstRivalry) {
-        this.worstRivalry = worstRivalry;
+    public UserDTO getUser() {
+        return user;
     }
+
+    public void setUser(UserDTO user) {
+        this.user = user;
+    }
+
+    public UserDTO getRival() {
+        return rival;
+    }
+
+    public void setRival(UserDTO rival) {
+        this.rival = rival;
+    }
+
+    public TournamentDTO getTournament() {return tournament; }
+
+    public void setTournament(TournamentDTO tournament) { this.tournament = tournament;
+    }
+/* prevents infinite nesting
+    public StatsDTO getStats() {
+        return stats;
+    }
+
+    public void setStats(StatsDTO stats) {
+        this.stats = stats;
+    }*/
 }

@@ -2,6 +2,7 @@ package calc.DTO;
 
 import calc.entity.Outcome;
 import calc.entity.Tournament;
+import calc.exception.APIException;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -15,9 +16,8 @@ public class GameDTO {
 
     private Long gameId;
     private Date date;
-    private String tournamentName;
-    private String tournamentDisplayName;
     private List<OutcomeDTO> outcomes;
+    private TournamentDTO tournament;
 
     public GameDTO() {
         super();
@@ -25,10 +25,9 @@ public class GameDTO {
 
     public GameDTO(TournamentDTO t, List<OutcomeDTO> o) {
         super();
-        this.tournamentName = t.getName();
-        this.tournamentDisplayName = t.getDisplayName();
         this.outcomes = o;
         this.date = new Date();
+        this.tournament = t;
     }
 
     public List<OutcomeDTO> getOutcomes() {
@@ -47,23 +46,19 @@ public class GameDTO {
         this.date = date;
     }
 
-    public String getTournamentName() {
-        return tournamentName;
-    }
-
-    public void setTournamentName(String tournamentName) {
-        this.tournamentName = tournamentName;
-    }
-
-    public String getTournamentDisplayName() { return tournamentDisplayName; }
-
-    public void setTournamentDisplayName(String tournamentDisplayName) { this.tournamentDisplayName = tournamentDisplayName;}
-
     public Long getGameId() {
         return gameId;
     }
 
     public void setGameId(Long gameId) {
         this.gameId = gameId;
+    }
+
+    public TournamentDTO getTournament() {
+        return tournament;
+    }
+
+    public void setTournament(TournamentDTO tournament) {
+        this.tournament = tournament;
     }
 }

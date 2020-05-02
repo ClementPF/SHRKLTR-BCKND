@@ -3,10 +3,8 @@ package calc.service;
 import calc.DTO.StatsDTO;
 import calc.DTO.TournamentDTO;
 import calc.DTO.UserDTO;
-import calc.entity.Outcome;
-import calc.entity.Stats;
-import calc.entity.Tournament;
-import calc.entity.User;
+import calc.entity.*;
+import calc.repository.RivalryStatsRepository;
 import calc.repository.StatsRepository;
 import calc.repository.TournamentRepository;
 import calc.repository.UserRepository;
@@ -14,8 +12,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.jws.soap.SOAPBinding;
+import javax.sound.midi.SysexMessage;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +33,14 @@ public class StatsService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private TournamentService tournamentService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private RivalryStatsService rivalryStatsService;
+    @Autowired
+    private RivalryStatsRepository rivalryStatsRepository;
+    @Autowired
     private ModelMapper modelMapper;
 
     public List<StatsDTO> findByTournament(TournamentDTO tournament){
@@ -45,6 +53,12 @@ public class StatsService {
                 .map(s -> convertToDto(s)).collect(Collectors.toList());
     }
 
+    public List<StatsDTO> findByUserName(String username){
+        return statsRepository.findByUser(userRepository.findByUserName(username)).stream()
+                .map(s -> convertToDto(s)).collect(Collectors.toList());
+    }
+
+
     public StatsDTO save(StatsDTO stats){
         try {
             return convertToDto(statsRepository.save(convertToEntity(stats)));
@@ -54,21 +68,21 @@ public class StatsService {
         return null;
     }
 
-    public StatsDTO findByUserAndTournament(Long userId, String tournamentName){
+    public StatsDTO findByUserAndTournament(Long userId, Long tournamentId){
 
-        Stats s = statsRepository.findByUserAndTournament(userId, tournamentName);
+        Stats s = statsRepository.findByUserUserIdAndTournamentTournamentId(userId, tournamentId);
         return s == null ? null : convertToDto(s);
     }
 
     public StatsDTO findByUserNameAndTournament(String username, String tournamentName){
 
-        Stats s = statsRepository.findByUserAndTournament(username, tournamentName);
+        Stats s = statsRepository.findByUserUserNameAndTournamentName(username, tournamentName);
         return s == null ? null : convertToDto(s);
     }
 
     public StatsDTO findByUserAndTournamentCreateIfNone(UserDTO user, TournamentDTO tournament){
 
-        StatsDTO stats = findByUserAndTournament(user.getUserId(),tournament.getName());
+        StatsDTO stats = findByUserAndTournament(user.getUserId(),tournament.getTournamentId());
 
         User u = userRepository.findOne(user.getUserId());
         Tournament t = tournamentRepository.findOne(tournament.getTournamentId());
@@ -81,12 +95,11 @@ public class StatsService {
         return stats;
     }
 
-    public void recalculateAfterOutcome(Outcome outcome){
-        Stats stats = statsRepository.findByUserAndTournament(outcome.getUser().getUserId(), outcome.getGame().getTournament().getName());
+    public Stats recalculateAfterOutcome(Outcome outcome){
+        Stats stats = statsRepository.findByUserUserIdAndTournamentTournamentId(outcome.getUser().getUserId(), outcome.getGame().getTournament().getTournamentId());
 
         if(stats == null){
             stats = new Stats(outcome.getUser(),outcome.getGame().getTournament());
-            statsRepository.save(stats);
         }
 
         stats.setScore(stats.getScore() + outcome.getScoreValue());
@@ -104,12 +117,73 @@ public class StatsService {
             default:
                 break;
         }
-        statsRepository.save(stats);
+        return stats;
+    }
+
+
+    public List<Stats> recalculateAfterGame(Game g){
+        List<Stats> stats = new ArrayList<>();
+        for(Outcome outcome : g.getOutcomes()){
+            stats.add(recalculateAfterOutcome(outcome));
+        }
+        return stats;
+    }
+
+
+    public Stats recalculateBestRivalry(RivalryStats rivalryStats){
+
+        Double score = rivalryStats.getScore();
+        Stats s = rivalryStats.getStats();
+        RivalryStats bestRs = s.getBestRivalry();
+        RivalryStats newBestRs = s.getBestRivalry();
+
+        if(score > 0 && (bestRs == null || score > bestRs.getScore())) {// can be null if no games were won
+            newBestRs = rivalryStats;
+        }else if(bestRs != null && bestRs.getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
+            List<RivalryStats> rss = rivalryStatsRepository.findByStatsId(s.getStatsId());
+
+            newBestRs = rss.stream()
+                    .max(Comparator.comparing(RivalryStats::getScore))
+                    .filter(rs -> rs.getScore() > 0)
+                    .orElse(null);
+        }
+
+        if(bestRs != newBestRs){
+            s.setBestRivalry(newBestRs);
+        }
+
+        return s;
+    }
+
+    public Stats recalculateWorstRivalry(RivalryStats rivalryStats){
+        Double score = rivalryStats.getScore();
+        Stats s = rivalryStats.getStats();
+        RivalryStats worstRs = s.getWorstRivalry();
+        RivalryStats newWorstRs = s.getWorstRivalry();
+
+        if(score < 0 && (worstRs == null || score < worstRs.getScore())) {
+            newWorstRs = rivalryStats;
+        }else if(worstRs != null && worstRs.getRivalryStatsId() == rivalryStats.getRivalryStatsId()){
+            // need to find next newWorstRivalry
+            List<RivalryStats> rss = rivalryStatsRepository.findByStatsId(s.getStatsId());
+
+            newWorstRs = rss.stream()
+                    .min(Comparator.comparing(RivalryStats::getScore))
+                    .filter(rs -> rs.getScore() < 0)
+                    .orElse(null);
+        }
+
+        if(worstRs != newWorstRs){
+            s.setWorstRivalry(newWorstRs);
+        }
+
+        return s;
     }
 
     public Stats convertToEntity(StatsDTO statsDto) throws ParseException {
 
-        Stats stats = modelMapper.map(statsDto, Stats.class);
+        //modelMapper.getConfiguration().setAmbiguityIgnored(true);
+        Stats stats = new Stats(); //modelMapper.map(statsDto, Stats.class);
 
         stats.setStatsId(statsDto.getStatsId());
         stats.setScore(statsDto.getScore());
@@ -125,9 +199,11 @@ public class StatsService {
         stats.setLonguestTieStreak(statsDto.getLonguestTieStreak());
         stats.setBestScore(statsDto.getBestScore());
         stats.setWorstScore(statsDto.getWorstScore());
-        if(statsDto.getStatsId() != null) {
-            stats.setTournament(statsRepository.findOne(statsDto.getStatsId()).getTournament());
-            stats.setUser(statsRepository.findOne(statsDto.getStatsId()).getUser());
+        if(statsDto.getTournament() != null && statsDto.getTournament().getTournamentId() != null) {
+            stats.setTournament(tournamentRepository.findOne(statsDto.getTournament().getTournamentId()));
+        }
+        if(statsDto.getUser() != null && statsDto.getUser().getUserId() != null){
+            stats.setUser(userRepository.findOne(statsDto.getUser().getUserId()));
         }
 
         return stats;
@@ -135,7 +211,7 @@ public class StatsService {
 
     public StatsDTO convertToDto(Stats stats) {
 
-        StatsDTO statsDTO = modelMapper.map(stats, StatsDTO.class);
+        StatsDTO statsDTO = new StatsDTO(); //modelMapper.map(stats, StatsDTO.class);
 
         statsDTO.setStatsId(stats.getStatsId());
         statsDTO.setScore(stats.getScore());
@@ -151,9 +227,13 @@ public class StatsService {
         statsDTO.setLonguestTieStreak(stats.getLonguestTieStreak());
         statsDTO.setBestScore(stats.getBestScore());
         statsDTO.setWorstScore(stats.getWorstScore());
-        statsDTO.setUsername(stats.getUser().getUserName());
-        statsDTO.setTournamentDisplayName(stats.getTournament().getDisplayName());
-        statsDTO.setTournamentName(stats.getTournament().getName());
+        statsDTO.setUser(userService.convertToDto(stats.getUser()));
+        statsDTO.setTournament(tournamentService.convertToDto(stats.getTournament()));
+        statsDTO.setTournament(tournamentService.convertToDto(stats.getTournament()));
+        if(stats.getBestRivalry() != null)
+            statsDTO.setBestRivalry(rivalryStatsService.convertToDto(stats.getBestRivalry()));
+        if(stats.getWorstRivalry() != null)
+            statsDTO.setWorstRivalry(rivalryStatsService.convertToDto(stats.getWorstRivalry()));
 
         return statsDTO;
     }

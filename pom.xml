@@ -99,7 +99,7 @@
         <swagger.version>2.5.0</swagger.version>
         <modelmapper.version>0.7.4</modelmapper.version>
         <hikaricp.version>2.6.3</hikaricp.version>
-        <mysql.connector.version>5.1.43</mysql.connector.version>
+        <mysql.connector.version>8.0.16</mysql.connector.version>
         <java-jwt.version>3.2.0</java-jwt.version>
         <jwks-rsa.version>0.11.0</jwks-rsa.version>
         <logback.versions>1.2.3</logback.versions>
